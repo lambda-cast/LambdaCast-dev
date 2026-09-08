@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sunalyzer — Manage Users</title>
+  <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
+  <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
+  <link href="/css/platform.css" rel="stylesheet"/>
+</head>
+<body class="platform-page">
+
+<div class="spinner-overlay" role="status">
+  <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+</div>
+
+<nav class="navbar navbar-expand-lg platform-navbar px-3">
+  <a class="navbar-brand" href="/admin"><i class="fas fa-sun me-2"></i>Sunalyzer Admin</a>
+  <div class="ms-auto d-flex align-items-center gap-2">
+    <span class="badge bg-warning text-dark">ADMIN</span>
+    <span class="text-warning small fw-semibold" id="nav-username"></span>
+    <button class="btn btn-sm btn-outline-light" id="logout-btn">
+      <i class="fas fa-sign-out-alt me-1"></i>Logout
+    </button>
+  </div>
+</nav>
+
+<div class="container-fluid">
+<div class="row">
+  <nav class="col-md-3 col-lg-2 d-md-block platform-sidebar">
+    <ul class="nav flex-column pt-2" id="sidebar-nav"></ul>
+  </nav>
+
+  <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="fw-bold mb-0">Manage Users</h4>
+        <p class="text-muted small mb-0">Create users and assign installations</p>
+      </div>
+      <button class="btn btn-solar" data-bs-toggle="modal" data-bs-target="#createUserModal">
+        <i class="fas fa-user-plus me-1"></i>Create User
+      </button>
+    </div>
+
+    <div id="alert-error"   class="alert alert-danger  d-none mb-3"></div>
+    <div id="alert-success" class="alert alert-success d-none mb-3"></div>
+
+    <!-- Users table -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold">
+        <i class="fas fa-users me-2 text-solar"></i>Users
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table platform-table mb-0">
+            <thead>
+              <tr>
+                <th>Username</th><th>Email</th><th>Role</th>
+                <th>Installations</th><th>Status</th><th>Last Login</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <tr><td colspan="7" class="text-center text-muted py-3">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assign installations section -->
+    <div class="card border-0 shadow-sm" id="assign-section" style="display:none">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">
+          <i class="fas fa-solar-panel me-2 text-solar"></i>
+          Assign Installations to: <strong id="assign-username">—</strong>
+        </span>
+        <button class="btn btn-sm btn-outline-secondary" id="btn-close-assign">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="card-body">
+        <p class="text-muted small mb-3">
+          Select installations below to reassign them to this user.
+          Currently assigned installations are highlighted.
+        </p>
+        <div class="row g-2" id="assign-installations-grid"></div>
+        <div class="mt-3">
+          <button class="btn btn-solar" id="btn-confirm-assign" disabled>
+            <i class="fas fa-check me-1"></i>Apply Assignments
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-modal="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-user-plus me-2 text-solar"></i>Create New User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-error" class="alert alert-danger d-none"></div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+          <input type="text" id="new-username" class="form-control" placeholder="e.g. john.doe"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+          <input type="email" id="new-email" class="form-control" placeholder="e.g. john@example.com"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+          <input type="password" id="new-password" class="form-control" placeholder="Min. 8 characters"/>
+          <div class="form-text">The user can change this after first login.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Role</label>
+          <select id="new-role" class="form-select">
+            <option value="USER">USER — can see own installations only</option>
+            <option value="ADMIN">ADMIN — full access</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-solar" id="btn-create-user">
+          <span id="create-spinner" class="spinner-border spinner-border-sm me-1 d-none"></span>
+          Create User
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPwdModal" tabindex="-1" aria-modal="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Reset Password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-2">New password for <strong id="reset-username"></strong>:</p>
+        <input type="password" id="reset-password" class="form-control" placeholder="Min. 8 characters"/>
+        <div id="reset-error" class="text-danger small mt-1 d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-warning btn-sm" id="btn-confirm-reset">Reset Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/lib/bootstrap.bundle.min.js"></script>
+<script src="/js/platform_api.js"></script>
+<script>
+let gUsers         = [];
+let gAllInst       = [];
+let gAssignUserId  = null;
+let gSelectedInst  = new Set();  // installation IDs to assign
+let gResetUserId   = null;
+
+const createModal = new bootstrap.Modal(document.getElementById("createUserModal"));
+const resetModal  = new bootstrap.Modal(document.getElementById("resetPwdModal"));
+
+(async () => {
+  PlatformAPI.showSpinner();
+  try {
+    const user = await PlatformAPI.requireAdmin();
+    if (!user) return;
+
+    document.getElementById("nav-username").textContent = user.username;
+    document.getElementById("sidebar-nav").innerHTML =
+      PlatformAPI.buildSidebarNav("/admin/users", user);
+
+    await loadData();
+
+    // Create user
+    document.getElementById("btn-create-user").addEventListener("click", createUser);
+
+    // Confirm assign
+    document.getElementById("btn-confirm-assign").addEventListener("click", applyAssignments);
+    document.getElementById("btn-close-assign").addEventListener("click", () => {
+      document.getElementById("assign-section").style.display = "none";
+      gAssignUserId = null; gSelectedInst.clear();
+    });
+
+    // Reset password confirm
+    document.getElementById("btn-confirm-reset").addEventListener("click", async () => {
+      const pwd = document.getElementById("reset-password").value;
+      if (pwd.length < 8) {
+        document.getElementById("reset-error").textContent = "Minimum 8 characters.";
+        document.getElementById("reset-error").classList.remove("d-none");
+        return;
+      }
+      try {
+        await PlatformAPI.admin.resetPassword(gResetUserId, pwd);
+        resetModal.hide();
+        showSuccess("Password reset successfully.");
+      } catch (err) {
+        document.getElementById("reset-error").textContent = err.data?.error || "Failed.";
+        document.getElementById("reset-error").classList.remove("d-none");
+      }
+    });
+
+    document.getElementById("logout-btn").addEventListener("click",
+      () => PlatformAPI.auth.logout());
+
+  } catch (err) {
+    PlatformAPI.showError("Failed to load page: " + (err.message || "Unknown error"));
+  } finally {
+    PlatformAPI.hideSpinner();
+  }
+})();
+
+async function loadData() {
+  [gUsers, gAllInst] = await Promise.all([
+    PlatformAPI.admin.listUsers(),
+    PlatformAPI.admin.listInstallations(),
+  ]);
+  renderUsers();
+}
+
+function renderUsers() {
+  const tbody = document.getElementById("users-tbody");
+  if (!gUsers.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">No users</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = gUsers.map(u => {
+    const instCount = gAllInst.filter(i => i.owner_user_id === u.id).length;
+    return `
+    <tr>
+      <td class="fw-semibold">${esc(u.username)}</td>
+      <td class="text-muted small">${esc(u.email)}</td>
+      <td>
+        <span class="badge ${u.role === "ADMIN" ? "bg-warning text-dark" : "bg-secondary"}">
+          ${u.role}
+        </span>
+      </td>
+      <td>
+        <button class="btn btn-sm btn-outline-secondary" onclick="openAssign(${u.id})"
+                title="Assign installations">
+          <i class="fas fa-solar-panel me-1"></i>${instCount}
+        </button>
+      </td>
+      <td>
+        <span class="badge ${u.is_active ? "bg-success" : "bg-danger"}">
+          ${u.is_active ? "Active" : "Disabled"}
+        </span>
+      </td>
+      <td class="text-muted small">
+        ${u.last_login ? new Date(u.last_login).toLocaleString() : "Never"}
+      </td>
+      <td>
+        <div class="d-flex gap-1 flex-wrap">
+          <button class="btn btn-sm btn-outline-secondary" title="Reset password"
+                  onclick="openResetPwd(${u.id}, '${esc(u.username)}')">
+            <i class="fas fa-key"></i>
+          </button>
+          <button class="btn btn-sm ${u.role === "ADMIN" ? "btn-outline-warning" : "btn-outline-primary"}"
+                  title="${u.role === "ADMIN" ? "Demote to USER" : "Promote to ADMIN"}"
+                  onclick="toggleRole(${u.id}, '${u.role}')">
+            <i class="fas ${u.role === "ADMIN" ? "fa-user-minus" : "fa-user-shield"}"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" title="${u.is_active ? "Disable" : "Already disabled"}"
+                  ${u.is_active ? "" : "disabled"} onclick="disableUser(${u.id})">
+            <i class="fas fa-ban"></i>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+function openAssign(userId) {
+  gAssignUserId = userId;
+  const user = gUsers.find(u => u.id === userId);
+  document.getElementById("assign-username").textContent = user?.username || userId;
+
+  // Pre-select installations currently owned by this user
+  gSelectedInst = new Set(
+    gAllInst.filter(i => i.owner_user_id === userId).map(i => i.id)
+  );
+
+  renderAssignGrid();
+  document.getElementById("assign-section").style.display = "";
+  document.getElementById("assign-section").scrollIntoView({ behavior: "smooth" });
+}
+
+function renderAssignGrid() {
+  const grid = document.getElementById("assign-installations-grid");
+  const btn  = document.getElementById("btn-confirm-assign");
+
+  if (!gAllInst.length) {
+    grid.innerHTML = `<div class="col-12 text-muted small">No installations in the system.</div>`;
+    btn.disabled = true;
+    return;
+  }
+
+  grid.innerHTML = gAllInst.map(i => {
+    const selected = gSelectedInst.has(i.id);
+    const curOwner = gUsers.find(u => u.id === i.owner_user_id);
+    return `
+      <div class="col-md-6 col-xl-4">
+        <div class="card border-2 cursor-pointer ${selected ? "border-solar" : ""}"
+             style="cursor:pointer;border-color:${selected ? "#f39c12" : "#dee2e6"}!important"
+             onclick="toggleInstSelect(${i.id}, this)">
+          <div class="card-body py-2 px-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="fw-semibold small">${esc(i.name)}</div>
+                <div class="text-muted" style="font-size:.75rem">
+                  ${esc(i.governorate || i.city || "—")}
+                  ${i.installed_capacity_kwp ? " · " + i.installed_capacity_kwp + " kWp" : ""}
+                </div>
+                <div class="text-muted" style="font-size:.72rem">
+                  Owner: ${esc(curOwner?.username || "unknown")}
+                </div>
+              </div>
+              <i class="fas fa-${selected ? "check-circle text-solar" : "circle text-muted"}"
+                 id="icon-${i.id}"></i>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+
+  btn.disabled = false;
+}
+
+function toggleInstSelect(id, el) {
+  if (gSelectedInst.has(id)) {
+    gSelectedInst.delete(id);
+    el.style.borderColor = "#dee2e6";
+    const icon = document.getElementById(`icon-${id}`);
+    if (icon) { icon.className = "fas fa-circle text-muted"; }
+  } else {
+    gSelectedInst.add(id);
+    el.style.borderColor = "#f39c12";
+    const icon = document.getElementById(`icon-${id}`);
+    if (icon) { icon.className = "fas fa-check-circle text-solar"; }
+  }
+}
+
+async function applyAssignments() {
+  if (!gAssignUserId) return;
+  const btn = document.getElementById("btn-confirm-assign");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving…';
+
+  let ok = 0, fail = 0;
+  for (const instId of gSelectedInst) {
+    const inst = gAllInst.find(i => i.id === instId);
+    if (!inst || inst.owner_user_id === gAssignUserId) { ok++; continue; }
+    try {
+      await PlatformAPI.admin.assignInstallation(instId, gAssignUserId);
+      ok++;
+    } catch (_) { fail++; }
+  }
+
+  // Unassign installations that were deselected from this user
+  for (const inst of gAllInst) {
+    if (inst.owner_user_id === gAssignUserId && !gSelectedInst.has(inst.id)) {
+      // Don't auto-unassign — just skip (admin must manually reassign to another user)
+    }
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-check me-1"></i>Apply Assignments';
+
+  if (fail > 0) {
+    PlatformAPI.showError(`${fail} assignment(s) failed.`);
+  } else {
+    showSuccess(`${ok} installation(s) assigned to ${gUsers.find(u => u.id === gAssignUserId)?.username}.`);
+  }
+
+  document.getElementById("assign-section").style.display = "none";
+  gAssignUserId = null;
+  gSelectedInst.clear();
+  await loadData();
+}
+
+async function createUser() {
+  const username = document.getElementById("new-username").value.trim();
+  const email    = document.getElementById("new-email").value.trim();
+  const password = document.getElementById("new-password").value;
+  const role     = document.getElementById("new-role").value;
+  const errEl    = document.getElementById("modal-error");
+  const btn      = document.getElementById("btn-create-user");
+  const spinner  = document.getElementById("create-spinner");
+
+  errEl.classList.add("d-none");
+  if (!username || !email || !password) {
+    errEl.textContent = "All fields are required.";
+    errEl.classList.remove("d-none");
+    return;
+  }
+
+  btn.disabled = true;
+  spinner.classList.remove("d-none");
+  try {
+    await PlatformAPI.admin.createUser({ username, email, password, role });
+    createModal.hide();
+    document.getElementById("new-username").value = "";
+    document.getElementById("new-email").value    = "";
+    document.getElementById("new-password").value = "";
+    showSuccess(`User '${username}' created successfully.`);
+    await loadData();
+  } catch (err) {
+    errEl.textContent = err.data?.error || "Failed to create user.";
+    errEl.classList.remove("d-none");
+  } finally {
+    btn.disabled = false;
+    spinner.classList.add("d-none");
+  }
+}
+
+function openResetPwd(userId, username) {
+  gResetUserId = userId;
+  document.getElementById("reset-username").textContent = username;
+  document.getElementById("reset-password").value       = "";
+  document.getElementById("reset-error").classList.add("d-none");
+  resetModal.show();
+}
+
+async function toggleRole(userId, currentRole) {
+  const newRole = currentRole === "ADMIN" ? "USER" : "ADMIN";
+  if (!confirm(`Change role to ${newRole}?`)) return;
+  try {
+    await PlatformAPI.admin.updateUser(userId, { role: newRole });
+    showSuccess("Role updated.");
+    await loadData();
+  } catch (err) {
+    PlatformAPI.showError(err.data?.error || "Failed.");
+  }
+}
+
+async function disableUser(userId) {
+  if (!confirm("Disable this user? They will not be able to log in.")) return;
+  try {
+    await PlatformAPI.admin.disableUser(userId);
+    showSuccess("User disabled.");
+    await loadData();
+  } catch (err) {
+    PlatformAPI.showError(err.data?.error || "Failed.");
+  }
+}
+
+function showSuccess(msg) {
+  const el = document.getElementById("alert-success");
+  el.textContent = msg;
+  el.classList.remove("d-none");
+  setTimeout(() => el.classList.add("d-none"), 4000);
+}
+
+function esc(s) {
+  return s == null ? "" : String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+</script>
+</body>
+</html>

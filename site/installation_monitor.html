@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sunalyzer — Live Monitor</title>
+  <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
+  <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
+  <link href="/css/platform.css" rel="stylesheet"/>
+  <style>
+    .monitor-card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+    .kpi-value { font-size: 2.2rem; font-weight: 700; line-height: 1.1; }
+    .kpi-unit  { font-size: .85rem; color: #6c757d; }
+    .flow-box  {
+      border: 2px solid #dee2e6; border-radius: 12px; padding: 16px;
+      text-align: center; min-width: 110px;
+    }
+    .flow-arrow { font-size: 1.4rem; color: #adb5bd; display: flex; align-items: center; }
+    .live-dot   {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #27ae60; display: inline-block;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; } 50% { opacity: .3; }
+    }
+    #realtime-chart-container { height: 220px; }
+  </style>
+</head>
+<body class="platform-page">
+
+<div class="spinner-overlay" role="status">
+  <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg platform-navbar px-3">
+  <a class="navbar-brand" href="/platform"><i class="fas fa-sun me-2"></i>Sunalyzer</a>
+  <div class="ms-auto d-flex align-items-center gap-2">
+    <span class="badge bg-warning text-dark d-none" id="live-badge">
+      <span class="live-dot me-1"></span>LIVE
+    </span>
+    <span class="text-warning small fw-semibold" id="nav-username"></span>
+    <span class="badge d-none" id="nav-role-badge"></span>
+    <button class="btn btn-sm btn-outline-light" id="logout-btn">
+      <i class="fas fa-sign-out-alt me-1"></i>Logout
+    </button>
+  </div>
+</nav>
+
+<div class="container-fluid">
+<div class="row">
+
+  <!-- Sidebar -->
+  <nav class="col-md-3 col-lg-2 d-md-block platform-sidebar">
+    <ul class="nav flex-column pt-2" id="sidebar-nav"></ul>
+  </nav>
+
+  <!-- Main -->
+  <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/platform" class="text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="/platform/installations" class="text-decoration-none">Installations</a></li>
+        <li class="breadcrumb-item"><a href="#" class="text-decoration-none" id="bc-inst">Installation</a></li>
+        <li class="breadcrumb-item active">Live Monitor</li>
+      </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+      <div>
+        <h4 class="fw-bold mb-1" id="inst-name">Loading…</h4>
+        <p class="text-muted small mb-0" id="inst-meta">—</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a id="btn-detail" href="#" class="btn btn-sm btn-outline-secondary">
+          <i class="fas fa-info-circle me-1"></i>Details
+        </a>
+        <span class="text-muted small align-self-center" id="last-update"></span>
+      </div>
+    </div>
+
+    <div id="alert-error" class="alert alert-danger d-none mb-3"></div>
+
+    <!-- ── Energy Flow ──────────────────────────────────────────────── -->
+    <div class="card monitor-card p-3 mb-4">
+      <div class="d-flex align-items-center justify-content-around flex-wrap gap-3 py-2">
+
+        <!-- Solar panels -->
+        <div class="flow-box" style="border-color:#f39c12">
+          <i class="fas fa-sun fa-2x text-solar mb-2 d-block"></i>
+          <div class="kpi-value text-solar" id="flow-produced">—</div>
+          <div class="kpi-unit">W Production</div>
+        </div>
+
+        <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+
+        <!-- Home -->
+        <div class="flow-box" style="border-color:#27ae60">
+          <i class="fas fa-home fa-2x text-success mb-2 d-block"></i>
+          <div class="kpi-value text-success" id="flow-consumed-pv">—</div>
+          <div class="kpi-unit">W Self-use</div>
+        </div>
+
+        <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+
+        <!-- Grid -->
+        <div class="flow-box" style="border-color:#2980b9">
+          <i class="fas fa-bolt fa-2x mb-2 d-block" style="color:#2980b9"></i>
+          <div class="kpi-value" style="color:#2980b9" id="flow-fed-in">—</div>
+          <div class="kpi-unit">W Fed-in</div>
+        </div>
+
+        <!-- Grid draw (negative direction) -->
+        <div class="flow-arrow ms-3 text-muted">
+          <i class="fas fa-plug"></i>
+        </div>
+        <div class="flow-box" style="border-color:#8e44ad">
+          <i class="fas fa-industry fa-2x mb-2 d-block" style="color:#8e44ad"></i>
+          <div class="kpi-value" style="color:#8e44ad" id="flow-grid">—</div>
+          <div class="kpi-unit">W From Grid</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── KPI Row ──────────────────────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+      <div class="col-sm-6 col-xl-3">
+        <div class="card monitor-card p-3">
+          <div class="kpi-unit mb-1">Today Produced</div>
+          <div class="kpi-value text-solar" id="kpi-today-prod">—</div>
+          <div class="kpi-unit">kWh</div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="card monitor-card p-3">
+          <div class="kpi-unit mb-1">Today Consumed</div>
+          <div class="kpi-value text-success" id="kpi-today-cons">—</div>
+          <div class="kpi-unit">kWh</div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="card monitor-card p-3">
+          <div class="kpi-unit mb-1">Today Autarky</div>
+          <div class="kpi-value" style="color:#8e44ad" id="kpi-autarky">—</div>
+          <div class="kpi-unit">%</div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="card monitor-card p-3">
+          <div class="kpi-unit mb-1">All-time Produced</div>
+          <div class="kpi-value" style="color:#2980b9" id="kpi-alltime">—</div>
+          <div class="kpi-unit">kWh</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Real-time chart ──────────────────────────────────────────── -->
+    <div class="card monitor-card mb-4">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">
+          <i class="fas fa-chart-area me-2 text-solar"></i>Production — Last 24 h
+        </span>
+        <div class="btn-group btn-group-sm" role="group">
+          <button type="button" class="btn btn-outline-secondary" onclick="setTimespan(6)">6h</button>
+          <button type="button" class="btn btn-outline-secondary active" id="btn-24h" onclick="setTimespan(24)">24h</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="realtime-chart-container">
+          <canvas id="realtime-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PVGIS comparison ─────────────────────────────────────────── -->
+    <div class="card monitor-card mb-4" id="pvgis-card">
+      <div class="card-header bg-white fw-semibold">
+        <i class="fas fa-sun me-2 text-solar"></i>PVGIS Expected vs Actual (Monthly)
+      </div>
+      <div class="card-body" id="pvgis-body" style="height:220px">
+        <canvas id="pvgis-chart"></canvas>
+      </div>
+    </div>
+
+    <p class="text-muted small">
+      <i class="fas fa-info-circle me-1"></i>
+      Live data refreshes every 5 seconds. This monitor shows data from the shared Sunalyzer device.
+    </p>
+
+  </main>
+</div>
+</div>
+
+<script src="/lib/bootstrap.bundle.min.js"></script>
+<script src="/lib/chart.min.js"></script>
+<script src="/js/platform_api.js"></script>
+<script>
+const INST_ID = parseInt(window.location.pathname.split("/").filter(Boolean).find((p, i, a) =>
+  a[i-1] === "installations" && /^\d+$/.test(p)
+));
+
+let gChart = null;
+let gPvgisChart = null;
+let gTimespan = 24;
+let gRefreshInterval = null;
+
+(async () => {
+  PlatformAPI.showSpinner();
+  try {
+    const user = await PlatformAPI.requireAuth();
+    if (!user) return;
+
+    document.getElementById("nav-username").textContent = user.username;
+    if (user.role === "ADMIN") {
+      const b = document.getElementById("nav-role-badge");
+      b.textContent = "ADMIN"; b.className = "badge bg-warning text-dark";
+    }
+    document.getElementById("sidebar-nav").innerHTML =
+      PlatformAPI.buildSidebarNav("/platform/installations", user);
+
+    if (isNaN(INST_ID)) {
+      PlatformAPI.showError("Invalid installation ID.");
+      return;
+    }
+
+    // Load installation info
+    let inst;
+    try {
+      inst = await PlatformAPI.installations.get(INST_ID);
+    } catch {
+      PlatformAPI.showError("Installation not found or access denied.");
+      return;
+    }
+
+    document.getElementById("inst-name").textContent = inst.name;
+    document.getElementById("bc-inst").textContent   = inst.name;
+    document.getElementById("bc-inst").href = `/platform/installations/${INST_ID}`;
+    document.getElementById("btn-detail").href = `/platform/installations/${INST_ID}`;
+    document.getElementById("inst-meta").textContent =
+      [inst.city, inst.governorate, inst.installed_capacity_kwp
+        ? inst.installed_capacity_kwp + " kWp" : null]
+        .filter(Boolean).join(" · ");
+
+    // Start live refresh
+    await refreshLive();
+    document.getElementById("live-badge").classList.remove("d-none");
+    gRefreshInterval = setInterval(refreshLive, 5000);
+
+    // Load PVGIS comparison
+    loadPVGISComparison(inst);
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      clearInterval(gRefreshInterval);
+      PlatformAPI.auth.logout();
+    });
+
+  } finally {
+    PlatformAPI.hideSpinner();
+  }
+})();
+
+async function refreshLive() {
+  try {
+    const [stats, rt] = await Promise.all([
+      fetch("/query?type=current").then(r => r.json()),
+      fetch(`/query?type=real_time&h=${gTimespan}`).then(r => r.json()),
+    ]);
+
+    if (stats.state === "ok") {
+      set("flow-produced",    fmt0(stats.currently_produced_w) + " W");
+      set("flow-consumed-pv", fmt0(stats.currently_consumed_pv_w || 0) + " W");
+      set("flow-fed-in",      fmt0(stats.currently_fed_in_w) + " W");
+      set("flow-grid",        fmt0(stats.currently_consumed_grid_w) + " W");
+
+      set("kpi-today-prod", fmt2(stats.today_produced_kwh));
+      set("kpi-today-cons", fmt2(stats.today_consumed_kwh));
+      set("kpi-autarky",    fmt0(stats.today_autarky));
+      set("kpi-alltime",    fmt0(stats.all_time_produced_kwh));
+    }
+
+    renderRealtimeChart(rt);
+
+    const now = new Date();
+    document.getElementById("last-update").textContent =
+      "Updated " + now.toLocaleTimeString();
+
+  } catch (_) {}
+}
+
+function setTimespan(h) {
+  gTimespan = h;
+  document.querySelectorAll(".btn-group .btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("btn-" + (h === 24 ? "24h" : h + "h")) &&
+    document.getElementById("btn-" + (h === 24 ? "24h" : h + "h")).classList.add("active");
+  if (gChart) { gChart.destroy(); gChart = null; }
+  refreshLive();
+}
+
+function renderRealtimeChart(data) {
+  const labels = [], values = [];
+  for (let i = data.length - 1; i >= 0; i--) {
+    labels.push(data[i][1]);
+    values.push(parseFloat(data[i][2]) * 1000);  // kW → W
+  }
+
+  if (!gChart) {
+    gChart = new Chart(document.getElementById("realtime-chart"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "Production (W)",
+          data: values,
+          borderColor: "#f39c12",
+          backgroundColor: "#f39c1215",
+          fill: true,
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.3,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${Math.round(ctx.parsed.y)} W`,
+            },
+          },
+        },
+        scales: {
+          x: { ticks: { maxTicksLimit: 8 } },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: "Watts" },
+          },
+        },
+      },
+    });
+  } else {
+    gChart.data.labels = labels;
+    gChart.data.datasets[0].data = values;
+    gChart.update("none");
+  }
+}
+
+async function loadPVGISComparison(inst) {
+  if (!inst.latitude || !inst.longitude) {
+    document.getElementById("pvgis-card").style.display = "none";
+    return;
+  }
+  try {
+    const pvgis = await PlatformAPI.installations.pvgis(INST_ID);
+    const monthly = pvgis?.data?.monthly_production_kwh;
+    if (!monthly || monthly.length !== 12) {
+      document.getElementById("pvgis-card").style.display = "none";
+      return;
+    }
+
+    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const today  = new Date();
+    const curM   = today.getMonth();
+
+    // Actual monthly from telemetry (if available)
+    let actual = new Array(12).fill(null);
+    try {
+      const histData = await fetch("/query?type=months_in_year&date=" + today.getFullYear())
+        .then(r => r.json());
+      histData.forEach(row => {
+        const m = parseInt(row.date.split("-")[1]) - 1;
+        actual[m] = parseFloat((row.produced_self + row.produced_feed_in).toFixed(1));
+      });
+    } catch (_) {}
+
+    if (gPvgisChart) gPvgisChart.destroy();
+    gPvgisChart = new Chart(document.getElementById("pvgis-chart"), {
+      type: "bar",
+      data: {
+        labels: MONTHS,
+        datasets: [
+          {
+            label: "PVGIS Expected (kWh)",
+            data: monthly,
+            backgroundColor: "#f39c1288",
+            borderColor: "#f39c12",
+            borderWidth: 1,
+            borderRadius: 4,
+          },
+          {
+            label: "Actual (kWh)",
+            data: actual,
+            backgroundColor: "#27ae6088",
+            borderColor: "#27ae60",
+            borderWidth: 1,
+            borderRadius: 4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y ?? "—"} kWh`,
+            },
+          },
+        },
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: "kWh" } },
+        },
+      },
+    });
+  } catch (_) {
+    document.getElementById("pvgis-card").style.display = "none";
+  }
+}
+
+function set(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function fmt0(n) {
+  return n == null ? "—" : Math.round(n).toLocaleString("en-US");
+}
+
+function fmt2(n) {
+  return n == null ? "—" : parseFloat(n).toLocaleString("en-US", {
+    minimumFractionDigits: 2, maximumFractionDigits: 2,
+  });
+}
+</script>
+</body>
+</html>

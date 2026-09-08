@@ -1,0 +1,12 @@
+services:
+  sunalyzer:
+    container_name: sunalyzer
+    build: .
+    restart: always
+    ports:
+      - "8020:5000"
+    volumes:
+      - ./data:/data
+    environment:
+      - SUNALYZER_ADMIN_PASSWORD=ABIDpes2003!
+      - SUNALYZER_SECRET_KEY=ABIDpes2003!

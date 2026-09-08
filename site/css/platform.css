@@ -1,0 +1,240 @@
+/*
+ * platform.css
+ * Styles for the multi-installation platform pages.
+ * Builds on top of Bootstrap — no overrides to existing custom.css / styles.css.
+ */
+
+:root {
+  --solar-primary: #f39c12;
+  --solar-primary-dark: #d68910;
+  --solar-secondary: #2c3e50;
+  --solar-accent: #27ae60;
+  --solar-danger: #e74c3c;
+}
+
+/* ── Page layout ─────────────────────────────────────────────────── */
+body.platform-page {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* ── Top nav ─────────────────────────────────────────────────────── */
+.platform-navbar {
+  background: var(--solar-secondary) !important;
+}
+
+.platform-navbar .navbar-brand {
+  font-weight: 700;
+  color: var(--solar-primary) !important;
+}
+
+.platform-navbar .nav-link {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.platform-navbar .nav-link:hover {
+  color: var(--solar-primary) !important;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────── */
+.platform-sidebar {
+  min-height: calc(100vh - 56px);
+  background: #fff;
+  border-right: 1px solid #dee2e6;
+  padding-top: 1rem;
+}
+
+.platform-sidebar .nav-link {
+  color: var(--solar-secondary);
+  border-radius: 6px;
+  margin: 2px 8px;
+  padding: 8px 12px;
+}
+
+.platform-sidebar .nav-link:hover,
+.platform-sidebar .nav-link.active {
+  background: #fef9e7;
+  color: var(--solar-primary-dark);
+}
+
+.platform-sidebar .nav-link i {
+  width: 20px;
+  text-align: center;
+  margin-right: 8px;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────── */
+.stat-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  transition: box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card .card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.stat-card .card-icon.bg-solar {
+  background: #fef9e7;
+  color: var(--solar-primary);
+}
+
+.stat-card .card-icon.bg-green {
+  background: #eafaf1;
+  color: var(--solar-accent);
+}
+
+.stat-card .card-icon.bg-blue {
+  background: #ebf5fb;
+  color: #2980b9;
+}
+
+.stat-card .card-icon.bg-purple {
+  background: #f5eef8;
+  color: #8e44ad;
+}
+
+/* ── Installation cards ──────────────────────────────────────────── */
+.installation-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.installation-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.13);
+  transform: translateY(-2px);
+}
+
+.installation-card .capacity-badge {
+  background: #fef9e7;
+  color: var(--solar-primary-dark);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.status-dot.active    { background: var(--solar-accent); }
+.status-dot.inactive  { background: #adb5bd; }
+.status-dot.maintenance { background: var(--solar-primary); }
+
+/* ── Map placeholder ─────────────────────────────────────────────── */
+.map-placeholder {
+  background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%);
+  border-radius: 12px;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7f8c8d;
+}
+
+/* ── Forms ───────────────────────────────────────────────────────── */
+.form-section-header {
+  background: #f8f9fa;
+  border-left: 4px solid var(--solar-primary);
+  padding: 8px 12px;
+  margin-bottom: 1rem;
+  border-radius: 0 6px 6px 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--solar-secondary);
+}
+
+/* ── Table tweaks ────────────────────────────────────────────────── */
+.platform-table th {
+  background: #f8f9fa;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6c757d;
+  border-top: none;
+}
+
+.platform-table td {
+  vertical-align: middle;
+}
+
+/* ── Auth page ───────────────────────────────────────────────────── */
+.auth-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #2c3e50 0%, #3d5a80 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 420px;
+  width: 100%;
+}
+
+.auth-logo {
+  font-size: 2rem;
+  color: var(--solar-primary);
+}
+
+/* ── Utilities ───────────────────────────────────────────────────── */
+.text-solar { color: var(--solar-primary) !important; }
+.bg-solar   { background-color: var(--solar-primary) !important; }
+.btn-solar  {
+  background-color: var(--solar-primary);
+  border-color: var(--solar-primary);
+  color: #fff;
+}
+.btn-solar:hover {
+  background-color: var(--solar-primary-dark);
+  border-color: var(--solar-primary-dark);
+  color: #fff;
+}
+
+.spinner-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner-overlay.visible {
+  display: flex;
+}
+
+/* ── Nav section label (admin separator in sidebar) ─────────────────── */
+.nav-section-label {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--solar-primary);
+  font-weight: 700;
+  padding: 8px 12px 2px;
+}

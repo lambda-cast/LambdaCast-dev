@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sunalyzer — Fleet Installations</title>
+  <link href="/lib/bootstrap.min.css" rel="stylesheet" />
+  <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet" />
+  <link href="/css/platform.css" rel="stylesheet" />
+</head>
+<body class="platform-page">
+
+<div class="spinner-overlay" role="status" aria-label="Loading">
+  <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+</div>
+
+<nav class="navbar navbar-expand-lg platform-navbar px-3" aria-label="Admin navigation">
+  <a class="navbar-brand" href="/admin"><i class="fas fa-sun me-2"></i>Sunalyzer Admin</a>
+  <div class="ms-auto d-flex align-items-center gap-2">
+    <span class="badge bg-warning text-dark">ADMIN</span>
+    <span class="text-warning small fw-semibold" id="nav-username"></span>
+    <button class="btn btn-sm btn-outline-light" id="logout-btn">
+      <i class="fas fa-sign-out-alt me-1"></i>Logout
+    </button>
+  </div>
+</nav>
+
+<div class="container-fluid">
+  <div class="row">
+
+    <!-- Sidebar -->
+    <nav class="col-md-3 col-lg-2 d-md-block platform-sidebar" aria-label="Admin sidebar">
+      <ul class="nav flex-column pt-2" id="sidebar-nav"></ul>
+    </nav>
+
+    <!-- Main -->
+    <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h4 class="fw-bold mb-0">Fleet — All Installations</h4>
+          <p class="text-muted small mb-0">Complete solar installation registry</p>
+        </div>
+        <div class="d-flex gap-2">
+          <input type="text" id="search-input" class="form-control form-control-sm" 
+                 placeholder="Search installations..." style="width:200px" 
+                 aria-label="Search installations" />
+        </div>
+      </div>
+
+      <div id="alert-error" class="alert alert-danger d-none mb-3" role="alert"></div>
+
+      <!-- Summary row -->
+      <div class="row g-2 mb-3">
+        <div class="col-auto">
+          <span class="badge bg-light text-dark border" id="badge-total">0 installations</span>
+        </div>
+        <div class="col-auto">
+          <span class="badge bg-light text-dark border" id="badge-capacity">0 kWp total</span>
+        </div>
+        <div class="col-auto">
+          <span class="badge bg-success" id="badge-active">0 active</span>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table platform-table mb-0">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Owner</th>
+                  <th>Location</th>
+                  <th>Capacity</th>
+                  <th>Panels</th>
+                  <th>Inverter</th>
+                  <th>Status</th>
+                  <th>Installed</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="installations-tbody">
+                <tr><td colspan="10" class="text-center text-muted py-3">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/lib/bootstrap.bundle.min.js"></script>
+<script src="/js/platform_api.js"></script>
+<script>
+let gAll = [];
+
+(async () => {
+  PlatformAPI.showSpinner();
+  try {
+    const user = await PlatformAPI.requireAdmin();
+    if (!user) return;
+
+    document.getElementById("nav-username").textContent = user.username;
+    document.getElementById("sidebar-nav").innerHTML =
+      PlatformAPI.buildSidebarNav("/admin/installations", user);
+
+    gAll = await PlatformAPI.admin.listInstallations();
+    renderTable(gAll);
+
+    document.getElementById("logout-btn").addEventListener("click", () =>
+      PlatformAPI.auth.logout());
+
+    document.getElementById("search-input").addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase();
+      renderTable(gAll.filter(i =>
+        (i.name || "").toLowerCase().includes(q) ||
+        (i.owner_username || "").toLowerCase().includes(q) ||
+        (i.city || "").toLowerCase().includes(q) ||
+        (i.governorate || "").toLowerCase().includes(q)
+      ));
+    });
+
+  } catch (err) {
+    PlatformAPI.showError("Failed to load installations: " +
+      (err.data?.error || err.message || "Unknown error"));
+  } finally {
+    PlatformAPI.hideSpinner();
+  }
+})();
+
+function renderTable(list) {
+  // Update badges
+  const cap = list.reduce((s, i) => s + (i.installed_capacity_kwp || 0), 0);
+  document.getElementById("badge-total").textContent = `${list.length} installation${list.length !== 1 ? "s" : ""}`;
+  document.getElementById("badge-capacity").textContent = cap > 0 ? cap.toFixed(2) + " kWp total" : "0 kWp";
+  document.getElementById("badge-active").textContent = `${list.filter(i => i.status === "active").length} active`;
+
+  const tbody = document.getElementById("installations-tbody");
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-4">No installations found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(i => `
+    <tr>
+      <td class="text-muted small">${i.id}</td>
+      <td class="fw-semibold">${escHtml(i.name)}</td>
+      <td class="text-muted small">${escHtml(i.owner_username || "—")}</td>
+      <td class="text-muted small">
+        ${escHtml(i.city || i.address || "—")}
+        ${i.latitude != null && i.longitude != null
+          ? `<br><span class="opacity-50">${(+i.latitude).toFixed(4)}, ${(+i.longitude).toFixed(4)}</span>`
+          : ""}
+      </td>
+      <td>${i.installed_capacity_kwp != null ? `<span class="capacity-badge">${i.installed_capacity_kwp} kWp</span>` : "—"}</td>
+      <td class="text-muted small">
+        ${i.panel_manufacturer ? escHtml(i.panel_manufacturer) : "—"}<br>
+        ${i.number_of_panels ? `${i.number_of_panels}×` : ""}
+        ${i.panel_power_wp ? `${i.panel_power_wp} Wp` : ""}
+      </td>
+      <td class="text-muted small">
+        ${escHtml(i.inverter_manufacturer || "—")}
+        ${i.inverter_capacity_kw ? `<br>${i.inverter_capacity_kw} kW` : ""}
+      </td>
+      <td>
+        <span class="status-dot ${i.status || "active"}"></span>
+        <span class="small">${i.status || "—"}</span>
+      </td>
+      <td class="text-muted small">${i.installation_date || "—"}</td>
+      <td>
+        <div class="d-flex gap-1">
+          <a href="/platform/installations/${i.id}/monitor"
+             class="btn btn-sm btn-solar"
+             title="Live Monitor" aria-label="Monitor ${escHtml(i.name)}">
+            <i class="fas fa-chart-line"></i>
+          </a>
+          <a href="/platform/installations/${i.id}"
+             class="btn btn-sm btn-outline-secondary"
+             title="Details" aria-label="Details for ${escHtml(i.name)}">
+            <i class="fas fa-eye"></i>
+          </a>
+          <a href="/platform/installations/${i.id}/edit"
+             class="btn btn-sm btn-outline-secondary"
+             title="Edit" aria-label="Edit ${escHtml(i.name)}">
+            <i class="fas fa-pen"></i>
+          </a>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function escHtml(s) {
+  if (s == null) return "";
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+</script>
+</body>
+</html>

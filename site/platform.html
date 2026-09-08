@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sunalyzer — Dashboard</title>
+  <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
+  <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
+  <link href="/css/platform.css" rel="stylesheet"/>
+</head>
+<body class="platform-page">
+
+<div class="spinner-overlay" role="status" aria-label="Loading">
+  <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg platform-navbar px-3">
+  <a class="navbar-brand" href="/platform"><i class="fas fa-sun me-2"></i>Sunalyzer</a>
+  <div class="ms-auto d-flex align-items-center gap-2">
+    <span class="text-warning small fw-semibold" id="nav-username"></span>
+    <span class="badge d-none" id="nav-role-badge"></span>
+    <button class="btn btn-sm btn-outline-light" id="logout-btn">
+      <i class="fas fa-sign-out-alt me-1"></i>Logout
+    </button>
+  </div>
+</nav>
+
+<div class="container-fluid">
+<div class="row">
+  <nav class="col-md-3 col-lg-2 d-md-block platform-sidebar">
+    <ul class="nav flex-column pt-2" id="sidebar-nav"></ul>
+  </nav>
+
+  <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="fw-bold mb-0">Welcome, <span id="welcome-name">…</span></h4>
+        <p class="text-muted small mb-0">Your solar installations at a glance</p>
+      </div>
+      <a href="/platform/installations/new" class="btn btn-solar">
+        <i class="fas fa-plus me-1"></i>Add Installation
+      </a>
+    </div>
+
+    <div id="alert-error" class="alert alert-danger d-none mb-3" role="alert"></div>
+
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card p-3">
+          <div class="d-flex align-items-center">
+            <div class="card-icon bg-solar me-3"><i class="fas fa-solar-panel"></i></div>
+            <div>
+              <div class="text-muted small">Total Installations</div>
+              <div class="fs-4 fw-bold" id="stat-count">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card p-3">
+          <div class="d-flex align-items-center">
+            <div class="card-icon bg-green me-3"><i class="fas fa-bolt"></i></div>
+            <div>
+              <div class="text-muted small">Total Capacity</div>
+              <div class="fs-4 fw-bold" id="stat-capacity">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card p-3">
+          <div class="d-flex align-items-center">
+            <div class="card-icon bg-blue me-3"><i class="fas fa-check-circle"></i></div>
+            <div>
+              <div class="text-muted small">Active</div>
+              <div class="fs-4 fw-bold" id="stat-active">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card p-3">
+          <div class="d-flex align-items-center">
+            <div class="card-icon bg-purple me-3"><i class="fas fa-wrench"></i></div>
+            <div>
+              <div class="text-muted small">Maintenance</div>
+              <div class="fs-4 fw-bold" id="stat-maintenance">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent installations -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Recent Installations</span>
+        <a href="/platform/installations" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <div id="empty-state" class="text-center py-5 d-none">
+          <i class="fas fa-solar-panel fa-3x mb-3 text-warning opacity-50"></i>
+          <p class="text-muted">No installations yet.</p>
+          <a href="/platform/installations/new" class="btn btn-solar">
+            <i class="fas fa-plus me-1"></i>Add your first installation
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="table platform-table mb-0" id="installations-table">
+            <thead>
+              <tr><th>Name</th><th>Location</th><th>Capacity</th><th>Status</th><th>Installed</th><th></th></tr>
+            </thead>
+            <tbody id="installations-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<script src="/lib/bootstrap.bundle.min.js"></script>
+<script src="/js/platform_api.js"></script>
+<script>
+(async () => {
+  try {
+  PlatformAPI.showSpinner();
+  const user = await PlatformAPI.requireAuth();
+  if (!user) return;
+
+  // Admin has their own dashboard
+  if (user.role === "ADMIN") {
+    window.location.replace("/admin");
+    return;
+  }
+
+  // Sidebar (role-aware)
+  document.getElementById("sidebar-nav").innerHTML =
+    PlatformAPI.buildSidebarNav("/platform", user);
+
+  document.getElementById("welcome-name").textContent = user.username;
+
+  try {
+    const list = await PlatformAPI.installations.list();
+    renderStats(list);
+    renderTable(list);
+  } catch (err) {
+    PlatformAPI.showError("Failed to load installations.");
+  }
+
+  } finally {
+    PlatformAPI.hideSpinner();
+  }
+
+  document.getElementById("logout-btn").addEventListener("click", () =>
+    PlatformAPI.auth.logout());
+})();
+
+function renderStats(list) {
+  document.getElementById("stat-count").textContent = list.length;
+  const cap = list.reduce((s, i) => s + (i.installed_capacity_kwp || 0), 0);
+  document.getElementById("stat-capacity").textContent =
+    cap > 0 ? cap.toFixed(2) + " kWp" : "—";
+  document.getElementById("stat-active").textContent =
+    list.filter(i => i.status === "active").length;
+  document.getElementById("stat-maintenance").textContent =
+    list.filter(i => i.status === "maintenance").length;
+}
+
+function renderTable(list) {
+  if (!list.length) {
+    document.getElementById("installations-table").style.display = "none";
+    document.getElementById("empty-state").classList.remove("d-none");
+    return;
+  }
+  document.getElementById("installations-tbody").innerHTML = list.slice(0, 8).map(i => `
+    <tr>
+      <td><a href="/platform/installations/${i.id}" class="fw-semibold text-decoration-none">${esc(i.name)}</a></td>
+      <td class="text-muted small">${esc(i.city || i.governorate || "—")}</td>
+      <td><span class="capacity-badge">${i.installed_capacity_kwp != null ? i.installed_capacity_kwp + " kWp" : "—"}</span></td>
+      <td><span class="status-dot ${i.status}"></span>${esc(i.status || "—")}</td>
+      <td class="text-muted small">${i.installation_date || "—"}</td>
+      <td><a href="/platform/installations/${i.id}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i></a></td>
+    </tr>`).join("");
+}
+
+function esc(s) {
+  return s == null ? "" : String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+</script>
+</body>
+</html>

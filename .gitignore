@@ -1,0 +1,39 @@
+# Python virtual environments
+.venv/
+.venvvcd/
+venv/
+env/
+
+# Venv accidentally created at project root
+bin/
+include/
+lib64/
+pyvenv.cfg
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Sunalyzer runtime data (keep the folder, ignore the files)
+data/*.sqlite
+data/*.log
+
+# Editor / OS
+.vscode/
+.DS_Store
+*.swp
+*.swo

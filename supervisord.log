@@ -1,0 +1,20 @@
+2026-09-08 15:26:33,962 CRIT could not write pidfile /var/run/supervisord.pid
+2026-09-08 15:26:34,966 INFO spawned: 'processes' with pid 138342
+2026-09-08 15:26:34,970 INFO spawned: 'grabber' with pid 138343
+2026-09-08 15:26:34,975 INFO spawned: 'server' with pid 138344
+2026-09-08 15:26:35,212 WARN exited: grabber (exit status 1; not expected)
+2026-09-08 15:26:35,379 WARN exited: server (exit status 1; not expected)
+2026-09-08 15:26:36,381 INFO success: processes entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-09-08 15:26:36,384 INFO spawned: 'grabber' with pid 138351
+2026-09-08 15:26:36,387 INFO spawned: 'server' with pid 138352
+2026-09-08 15:26:36,628 WARN exited: grabber (exit status 1; not expected)
+2026-09-08 15:26:36,821 WARN exited: server (exit status 1; not expected)
+2026-09-08 15:26:38,826 INFO spawned: 'grabber' with pid 138376
+2026-09-08 15:26:38,830 INFO spawned: 'server' with pid 138377
+2026-09-08 15:26:38,831 WARN received SIGINT indicating exit request
+2026-09-08 15:26:38,832 INFO waiting for processes, grabber, server to die
+2026-09-08 15:26:39,061 WARN exited: grabber (exit status 1; not expected)
+2026-09-08 15:26:39,232 WARN stopped: server (exit status 1)
+2026-09-08 15:26:40,234 WARN received SIGINT indicating exit request
+2026-09-08 15:26:40,235 WARN stopped: processes (terminated by SIGTERM)
+2026-09-08 15:26:40,236 WARN received SIGQUIT indicating exit request
