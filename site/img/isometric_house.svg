@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200" fill="none">
+  <!-- Tree 1 (left far) -->
+  <g transform="translate(15, 110)">
+    <rect x="8" y="30" width="4" height="12" fill="#8B7355"/>
+    <polygon points="10,0 20,20 15,18 22,32 0,32 7,18 2,20" fill="#6aaa5e"/>
+    <polygon points="10,0 20,20 15,18 22,32 0,32 7,18 2,20" fill="#7bc06e" opacity="0.4"/>
+  </g>
+
+  <!-- Tree 2 (left near) -->
+  <g transform="translate(38, 120)">
+    <rect x="6" y="22" width="3" height="10" fill="#8B7355"/>
+    <polygon points="7,0 14,15 11,13 16,24 0,24 5,13 2,15" fill="#5a9a4e"/>
+    <polygon points="7,0 14,15 11,13 16,24 0,24 5,13 2,15" fill="#6aaa5e" opacity="0.3"/>
+  </g>
+
+  <!-- Tree 3 (small, right of house) -->
+  <g transform="translate(55, 125)">
+    <rect x="4" y="16" width="3" height="8" fill="#8B7355"/>
+    <polygon points="5,0 11,12 8,10 13,18 0,18 4,10 1,12" fill="#6aaa5e"/>
+  </g>
+
+  <!-- House shadow -->
+  <ellipse cx="140" cy="175" rx="55" ry="10" fill="#d8dce4" opacity="0.5"/>
+
+  <!-- House base (front-left wall) -->
+  <path d="M90 120 L140 145 L140 175 L90 150Z" fill="#e8ecf2" stroke="#c0c8d4" stroke-width="1"/>
+
+  <!-- House base (front-right wall) -->
+  <path d="M140 145 L200 120 L200 150 L140 175Z" fill="#d8dce4" stroke="#b8c0cc" stroke-width="1"/>
+
+  <!-- Roof left -->
+  <path d="M82 115 L140 85 L140 140 L90 120Z" fill="#c0c8d4" stroke="#a8b0bc" stroke-width="1"/>
+
+  <!-- Roof right -->
+  <path d="M140 85 L208 115 L200 120 L140 140Z" fill="#b0b8c8" stroke="#98a0b0" stroke-width="1"/>
+
+  <!-- Roof ridge highlight -->
+  <line x1="140" y1="85" x2="140" y2="140" stroke="#d0d8e4" stroke-width="0.8" opacity="0.6"/>
+
+  <!-- Door -->
+  <path d="M120 140 L140 150 L140 172 L120 162Z" fill="#a8b4c4" stroke="#8a94a8" stroke-width="0.8"/>
+  <!-- Door handle -->
+  <circle cx="136" cy="160" r="1.2" fill="#8a94a8"/>
+
+  <!-- Window left -->
+  <path d="M96 128 L110 135 L110 144 L96 137Z" fill="#b8e0f4" stroke="#8ab8d8" stroke-width="0.8"/>
+  <!-- Window cross -->
+  <line x1="103" y1="131.5" x2="103" y2="140.5" stroke="#8ab8d8" stroke-width="0.5"/>
+  <line x1="96" y1="136" x2="110" y2="139.5" stroke="#8ab8d8" stroke-width="0.5"/>
+
+  <!-- Window right -->
+  <path d="M160 135 L180 126 L180 135 L160 144Z" fill="#b8e0f4" stroke="#8ab8d8" stroke-width="0.8"/>
+  <!-- Window cross -->
+  <line x1="170" y1="130.5" x2="170" y2="139.5" stroke="#8ab8d8" stroke-width="0.5"/>
+  <line x1="160" y1="139.5" x2="180" y2="130.5" stroke="#8ab8d8" stroke-width="0.5"/>
+
+  <!-- Solar panel on roof (small) -->
+  <path d="M145 98 L168 108 L164 112 L141 102Z" fill="#3d5a80" stroke="#2c4a6e" stroke-width="0.8" opacity="0.8"/>
+  <line x1="153" y1="103" x2="156" y2="107" stroke="#2c4a6e" stroke-width="0.4" opacity="0.5"/>
+
+  <!-- Chimney -->
+  <rect x="155" y="92" width="8" height="16" fill="#b8c0cc" stroke="#a0a8b8" stroke-width="0.8" transform="skewY(-6)"/>
+</svg>

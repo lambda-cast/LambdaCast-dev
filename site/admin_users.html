@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Sunalyzer — Manage Users</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
@@ -10,50 +12,36 @@
 </head>
 <body class="platform-page">
 
-<div class="spinner-overlay" role="status">
-  <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+<div class="spinner-overlay" role="status"><div class="sz-spinner"></div></div>
 </div>
 
-<nav class="navbar navbar-expand-lg platform-navbar px-3">
-  <a class="navbar-brand" href="/admin"><i class="fas fa-sun me-2"></i>Sunalyzer Admin</a>
-  <div class="ms-auto d-flex align-items-center gap-2">
-    <span class="badge bg-warning text-dark">ADMIN</span>
-    <span class="text-warning small fw-semibold" id="nav-username"></span>
-    <button class="btn btn-sm btn-outline-light" id="logout-btn">
-      <i class="fas fa-sign-out-alt me-1"></i>Logout
-    </button>
-  </div>
-</nav>
+<header class="sz-header" id="sz-header"></header>
 
-<div class="container-fluid">
-<div class="row">
-  <nav class="col-md-3 col-lg-2 d-md-block platform-sidebar">
-    <ul class="nav flex-column pt-2" id="sidebar-nav"></ul>
-  </nav>
+<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
 
-  <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+  <main class="sz-main">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h4 class="fw-bold mb-0">Manage Users</h4>
         <p class="text-muted small mb-0">Create users and assign installations</p>
       </div>
-      <button class="btn btn-solar" data-bs-toggle="modal" data-bs-target="#createUserModal">
+      <button class="sz-btn sz-btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
         <i class="fas fa-user-plus me-1"></i>Create User
       </button>
     </div>
 
     <div id="alert-error"   class="alert alert-danger  d-none mb-3"></div>
-    <div id="alert-success" class="alert alert-success d-none mb-3"></div>
+    <div id="alert-success" style="display:none" id="alert-success" mb-3></div>
 
     <!-- Users table -->
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-header bg-white fw-semibold">
+    <div class="sz-card mb-4">
+      <div class="sz-card-header fw-semibold">
         <i class="fas fa-users me-2 text-solar"></i>Users
       </div>
-      <div class="card-body p-0">
+      <div class="sz-card-body p-0">
         <div class="table-responsive">
-          <table class="table platform-table mb-0">
+          <table class="sz-table">
             <thead>
               <tr>
                 <th>Username</th><th>Email</th><th>Role</th>
@@ -69,24 +57,24 @@
     </div>
 
     <!-- Assign installations section -->
-    <div class="card border-0 shadow-sm" id="assign-section" style="display:none">
-      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div class="sz-card" id="assign-section" style="display:none">
+      <div class="sz-card-header d-flex justify-content-between align-items-center">
         <span class="fw-semibold">
           <i class="fas fa-solar-panel me-2 text-solar"></i>
           Assign Installations to: <strong id="assign-username">—</strong>
         </span>
-        <button class="btn btn-sm btn-outline-secondary" id="btn-close-assign">
+        <button class="sz-btn sz-btn-secondary sz-btn-sm" id="btn-close-assign">
           <i class="fas fa-times"></i>
         </button>
       </div>
-      <div class="card-body">
+      <div class="sz-card-body">
         <p class="text-muted small mb-3">
           Select installations below to reassign them to this user.
           Currently assigned installations are highlighted.
         </p>
         <div class="row g-2" id="assign-installations-grid"></div>
         <div class="mt-3">
-          <button class="btn btn-solar" id="btn-confirm-assign" disabled>
+          <button class="sz-btn sz-btn-primary" id="btn-confirm-assign" disabled>
             <i class="fas fa-check me-1"></i>Apply Assignments
           </button>
         </div>
@@ -94,8 +82,6 @@
     </div>
 
   </main>
-</div>
-</div>
 
 <!-- Create User Modal -->
 <div class="modal fade" id="createUserModal" tabindex="-1" aria-modal="true">
@@ -106,31 +92,31 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <div id="modal-error" class="alert alert-danger d-none"></div>
+        <div id="modal-error" style="display:none" id="alert-error"></div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
-          <input type="text" id="new-username" class="form-control" placeholder="e.g. john.doe"/>
+          <label class="sz-label fw-semibold">Username <span class="text-danger">*</span></label>
+          <input type="text" id="new-username" class="sz-input" placeholder="e.g. john.doe"/>
         </div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-          <input type="email" id="new-email" class="form-control" placeholder="e.g. john@example.com"/>
+          <label class="sz-label fw-semibold">Email <span class="text-danger">*</span></label>
+          <input type="email" id="new-email" class="sz-input" placeholder="e.g. john@example.com"/>
         </div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
-          <input type="password" id="new-password" class="form-control" placeholder="Min. 8 characters"/>
+          <label class="sz-label fw-semibold">Password <span class="text-danger">*</span></label>
+          <input type="password" id="new-password" class="sz-input" placeholder="Min. 8 characters"/>
           <div class="form-text">The user can change this after first login.</div>
         </div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">Role</label>
-          <select id="new-role" class="form-select">
+          <label class="sz-label fw-semibold">Role</label>
+          <select id="new-role" class="sz-select">
             <option value="USER">USER — can see own installations only</option>
             <option value="ADMIN">ADMIN — full access</option>
           </select>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-solar" id="btn-create-user">
+        <button class="sz-btn sz-btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="sz-btn sz-btn-primary" id="btn-create-user">
           <span id="create-spinner" class="spinner-border spinner-border-sm me-1 d-none"></span>
           Create User
         </button>
@@ -149,11 +135,11 @@
       </div>
       <div class="modal-body">
         <p class="text-muted small mb-2">New password for <strong id="reset-username"></strong>:</p>
-        <input type="password" id="reset-password" class="form-control" placeholder="Min. 8 characters"/>
+        <input type="password" id="reset-password" class="sz-input" placeholder="Min. 8 characters"/>
         <div id="reset-error" class="text-danger small mt-1 d-none"></div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="sz-btn sz-btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
         <button class="btn btn-warning btn-sm" id="btn-confirm-reset">Reset Password</button>
       </div>
     </div>
@@ -162,6 +148,7 @@
 
 <script src="/lib/bootstrap.bundle.min.js"></script>
 <script src="/js/platform_api.js"></script>
+<script src="/js/shell.js"></script>
 <script>
 let gUsers         = [];
 let gAllInst       = [];
@@ -177,10 +164,9 @@ const resetModal  = new bootstrap.Modal(document.getElementById("resetPwdModal")
   try {
     const user = await PlatformAPI.requireAdmin();
     if (!user) return;
-
-    document.getElementById("nav-username").textContent = user.username;
-    document.getElementById("sidebar-nav").innerHTML =
-      PlatformAPI.buildSidebarNav("/admin/users", user);
+    initShell(user, '/admin/users');
+    // Wire sidebar logout
+    document.querySelectorAll('.sz-nav-link[id=sz-logout-footer-btn]').forEach(el => el.addEventListener('click', () => PlatformAPI.auth.logout()));
 
     await loadData();
 
@@ -212,10 +198,7 @@ const resetModal  = new bootstrap.Modal(document.getElementById("resetPwdModal")
       }
     });
 
-    document.getElementById("logout-btn").addEventListener("click",
-      () => PlatformAPI.auth.logout());
-
-  } catch (err) {
+    } catch (err) {
     PlatformAPI.showError("Failed to load page: " + (err.message || "Unknown error"));
   } finally {
     PlatformAPI.hideSpinner();
@@ -249,7 +232,7 @@ function renderUsers() {
         </span>
       </td>
       <td>
-        <button class="btn btn-sm btn-outline-secondary" onclick="openAssign(${u.id})"
+        <button class="sz-btn sz-btn-secondary sz-btn-sm" onclick="openAssign(${u.id})"
                 title="Assign installations">
           <i class="fas fa-solar-panel me-1"></i>${instCount}
         </button>
@@ -264,7 +247,7 @@ function renderUsers() {
       </td>
       <td>
         <div class="d-flex gap-1 flex-wrap">
-          <button class="btn btn-sm btn-outline-secondary" title="Reset password"
+          <button class="sz-btn sz-btn-secondary sz-btn-sm" title="Reset password"
                   onclick="openResetPwd(${u.id}, '${esc(u.username)}')">
             <i class="fas fa-key"></i>
           </button>
@@ -273,7 +256,7 @@ function renderUsers() {
                   onclick="toggleRole(${u.id}, '${u.role}')">
             <i class="fas ${u.role === "ADMIN" ? "fa-user-minus" : "fa-user-shield"}"></i>
           </button>
-          <button class="btn btn-sm btn-outline-danger" title="${u.is_active ? "Disable" : "Already disabled"}"
+          <button class="sz-btn sz-btn-danger sz-btn-sm" title="${u.is_active ? "Disable" : "Already disabled"}"
                   ${u.is_active ? "" : "disabled"} onclick="disableUser(${u.id})">
             <i class="fas fa-ban"></i>
           </button>
@@ -316,7 +299,7 @@ function renderAssignGrid() {
         <div class="card border-2 cursor-pointer ${selected ? "border-solar" : ""}"
              style="cursor:pointer;border-color:${selected ? "#f39c12" : "#dee2e6"}!important"
              onclick="toggleInstSelect(${i.id}, this)">
-          <div class="card-body py-2 px-3">
+          <div class="sz-card-body py-2 px-3">
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <div class="fw-semibold small">${esc(i.name)}</div>

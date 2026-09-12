@@ -161,9 +161,9 @@ def insert_high_res_values(
 
 
 # Helper function to create a new DB
-def create_new_db():
+def create_new_db(db_path):
     '''Helper function to create a new DB.'''
-    new_db = Database("data/db.sqlite")
+    new_db = Database(db_path)
 
     # Historical data tables
     table_names = ["days", "months", "years", "all_time"]
@@ -212,11 +212,11 @@ def create_new_db():
 
 
 # Loads the device class with the given name
-def load_device_plugin(device_name):
+def load_device_plugin(device_name, device_config):
     '''Loads the device class with the given name.'''
     module = importlib.import_module("devices." + device_name)
     class_ = getattr(module, device_name)
-    device = class_(config)
+    device = class_(type("ConfigMock", (), {"config_data": {"device": device_config}})())
     return device
 
 
@@ -233,7 +233,8 @@ def set_time_zone(tz):
 
 
 # Updates data in the data base
-def update_data(device):
+
+def update_data(device, db_path):
     '''Updates data in the data base.'''
     global real_time_seconds_counter
 
@@ -241,7 +242,8 @@ def update_data(device):
     device.update()
 
     # Open connection to data base
-    db = Database("data/db.sqlite")
+    db = Database(db_path)
+
 
     # Time strings
     year_string = date.today().strftime("%Y")
@@ -365,20 +367,30 @@ def main():
     # Set time zone
     set_time_zone(config.config_data.get("time_zone"))
 
-    # Dynamically load the device
+    # Dynamically load the devices
+    devices = {}
     try:
-        device_name = config.config_data['device']['type']
-        logging.info(f"Grabber: Loading device adapter '{device_name}'")
-        device = load_device_plugin(device_name)
+        if 'devices' in config.config_data:
+            for inst_id, dev_cfg in config.config_data['devices'].items():
+                device_name = dev_cfg['type']
+                logging.info(f"Grabber: Loading device adapter '{device_name}' for installation {inst_id}")
+                devices[inst_id] = load_device_plugin(device_name, dev_cfg)
+        else:
+            # Fallback for old config
+            device_name = config.config_data['device']['type']
+            logging.info(f"Grabber: Loading device adapter '{device_name}' for installation default")
+            devices['default'] = load_device_plugin(device_name, config.config_data['device'])
     except Exception:
-        logging.exception("creating the device adapter failed")
+        logging.exception("creating the device adapters failed")
         exit()
 
-    # Prepare the data base
-    logging.info("Grabber: Checking if data base exists")
-    if not exists("data/db.sqlite"):
-        logging.info("Grabber: Data base does not exist. Creating new one")
-        create_new_db()
+    # Prepare the data bases
+    for inst_id in devices.keys():
+        db_path = f"data/db_{inst_id}.sqlite" if inst_id != 'default' else "data/db.sqlite"
+        logging.info(f"Grabber: Checking if data base exists at {db_path}")
+        if not exists(db_path):
+            logging.info(f"Grabber: Data base {db_path} does not exist. Creating new one")
+            create_new_db(db_path)
 
     # Grabber main loop
     logging.debug("Grabber: Entering main loop")
@@ -387,10 +399,12 @@ def main():
             time_string = datetime.now().strftime("%H:%M")
             logging.debug(f"Grabber: {time_string}: Updating device data")
 
-        try:
-            update_data(device)
-        except Exception:
-            logging.exception("Updating data from device failed")
+        for inst_id, device in devices.items():
+            db_path = f"data/db_{inst_id}.sqlite" if inst_id != 'default' else "data/db.sqlite"
+            try:
+                update_data(device, db_path)
+            except Exception as e:
+                logging.exception(f"Updating data from device for installation {inst_id} failed")
 
         time.sleep(config.config_data['grabber']['interval_s'])
 

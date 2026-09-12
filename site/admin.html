@@ -2,247 +2,253 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Sunalyzer — Admin Dashboard</title>
+  <title>Sunalyzer — Dashboard</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
   <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
   <link href="/css/platform.css" rel="stylesheet"/>
 </head>
 <body class="platform-page">
 
+<!-- Spinner -->
 <div class="spinner-overlay" role="status">
-  <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+  <div class="sz-spinner"></div>
 </div>
 
-<nav class="navbar navbar-expand-lg platform-navbar px-3">
-  <a class="navbar-brand" href="/admin"><i class="fas fa-sun me-2"></i>Sunalyzer</a>
-  <div class="ms-auto d-flex align-items-center gap-2">
-    <span class="badge bg-warning text-dark">ADMIN</span>
-    <span class="text-warning small fw-semibold" id="nav-username"></span>
-    <button class="btn btn-sm btn-outline-light" id="logout-btn">
-      <i class="fas fa-sign-out-alt me-1"></i>Logout
-    </button>
+<!-- Header -->
+<header class="sz-header" id="sz-header"></header>
+
+<!-- Sidebar -->
+<nav class="sz-sidebar" aria-label="Main navigation">
+  <ul class="sz-nav" id="sz-sidebar-nav"></ul>
+  <div class="sz-sidebar-footer">
+    <ul class="sz-nav" style="padding:0">
+      <li class="sz-nav-item">
+        <button class="sz-nav-link" id="sz-logout-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer">
+          <i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out
+        </button>
+      </li>
+    </ul>
   </div>
 </nav>
 
-<div class="container-fluid">
-<div class="row">
-  <nav class="col-md-3 col-lg-2 d-md-block platform-sidebar">
-    <ul class="nav flex-column pt-2" id="sidebar-nav"></ul>
-  </nav>
+<!-- Main -->
+<main class="sz-main">
 
-  <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+  <!-- Page header -->
+  <div class="sz-page-header">
+    <div>
+      <h1 class="sz-page-title">Dashboard</h1>
+      <p class="sz-page-subtitle">Fleet overview — <span id="today-date"></span></p>
+    </div>
+    <a href="/platform/installations/new" class="sz-btn sz-btn-primary">
+      <i class="fas fa-plus"></i>Add Installation
+    </a>
+  </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h4 class="fw-bold mb-0">Admin Dashboard</h4>
-        <p class="text-muted small mb-0">Platform-wide overview</p>
+  <!-- Alerts -->
+  <div id="alert-error"   style="display:none"></div>
+  <div id="alert-success" style="display:none"></div>
+
+  <!-- KPI row -->
+  <div class="row g-3 mb-4" id="kpi-row">
+    <div class="col-6 col-xl-2">
+      <div class="sz-kpi">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <span class="sz-kpi-label">Installations</span>
+          <div class="sz-kpi-accent orange"><i class="fas fa-solar-panel"></i></div>
+        </div>
+        <div class="sz-kpi-value" id="kpi-total">—</div>
+        <div class="sz-kpi-unit">sites</div>
       </div>
     </div>
-
-    <div id="alert-error" class="alert alert-danger d-none mb-3"></div>
-
-    <!-- Fleet summary -->
-    <div class="row g-3 mb-4">
-      <div class="col-sm-6 col-xl-3">
-        <div class="card stat-card p-3">
-          <div class="d-flex align-items-center">
-            <div class="card-icon bg-solar me-3"><i class="fas fa-solar-panel"></i></div>
-            <div><div class="text-muted small">Total Installations</div>
-            <div class="fs-4 fw-bold" id="stat-installations">—</div></div>
-          </div>
+    <div class="col-6 col-xl-2">
+      <div class="sz-kpi">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <span class="sz-kpi-label">Fleet Capacity</span>
+          <div class="sz-kpi-accent orange"><i class="fas fa-bolt"></i></div>
         </div>
-      </div>
-      <div class="col-sm-6 col-xl-3">
-        <div class="card stat-card p-3">
-          <div class="d-flex align-items-center">
-            <div class="card-icon bg-green me-3"><i class="fas fa-bolt"></i></div>
-            <div><div class="text-muted small">Fleet Capacity</div>
-            <div class="fs-4 fw-bold" id="stat-capacity">—</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-6 col-xl-3">
-        <div class="card stat-card p-3">
-          <div class="d-flex align-items-center">
-            <div class="card-icon bg-blue me-3"><i class="fas fa-users"></i></div>
-            <div><div class="text-muted small">Active Users</div>
-            <div class="fs-4 fw-bold" id="stat-users">—</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-6 col-xl-3">
-        <div class="card stat-card p-3">
-          <div class="d-flex align-items-center">
-            <div class="card-icon bg-purple me-3"><i class="fas fa-building"></i></div>
-            <div><div class="text-muted small">Organizations</div>
-            <div class="fs-4 fw-bold" id="stat-orgs">—</div></div>
-          </div>
-        </div>
+        <div class="sz-kpi-value" id="kpi-capacity">—</div>
+        <div class="sz-kpi-unit">kWp installed</div>
       </div>
     </div>
-
-    <!-- By governorate -->
-    <div class="row g-3 mb-4">
-      <div class="col-md-5">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-white fw-semibold">
-            <i class="fas fa-map-pin me-2 text-solar"></i>By Governorate
-          </div>
-          <div class="card-body p-0">
-            <table class="table table-sm platform-table mb-0" id="gov-table">
-              <thead><tr><th>Governorate</th><th>Count</th><th>Capacity</th></tr></thead>
-              <tbody id="gov-tbody"></tbody>
-            </table>
-          </div>
+    <div class="col-6 col-xl-2">
+      <div class="sz-kpi">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <span class="sz-kpi-label">Active</span>
+          <div class="sz-kpi-accent green"><i class="fas fa-circle-check"></i></div>
         </div>
-      </div>
-      <div class="col-md-7">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-white fw-semibold">
-            <i class="fas fa-chart-pie me-2 text-solar"></i>Status Breakdown
-          </div>
-          <div class="card-body">
-            <div class="row g-3" id="status-breakdown"></div>
-          </div>
-        </div>
+        <div class="sz-kpi-value" id="kpi-active">—</div>
+        <div class="sz-kpi-unit">online</div>
       </div>
     </div>
-
-    <!-- Users table -->
-    <div class="card border-0 shadow-sm">
-      <div class="card-header bg-white fw-semibold">
-        <i class="fas fa-users me-2 text-solar"></i>Users
+    <div class="col-6 col-xl-2">
+      <div class="sz-kpi">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <span class="sz-kpi-label">Maintenance</span>
+          <div class="sz-kpi-accent amber"><i class="fas fa-wrench"></i></div>
+        </div>
+        <div class="sz-kpi-value" id="kpi-maint">—</div>
+        <div class="sz-kpi-unit">sites</div>
       </div>
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table platform-table mb-0">
+    </div>
+    <div class="col-6 col-xl-2">
+      <div class="sz-kpi">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <span class="sz-kpi-label">Users</span>
+          <div class="sz-kpi-accent blue"><i class="fas fa-users"></i></div>
+        </div>
+        <div class="sz-kpi-value" id="kpi-users">—</div>
+        <div class="sz-kpi-unit">active accounts</div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-2">
+      <div class="sz-kpi">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <span class="sz-kpi-label">Organizations</span>
+          <div class="sz-kpi-accent gray"><i class="fas fa-building"></i></div>
+        </div>
+        <div class="sz-kpi-value" id="kpi-orgs">—</div>
+        <div class="sz-kpi-unit">entities</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- Fleet by Governorate -->
+    <div class="col-lg-4">
+      <div class="sz-card h-100">
+        <div class="sz-card-header">
+          <span class="sz-card-title">
+            <i class="sz-card-icon fas fa-map-pin"></i>By Governorate
+          </span>
+        </div>
+        <div class="sz-card-body" style="padding-top:10px">
+          <table class="sz-table" id="gov-table">
             <thead>
-              <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Installations</th><th>Status</th><th>Last Login</th><th>Actions</th></tr>
+              <tr>
+                <th>Governorate</th>
+                <th style="text-align:right">Sites</th>
+                <th style="text-align:right">Capacity</th>
+              </tr>
             </thead>
-            <tbody id="users-tbody">
-              <tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr>
+            <tbody id="gov-tbody">
+              <tr><td colspan="3" style="text-align:center;color:var(--c-text-muted);padding:20px">Loading…</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-  </main>
-</div>
-</div>
+    <!-- Users table -->
+    <div class="col-lg-8">
+      <div class="sz-card">
+        <div class="sz-card-header mb-2" style="padding-bottom:14px;border-bottom:1px solid var(--c-border)">
+          <span class="sz-card-title">
+            <i class="sz-card-icon fas fa-users"></i>Users
+          </span>
+          <a href="/admin/users" class="sz-btn sz-btn-secondary sz-btn-sm">Manage Users</a>
+        </div>
+        <div class="sz-card-body-flush">
+          <table class="sz-table">
+            <thead>
+              <tr>
+                <th>Username</th><th>Role</th>
+                <th>Installations</th><th>Status</th><th>Last Login</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <tr><td colspan="6" style="text-align:center;color:var(--c-text-muted);padding:20px">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
 
 <script src="/lib/bootstrap.bundle.min.js"></script>
 <script src="/js/platform_api.js"></script>
+<script src="/js/shell.js"></script>
 <script>
+document.getElementById("today-date").textContent = new Date().toLocaleDateString("en-US",
+  { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+
 (async () => {
   PlatformAPI.showSpinner();
   try {
     const user = await PlatformAPI.requireAdmin();
     if (!user) return;
+    initShell(user, "/admin");
 
-    document.getElementById("nav-username").textContent = user.username;
-    document.getElementById("sidebar-nav").innerHTML =
-      PlatformAPI.buildSidebarNav("/admin", user);
+    // Also wire the sidebar logout
+    document.querySelectorAll("#sz-logout-btn").forEach(el =>
+      el.addEventListener("click", () => PlatformAPI.auth.logout()));
 
-    const [stats, users, orgs, installations] = await Promise.all([
+    const [stats, users, orgs, insts] = await Promise.all([
       PlatformAPI.admin.solarStatistics(),
       PlatformAPI.admin.listUsers(),
       PlatformAPI.admin.listOrganizations(),
       PlatformAPI.admin.listInstallations(),
     ]);
 
-    // Stats cards
-    document.getElementById("stat-installations").textContent = stats.total_installations;
-    document.getElementById("stat-capacity").textContent =
-      (stats.total_capacity_kwp ?? 0) > 0 ? (+stats.total_capacity_kwp).toFixed(2) + " kWp" : "—";
-    document.getElementById("stat-users").textContent = stats.total_active_users;
-    document.getElementById("stat-orgs").textContent = stats.total_organizations;
+    // KPIs
+    document.getElementById("kpi-total").textContent    = stats.total_installations;
+    document.getElementById("kpi-capacity").textContent =
+      stats.total_capacity_kwp > 0 ? (+stats.total_capacity_kwp).toFixed(1) : "0";
+    document.getElementById("kpi-active").textContent   = stats.active_count;
+    document.getElementById("kpi-maint").textContent    = stats.maintenance_count;
+    document.getElementById("kpi-users").textContent    = stats.total_active_users;
+    document.getElementById("kpi-orgs").textContent     = orgs.length;
 
-    // By governorate
-    document.getElementById("gov-tbody").innerHTML = (stats.by_governorate || []).length
-      ? stats.by_governorate.map(g => `
-          <tr>
-            <td>${esc(g.governorate || "Unknown")}</td>
-            <td><span class="badge bg-secondary">${g.cnt}</span></td>
-            <td class="text-muted small">${(g.total_kwp ?? 0) > 0 ? (+g.total_kwp).toFixed(1) + " kWp" : "—"}</td>
-          </tr>`).join("")
-      : `<tr><td colspan="3" class="text-center text-muted py-2 small">No governorate data</td></tr>`;
+    // Governorate
+    const govs = stats.by_governorate || [];
+    document.getElementById("gov-tbody").innerHTML = govs.length
+      ? govs.map(g => `
+        <tr>
+          <td class="fw-name">${esc(g.governorate || "Unknown")}</td>
+          <td style="text-align:right"><span class="sz-badge inactive">${g.cnt}</span></td>
+          <td style="text-align:right" class="sz-meta">${(g.total_kwp||0).toFixed(1)} kWp</td>
+        </tr>`).join("")
+      : `<tr><td colspan="3" class="sz-meta" style="text-align:center;padding:16px">No governorate data</td></tr>`;
 
-    // Status breakdown
-    const statusColors = { active: "success", maintenance: "warning", inactive: "secondary" };
-    document.getElementById("status-breakdown").innerHTML =
-      Object.entries(stats.by_status || {}).map(([status, count]) => `
-        <div class="col-sm-4">
-          <div class="card stat-card p-3 text-center">
-            <div class="fs-3 fw-bold text-${statusColors[status] || "secondary"}">${count}</div>
-            <div class="text-muted small text-capitalize">${status}</div>
-          </div>
-        </div>`).join("") || `<div class="col-12 text-muted small text-center">No data</div>`;
-
-    // Installation count per user
+    // Users
     const instByUser = {};
-    installations.forEach(i => {
-      instByUser[i.owner_user_id] = (instByUser[i.owner_user_id] || 0) + 1;
-    });
+    insts.forEach(i => { instByUser[i.owner_user_id] = (instByUser[i.owner_user_id]||0)+1; });
 
-    // Users table
     document.getElementById("users-tbody").innerHTML = users.map(u => `
       <tr>
-        <td class="text-muted small">${u.id}</td>
-        <td class="fw-semibold">${esc(u.username)}</td>
-        <td class="text-muted small">${esc(u.email)}</td>
-        <td><span class="badge ${u.role === "ADMIN" ? "bg-warning text-dark" : "bg-secondary"}">${u.role}</span></td>
-        <td class="text-center">${instByUser[u.id] || 0}</td>
-        <td><span class="badge ${u.is_active ? "bg-success" : "bg-danger"}">${u.is_active ? "Active" : "Disabled"}</span></td>
-        <td class="text-muted small">${u.last_login ? new Date(u.last_login).toLocaleString() : "Never"}</td>
+        <td class="fw-name">${esc(u.username)}<br>
+            <span class="sz-meta">${esc(u.email)}</span></td>
+        <td><span class="sz-badge ${u.role==="ADMIN"?"admin-role":"user-role"}">${u.role}</span></td>
+        <td><a href="/admin/users" class="sz-meta" style="text-decoration:none;color:var(--c-brand)">${instByUser[u.id]||0} sites</a></td>
+        <td><span class="sz-badge ${u.is_active?"active":"inactive"}">${u.is_active?"Active":"Disabled"}</span></td>
+        <td class="sz-meta">${u.last_login ? new Date(u.last_login).toLocaleDateString() : "Never"}</td>
         <td>
-          <div class="d-flex gap-1">
-            <a href="/admin/installations?user=${u.id}" class="btn btn-sm btn-solar"
-               title="View installations">
-              <i class="fas fa-solar-panel"></i>
-            </a>
-            <button class="btn btn-sm btn-outline-secondary"
-                    title="${u.role === "ADMIN" ? "Demote to USER" : "Promote to ADMIN"}"
-                    onclick="toggleRole(${u.id},'${u.role}')">
-              <i class="fas ${u.role === "ADMIN" ? "fa-user-minus" : "fa-user-shield"}"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-danger"
-                    title="Disable user" onclick="disableUser(${u.id})">
-              <i class="fas fa-ban"></i>
+          <div class="sz-actions">
+            <button class="sz-btn sz-btn-ghost sz-btn-icon" title="Toggle role" onclick="toggleRole(${u.id},'${u.role}')">
+              <i class="fas ${u.role==="ADMIN"?"fa-user-minus":"fa-user-shield"}"></i>
             </button>
           </div>
         </td>
       </tr>`).join("");
 
   } catch (err) {
-    PlatformAPI.showError("Failed to load admin data: " + (err.data?.error || err.message));
+    PlatformAPI.showError("Failed to load dashboard: " + (err.data?.error || err.message));
   } finally {
     PlatformAPI.hideSpinner();
   }
-
-  document.getElementById("logout-btn").addEventListener("click", () => PlatformAPI.auth.logout());
 })();
 
-async function toggleRole(userId, currentRole) {
-  const newRole = currentRole === "ADMIN" ? "USER" : "ADMIN";
-  if (!confirm(`Change user ${userId} role to ${newRole}?`)) return;
-  try {
-    await PlatformAPI.admin.updateUser(userId, { role: newRole });
-    location.reload();
-  } catch (err) {
-    PlatformAPI.showError(err.data?.error || "Failed to update role.");
-  }
-}
-
-async function disableUser(userId) {
-  if (!confirm(`Disable user ${userId}?`)) return;
-  try {
-    await PlatformAPI.admin.disableUser(userId);
-    location.reload();
-  } catch (err) {
-    PlatformAPI.showError(err.data?.error || "Failed to disable user.");
-  }
+async function toggleRole(userId, cur) {
+  const newRole = cur === "ADMIN" ? "USER" : "ADMIN";
+  if (!confirm(`Change user ${userId} to ${newRole}?`)) return;
+  try { await PlatformAPI.admin.updateUser(userId, { role: newRole }); location.reload(); }
+  catch (err) { PlatformAPI.showError(err.data?.error || "Failed."); }
 }
 
 function esc(s) {

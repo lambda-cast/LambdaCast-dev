@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Sunalyzer - Realtime
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #f4f5f7;
+
+            color: #1f2937;
+
+        }
+
+
+        header {
+
+            height: 64px;
+
+            background: #111827;
+
+            color: white;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 0 30px;
+
+        }
+
+
+        .logo {
+
+            font-size: 20px;
+
+            font-weight: 700;
+
+        }
+
+
+        .connection {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            font-size: 14px;
+
+        }
+
+
+        .dot {
+
+            width: 9px;
+
+            height: 9px;
+
+            border-radius: 50%;
+
+            background: #9ca3af;
+
+        }
+
+
+        .dot.online {
+
+            background: #22c55e;
+
+        }
+
+
+        main {
+
+            max-width: 1200px;
+
+            margin: 30px auto;
+
+            padding: 0 20px;
+
+        }
+
+
+        .header-row {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        h1 {
+
+            margin: 0;
+
+            font-size: 26px;
+
+        }
+
+
+        .subtitle {
+
+            margin-top: 5px;
+
+            color: #6b7280;
+
+        }
+
+
+        .refresh {
+
+            color: #6b7280;
+
+            font-size: 13px;
+
+        }
+
+
+        .cards {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 18px;
+
+        }
+
+
+        .card {
+
+            background: white;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 10px;
+
+            padding: 22px;
+
+        }
+
+
+        .label {
+
+            color: #6b7280;
+
+            font-size: 13px;
+
+            margin-bottom: 12px;
+
+        }
+
+
+        .value {
+
+            font-size: 28px;
+
+            font-weight: 700;
+
+        }
+
+
+        .unit {
+
+            color: #6b7280;
+
+            font-size: 14px;
+
+        }
+
+
+        .section {
+
+            margin-top: 22px;
+
+            background: white;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 10px;
+
+            padding: 22px;
+
+        }
+
+
+        .section h2 {
+
+            margin-top: 0;
+
+            font-size: 18px;
+
+        }
+
+
+        .data-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 15px;
+
+        }
+
+
+        .data-item {
+
+            background: #f9fafb;
+
+            padding: 18px;
+
+            border-radius: 8px;
+
+        }
+
+
+        .data-label {
+
+            font-size: 13px;
+
+            color: #6b7280;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .data-value {
+
+            font-size: 20px;
+
+            font-weight: 600;
+
+        }
+
+
+        .plant-select {
+
+            padding: 10px;
+
+            border: 1px solid #d1d5db;
+
+            border-radius: 6px;
+
+            background: white;
+
+            min-width: 250px;
+
+        }
+
+
+        .error {
+
+            margin-top: 20px;
+
+            padding: 15px;
+
+            background: #fee2e2;
+
+            color: #991b1b;
+
+            border-radius: 8px;
+
+            display: none;
+
+        }
+
+
+        @media (max-width: 800px) {
+
+            .cards,
+            .data-grid {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="logo">
+
+        ☀ Sunalyzer
+
+    </div>
+
+
+    <div class="connection">
+
+        <span
+            id="statusDot"
+            class="dot"
+        ></span>
+
+        <span id="connectionStatus">
+            Connecting...
+        </span>
+
+    </div>
+
+</header>
+
+
+<main>
+
+
+    <div class="header-row">
+
+        <div>
+
+            <h1 id="plantName">
+                Loading plant...
+            </h1>
+
+            <div class="subtitle">
+                iSolarCloud realtime monitoring
+            </div>
+
+        </div>
+
+
+        <select
+            id="plantSelect"
+            class="plant-select"
+        >
+
+            <option>
+                Loading plants...
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <!-- MAIN CARDS -->
+
+    <div class="cards">
+
+
+        <div class="card">
+
+            <div class="label">
+                Current Power
+            </div>
+
+            <span
+                id="currentPower"
+                class="value"
+            >
+                --
+            </span>
+
+            <span class="unit">
+                kW
+            </span>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="label">
+                Today's Energy
+            </div>
+
+            <span
+                id="todayEnergy"
+                class="value"
+            >
+                --
+            </span>
+
+            <span class="unit">
+                kWh
+            </span>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="label">
+                Installed Power
+            </div>
+
+            <span
+                id="installedPower"
+                class="value"
+            >
+                --
+            </span>
+
+            <span class="unit">
+                kWp
+            </span>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="label">
+                Plant Status
+            </div>
+
+            <span
+                id="plantStatus"
+                class="value"
+            >
+                --
+            </span>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- REALTIME -->
+
+    <div class="section">
+
+        <h2>
+            Realtime Data
+        </h2>
+
+
+        <div class="data-grid">
+
+
+            <div class="data-item">
+
+                <div class="data-label">
+                    PV Power
+                </div>
+
+                <div class="data-value">
+
+                    <span id="pvPower">
+                        --
+                    </span>
+
+                    kW
+
+                </div>
+
+            </div>
+
+
+            <div class="data-item">
+
+                <div class="data-label">
+                    Grid Power
+                </div>
+
+                <div class="data-value">
+
+                    <span id="gridPower">
+                        --
+                    </span>
+
+                    kW
+
+                </div>
+
+            </div>
+
+
+            <div class="data-item">
+
+                <div class="data-label">
+                    Load
+                </div>
+
+                <div class="data-value">
+
+                    <span id="loadPower">
+                        --
+                    </span>
+
+                    kW
+
+                </div>
+
+            </div>
+
+
+            <div class="data-item">
+
+                <div class="data-label">
+                    Battery
+                </div>
+
+                <div class="data-value">
+
+                    <span id="batteryPower">
+                        --
+                    </span>
+
+                    kW
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="refresh">
+
+            Last update:
+
+            <span id="lastUpdate">
+                --
+            </span>
+
+        </div>
+
+
+    </div>
+
+
+    <div
+        id="error"
+        class="error"
+    ></div>
+
+
+</main>
+
+
+<script>
+
+
+const API = "http://127.0.0.1:8000";
+
+
+let plants = [];
+
+let selectedPlant = null;
+
+
+// ============================================================
+// LOAD PLANTS
+// ============================================================
+
+async function loadPlants() {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API}/api/plants`
+            );
+
+        const result =
+            await response.json();
+
+
+        if (!result.authenticated) {
+
+            setConnection(
+                false,
+                "Waiting for login..."
+            );
+
+            return;
+
+        }
+
+
+        plants = result.plants || [];
+
+
+        if (plants.length === 0) {
+
+            showError(
+                "No plants found."
+            );
+
+            return;
+
+        }
+
+
+        setConnection(
+            true,
+            "iSolarCloud connected"
+        );
+
+
+        const select =
+            document.getElementById(
+                "plantSelect"
+            );
+
+
+        select.innerHTML = "";
+
+
+        plants.forEach(
+            (plant, index) => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    plant.ps_id;
+
+
+                option.textContent =
+                    plant.ps_name;
+
+
+                select.appendChild(
+                    option
+                );
+
+
+                if (index === 0) {
+
+                    selectedPlant =
+                        String(
+                            plant.ps_id
+                        );
+
+                }
+
+            }
+        );
+
+
+        select.value =
+            selectedPlant;
+
+
+        updatePlantName();
+
+
+        await updateRealtime();
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        setConnection(
+            false,
+            "Backend unavailable"
+        );
+
+        showError(
+            "Cannot connect to Sunalyzer backend."
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// PLANT SELECT
+// ============================================================
+
+document
+    .getElementById("plantSelect")
+    .addEventListener(
+        "change",
+        async function () {
+
+            selectedPlant =
+                String(
+                    this.value
+                );
+
+            updatePlantName();
+
+            await updateRealtime();
+
+        }
+    );
+
+
+// ============================================================
+// UPDATE PLANT NAME
+// ============================================================
+
+function updatePlantName() {
+
+    const plant =
+        plants.find(
+            p =>
+                String(p.ps_id) ===
+                String(selectedPlant)
+        );
+
+
+    if (plant) {
+
+        document
+            .getElementById(
+                "plantName"
+            )
+            .textContent =
+            plant.ps_name;
+
+    }
+
+}
+
+
+// ============================================================
+// REALTIME DATA
+// ============================================================
+
+async function updateRealtime() {
+
+    if (!selectedPlant) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API}/api/realtime/${selectedPlant}`
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (result.error) {
+
+            showError(
+                result.error
+            );
+
+            return;
+
+        }
+
+
+        hideError();
+
+
+        const data =
+            result.data;
+
+
+        console.log(
+            "Realtime data:",
+            data
+        );
+
+
+        /*
+         * IMPORTANT:
+         *
+         * Sungrow field names can differ depending
+         * on the plant/device/API response.
+         *
+         * For now we automatically search common
+         * names.
+         */
+
+
+        const power =
+            findValue(
+                data,
+                [
+                    "power",
+                    "current_power",
+                    "pac",
+                    "p_total"
+                ]
+            );
+
+
+        const todayEnergy =
+            findValue(
+                data,
+                [
+                    "today_energy",
+                    "e_today",
+                    "yield_today",
+                    "energy_today"
+                ]
+            );
+
+
+        const pvPower =
+            findValue(
+                data,
+                [
+                    "pv_power",
+                    "p_pv",
+                    "pv_total"
+                ]
+            );
+
+
+        const gridPower =
+            findValue(
+                data,
+                [
+                    "grid_power",
+                    "p_grid"
+                ]
+            );
+
+
+        const loadPower =
+            findValue(
+                data,
+                [
+                    "load_power",
+                    "p_load"
+                ]
+            );
+
+
+        const batteryPower =
+            findValue(
+                data,
+                [
+                    "battery_power",
+                    "p_battery"
+                ]
+            );
+
+
+        setText(
+            "currentPower",
+            power
+        );
+
+
+        setText(
+            "todayEnergy",
+            todayEnergy
+        );
+
+
+        setText(
+            "pvPower",
+            pvPower
+        );
+
+
+        setText(
+            "gridPower",
+            gridPower
+        );
+
+
+        setText(
+            "loadPower",
+            loadPower
+        );
+
+
+        setText(
+            "batteryPower",
+            batteryPower
+        );
+
+
+        document
+            .getElementById(
+                "plantStatus"
+            )
+            .textContent =
+            "Online";
+
+
+        document
+            .getElementById(
+                "lastUpdate"
+            )
+            .textContent =
+            new Date(
+                result.timestamp
+            ).toLocaleTimeString();
+
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showError(
+            "Realtime request failed."
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// FIND VALUE
+// ============================================================
+
+function findValue(
+    data,
+    possibleNames
+) {
+
+    for (
+        const name of possibleNames
+    ) {
+
+        if (
+            data[name] &&
+            data[name].value !== null &&
+            data[name].value !== undefined
+        ) {
+
+            return data[name].value;
+
+        }
+
+    }
+
+
+    return "--";
+
+}
+
+
+// ============================================================
+// SET TEXT
+// ============================================================
+
+function setText(
+    id,
+    value
+) {
+
+    document
+        .getElementById(id)
+        .textContent =
+        value ?? "--";
+
+}
+
+
+// ============================================================
+// CONNECTION STATUS
+// ============================================================
+
+function setConnection(
+    online,
+    text
+) {
+
+    const dot =
+        document.getElementById(
+            "statusDot"
+        );
+
+
+    const status =
+        document.getElementById(
+            "connectionStatus"
+        );
+
+
+    status.textContent =
+        text;
+
+
+    if (online) {
+
+        dot.classList.add(
+            "online"
+        );
+
+    }
+
+    else {
+
+        dot.classList.remove(
+            "online"
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// ERRORS
+// ============================================================
+
+function showError(
+    message
+) {
+
+    const element =
+        document.getElementById(
+            "error"
+        );
+
+
+    element.textContent =
+        message;
+
+
+    element.style.display =
+        "block";
+
+}
+
+
+function hideError() {
+
+    document
+        .getElementById(
+            "error"
+        )
+        .style.display =
+        "none";
+
+}
+
+
+// ============================================================
+// INITIAL LOAD
+// ============================================================
+
+loadPlants();
+
+
+// ============================================================
+// REFRESH EVERY 30 SECONDS
+// ============================================================
+
+setInterval(
+    updateRealtime,
+    30000
+);
+
+
+</script>
+
+
+</body>
+
+</html>

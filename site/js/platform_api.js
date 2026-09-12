@@ -168,40 +168,80 @@ const PlatformAPI = (() => {
    * @param {object} user        — user object from me()
    * @returns {string}           — HTML string of <li> elements
    */
+  /**
+   * Build the sidebar navigation HTML using the new sz-* design system.
+   */
   function buildSidebarNav(activePath, user) {
     const isAdmin = user && user.role === "ADMIN";
 
     const link = (href, icon, label) => {
-      const active = activePath === href || activePath.startsWith(href + "/") ? " active" : "";
-      return `<li class="nav-item">
-        <a class="nav-link${active}" href="${href}">
-          <i class="fas fa-${icon}"></i>${label}
+      const active = (activePath === href || activePath.startsWith(href + "/")) &&
+                     href !== "/platform" && href !== "/admin"
+                       ? " active"
+                       : activePath === href ? " active" : "";
+      return `<li class="sz-nav-item">
+        <a class="sz-nav-link${active}" href="${href}">
+          <i class="sz-nav-icon fas fa-${icon}"></i>${label}
         </a>
       </li>`;
     };
 
-    let nav;
+    const sep = (label) =>
+      `<li class="sz-nav-section">${label}</li>`;
 
     if (isAdmin) {
-      // Admin gets a fleet-focused nav — no "My Installations" clutter
-      nav = `
+      return `
         ${link("/admin", "gauge-high", "Dashboard")}
+        ${sep("Fleet")}
         ${link("/admin/installations", "solar-panel", "All Installations")}
-        ${link("/admin/map", "map", "Fleet Map")}
-        ${link("/admin/users", "users", "Manage Users")}
-        <hr/>
-        ${link("/platform/installations/new", "plus-circle", "Add Installation")}
-      `;
-    } else {
-      // Regular user
-      nav = `
-        ${link("/platform", "gauge-high", "Dashboard")}
-        ${link("/platform/installations", "solar-panel", "My Installations")}
-        ${link("/platform/installations/new", "plus-circle", "Add Installation")}
+        ${link("/admin/map", "map-location-dot", "Fleet Map")}
+        ${sep("People")}
+        ${link("/admin/users", "users", "Users")}
+        ${sep("System")}
+        ${link("/platform/installations/new", "plus", "Add Installation")}
       `;
     }
 
-    return nav;
+    return `
+      ${link("/platform", "gauge-high", "Dashboard")}
+      ${sep("My Fleet")}
+      ${link("/platform/installations", "solar-panel", "Installations")}
+      ${link("/platform/installations/new", "plus", "Add Installation")}
+    `;
+  }
+
+  /**
+   * Build the top header HTML.
+   * Inject into element with id="sz-header" at top of every page.
+   */
+  function buildHeader(user) {
+    const initials = user ? user.username.slice(0,2).toUpperCase() : "??";
+    const isAdmin  = user && user.role === "ADMIN";
+    const homeUrl  = isAdmin ? "/admin" : "/platform";
+    return `
+      <a class="sz-brand" href="${homeUrl}">
+        <div class="sz-brand-icon"><i class="fas fa-sun"></i></div>
+        <span class="sz-brand-name">Sun<span>alyzer</span></span>
+      </a>
+      <div class="sz-search">
+        <i class="sz-search-icon fas fa-magnifying-glass"></i>
+        <input type="text" placeholder="Search installations…" id="sz-search-input" autocomplete="off"/>
+      </div>
+      <div class="sz-header-right">
+        <button class="sz-header-btn" title="Notifications" aria-label="Notifications">
+          <i class="fas fa-bell"></i>
+        </button>
+        ${isAdmin ? `<span class="sz-badge-admin">ADMIN</span>` : ""}
+        <div class="sz-user-chip" id="sz-user-chip">
+          <div class="sz-user-avatar">${initials}</div>
+          <span class="sz-user-name">${user ? user.username : "…"}</span>
+          <i class="fas fa-chevron-down" style="font-size:9px;color:var(--c-text-muted)"></i>
+        </div>
+        <button class="sz-header-btn sz-btn-ghost" id="sz-logout-btn" title="Sign out" aria-label="Sign out">
+          <i class="fas fa-right-from-bracket"></i>
+        </button>
+      </div>
+    `;
   }
 
   return {
@@ -216,5 +256,6 @@ const PlatformAPI = (() => {
     requireAuth,
     requireAdmin,
     buildSidebarNav,
+    buildHeader,
   };
 })();

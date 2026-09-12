@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Sunalyzer — My Installations</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
@@ -10,43 +12,29 @@
 </head>
 <body class="platform-page">
 
-<div class="spinner-overlay" role="status">
-  <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+<div class="spinner-overlay" role="status"><div class="sz-spinner"></div></div>
 </div>
 
-<nav class="navbar navbar-expand-lg platform-navbar px-3">
-  <a class="navbar-brand" href="/platform"><i class="fas fa-sun me-2"></i>Sunalyzer</a>
-  <div class="ms-auto d-flex align-items-center gap-2">
-    <span class="text-warning small fw-semibold" id="nav-username"></span>
-    <span class="badge d-none" id="nav-role-badge"></span>
-    <button class="btn btn-sm btn-outline-light" id="logout-btn">
-      <i class="fas fa-sign-out-alt me-1"></i>Logout
-    </button>
-  </div>
-</nav>
+<header class="sz-header" id="sz-header"></header>
 
-<div class="container-fluid">
-<div class="row">
-  <nav class="col-md-3 col-lg-2 d-md-block platform-sidebar">
-    <ul class="nav flex-column pt-2" id="sidebar-nav"></ul>
-  </nav>
+<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
 
-  <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+  <main class="sz-main">
 
     <!-- Detail panel -->
-    <div id="detail-panel" class="card border-0 shadow-sm mb-4 d-none">
-      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div id="detail-panel" class="sz-card mb-4 d-none">
+      <div class="sz-card-header d-flex justify-content-between align-items-center">
         <span class="fw-semibold" id="detail-name">Details</span>
         <div class="d-flex gap-2">
-          <a id="detail-edit-btn"    href="#" class="btn btn-sm btn-outline-secondary">
+          <a id="detail-edit-btn"    href="#" class="sz-btn sz-btn-secondary sz-btn-sm">
             <i class="fas fa-pen me-1"></i>Edit</a>
-          <a id="detail-monitor-btn" href="#" class="btn btn-sm btn-solar">
+          <a id="detail-monitor-btn" href="#" class="sz-btn sz-btn-primary sz-btn-sm">
             <i class="fas fa-chart-line me-1"></i>Monitor</a>
-          <button class="btn btn-sm btn-outline-secondary" id="close-detail">
+          <button class="sz-btn sz-btn-secondary sz-btn-sm" id="close-detail">
             <i class="fas fa-times"></i></button>
         </div>
       </div>
-      <div class="card-body" id="detail-body"></div>
+      <div class="sz-card-body" id="detail-body"></div>
     </div>
 
     <!-- List panel -->
@@ -56,19 +44,19 @@
           <h4 class="fw-bold mb-0">My Installations</h4>
           <p class="text-muted small mb-0">Manage your solar PV sites</p>
         </div>
-        <a href="/platform/installations/new" class="btn btn-solar">
+        <a href="/platform/installations/new" class="sz-btn sz-btn-primary">
           <i class="fas fa-plus me-1"></i>Add Installation
         </a>
       </div>
 
       <div id="alert-error"   class="alert alert-danger  d-none mb-3"></div>
-      <div id="alert-success" class="alert alert-success d-none mb-3"></div>
+      <div id="alert-success" style="display:none" id="alert-success" mb-3></div>
 
       <div id="empty-state" class="text-center py-5 d-none">
         <i class="fas fa-solar-panel fa-4x mb-3 text-warning opacity-50"></i>
         <h5>No installations yet</h5>
         <p class="text-muted">Add your first solar installation to get started.</p>
-        <a href="/platform/installations/new" class="btn btn-solar">
+        <a href="/platform/installations/new" class="sz-btn sz-btn-primary">
           <i class="fas fa-plus me-1"></i>Add Installation
         </a>
       </div>
@@ -77,8 +65,6 @@
     </div>
 
   </main>
-</div>
-</div>
 
 <!-- Delete modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-modal="true">
@@ -94,7 +80,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-danger btn-sm" id="confirm-delete">Delete</button>
+        <button class="sz-btn sz-btn-danger btn-sm" id="confirm-delete">Delete</button>
       </div>
     </div>
   </div>
@@ -102,6 +88,7 @@
 
 <script src="/lib/bootstrap.bundle.min.js"></script>
 <script src="/js/platform_api.js"></script>
+<script src="/js/shell.js"></script>
 <script>
 let gInstallations = [];
 let gDeleteId = null;
@@ -112,20 +99,15 @@ const deleteModal = new bootstrap.Modal(document.getElementById("deleteModal"));
   try {
     const user = await PlatformAPI.requireAuth();
     if (!user) return;
+    initShell(user, '/platform/installations');
+    // Wire sidebar logout
+    document.querySelectorAll('.sz-nav-link[id=sz-logout-footer-btn]').forEach(el => el.addEventListener('click', () => PlatformAPI.auth.logout()));
 
     // Admin should use /admin/installations, not this page
     if (user.role === "ADMIN") {
       window.location.replace("/admin/installations");
       return;
     }
-
-    document.getElementById("nav-username").textContent = user.username;
-    if (user.role === "ADMIN") {
-      const b = document.getElementById("nav-role-badge");
-      b.textContent = "ADMIN"; b.className = "badge bg-warning text-dark";
-    }
-    document.getElementById("sidebar-nav").innerHTML =
-      PlatformAPI.buildSidebarNav("/platform/installations", user);
 
     // Load installations
     try {
@@ -143,9 +125,6 @@ const deleteModal = new bootstrap.Modal(document.getElementById("deleteModal"));
     }
 
     // Event listeners — only registered after auth succeeds
-    document.getElementById("logout-btn").addEventListener("click",
-      () => PlatformAPI.auth.logout());
-
     document.getElementById("close-detail").addEventListener("click", () => {
       document.getElementById("detail-panel").classList.add("d-none");
       document.getElementById("list-panel").style.display = "";
@@ -190,7 +169,7 @@ function renderGrid(list) {
     <div class="col-md-6 col-xl-4">
       <div class="card installation-card h-100" role="button"
            onclick="showDetail(${i.id})" aria-label="View ${esc(i.name)}">
-        <div class="card-body">
+        <div class="sz-card-body">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <h6 class="fw-bold mb-0">${esc(i.name)}</h6>
             <span class="capacity-badge">
@@ -214,12 +193,12 @@ function renderGrid(list) {
           </span>
           <div class="d-flex gap-1" onclick="event.stopPropagation()">
             <a href="/platform/installations/${i.id}/monitor"
-               class="btn btn-sm btn-solar" title="Live Monitor">
+               class="sz-btn sz-btn-primary sz-btn-sm" title="Live Monitor">
               <i class="fas fa-chart-line"></i></a>
             <a href="/platform/installations/${i.id}/edit"
-               class="btn btn-sm btn-outline-secondary" title="Edit">
+               class="sz-btn sz-btn-secondary sz-btn-sm" title="Edit">
               <i class="fas fa-pen"></i></a>
-            <button class="btn btn-sm btn-outline-danger"
+            <button class="sz-btn sz-btn-danger sz-btn-sm"
                     onclick="confirmDelete(${i.id},'${esc(i.name)}')" title="Delete">
               <i class="fas fa-trash"></i></button>
           </div>

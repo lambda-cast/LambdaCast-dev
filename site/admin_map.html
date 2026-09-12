@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Sunalyzer — Admin Fleet Map</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
@@ -18,36 +20,21 @@
 </head>
 <body class="platform-page">
 
-<div class="spinner-overlay" role="status" aria-label="Loading">
-  <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+<div class="spinner-overlay" role="status"><div class="sz-spinner"></div></div>
 </div>
 
-<nav class="navbar navbar-expand-lg platform-navbar px-3">
-  <a class="navbar-brand" href="/admin"><i class="fas fa-sun me-2"></i>Sunalyzer Admin</a>
-  <div class="ms-auto d-flex align-items-center gap-2">
-    <span class="badge bg-warning text-dark">ADMIN</span>
-    <span class="text-warning small fw-semibold" id="nav-username"></span>
-    <button class="btn btn-sm btn-outline-light" id="logout-btn">
-      <i class="fas fa-sign-out-alt me-1"></i>Logout
-    </button>
-  </div>
-</nav>
+<header class="sz-header" id="sz-header"></header>
 
-<div class="container-fluid">
-<div class="row">
+<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
 
-  <nav class="col-md-3 col-lg-2 d-md-block platform-sidebar">
-    <ul class="nav flex-column pt-2" id="sidebar-nav"></ul>
-  </nav>
-
-  <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+  <main class="sz-main">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
         <h4 class="fw-bold mb-0">Fleet Map — Tunisia</h4>
         <p class="text-muted small mb-0" id="map-subtitle">Loading…</p>
       </div>
-      <a href="/admin/installations" class="btn btn-sm btn-outline-secondary">
+      <a href="/admin/installations" class="sz-btn sz-btn-secondary sz-btn-sm">
         <i class="fas fa-list me-1"></i>Table View
       </a>
     </div>
@@ -61,19 +48,19 @@
       <div class="col-auto"><span class="badge bg-light text-dark border" id="stat-capacity">0 kWp</span></div>
     </div>
 
-    <div id="alert-error" class="alert alert-danger d-none mb-3"></div>
+    <div id="alert-error" style="display:none" id="alert-error" mb-3></div>
 
     <!-- Filters -->
     <div class="filter-bar d-flex gap-3 flex-wrap align-items-end mb-3">
       <div>
-        <label class="form-label small fw-semibold mb-1">Governorate</label>
-        <select id="filter-gov" class="form-select form-select-sm" style="min-width:140px">
+        <label class="sz-label small fw-semibold mb-1">Governorate</label>
+        <select id="filter-gov" class="sz-select form-select-sm" style="min-width:140px">
           <option value="">All Governorates</option>
         </select>
       </div>
       <div>
-        <label class="form-label small fw-semibold mb-1">Status</label>
-        <select id="filter-status" class="form-select form-select-sm">
+        <label class="sz-label small fw-semibold mb-1">Status</label>
+        <select id="filter-status" class="sz-select form-select-sm">
           <option value="">All Statuses</option>
           <option value="active">Active</option>
           <option value="maintenance">Maintenance</option>
@@ -81,15 +68,15 @@
         </select>
       </div>
       <div>
-        <label class="form-label small fw-semibold mb-1">Organization</label>
-        <select id="filter-org" class="form-select form-select-sm" style="min-width:140px">
+        <label class="sz-label small fw-semibold mb-1">Organization</label>
+        <select id="filter-org" class="sz-select form-select-sm" style="min-width:140px">
           <option value="">All Organizations</option>
         </select>
       </div>
-      <button class="btn btn-solar btn-sm" id="btn-apply-filters">
+      <button class="sz-btn sz-btn-primary btn-sm" id="btn-apply-filters">
         <i class="fas fa-filter me-1"></i>Apply
       </button>
-      <button class="btn btn-outline-secondary btn-sm" id="btn-reset-filters">Reset</button>
+      <button class="sz-btn sz-btn-secondary btn-sm" id="btn-reset-filters">Reset</button>
     </div>
 
     <!-- Legend -->
@@ -102,12 +89,11 @@
     <div id="map"></div>
 
   </main>
-</div>
-</div>
 
 <script src="/lib/bootstrap.bundle.min.js"></script>
 <script src="/lib/leaflet.min.js"></script>
 <script src="/js/platform_api.js"></script>
+<script src="/js/shell.js"></script>
 <script src="/js/map_utils.js"></script>
 <script>
 let gMap    = null;
@@ -119,10 +105,9 @@ let gGeojson = null;
   try {
     const user = await PlatformAPI.requireAdmin();
     if (!user) return;
-
-    document.getElementById('nav-username').textContent = user.username;
-    document.getElementById('sidebar-nav').innerHTML =
-      PlatformAPI.buildSidebarNav('/admin/map', user);
+    initShell(user, '/admin/map');
+    // Wire sidebar logout
+    document.querySelectorAll('.sz-nav-link[id=sz-logout-footer-btn]').forEach(el => el.addEventListener('click', () => PlatformAPI.auth.logout()));
 
     gMap = MapUtils.createTunisiaMap('map');
 
@@ -148,10 +133,7 @@ let gGeojson = null;
       applyFilters();
     });
 
-    document.getElementById('logout-btn').addEventListener('click', () =>
-      PlatformAPI.auth.logout());
-
-  } catch (err) {
+    } catch (err) {
     PlatformAPI.showError('Failed to load fleet map: ' + (err.data?.error || err.message));
   } finally {
     PlatformAPI.hideSpinner();

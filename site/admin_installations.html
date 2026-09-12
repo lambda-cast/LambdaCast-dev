@@ -10,31 +10,16 @@
 </head>
 <body class="platform-page">
 
-<div class="spinner-overlay" role="status" aria-label="Loading">
-  <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+<div class="spinner-overlay" role="status"><div class="sz-spinner"></div></div>
 </div>
 
-<nav class="navbar navbar-expand-lg platform-navbar px-3" aria-label="Admin navigation">
-  <a class="navbar-brand" href="/admin"><i class="fas fa-sun me-2"></i>Sunalyzer Admin</a>
-  <div class="ms-auto d-flex align-items-center gap-2">
-    <span class="badge bg-warning text-dark">ADMIN</span>
-    <span class="text-warning small fw-semibold" id="nav-username"></span>
-    <button class="btn btn-sm btn-outline-light" id="logout-btn">
-      <i class="fas fa-sign-out-alt me-1"></i>Logout
-    </button>
-  </div>
-</nav>
+<header class="sz-header" id="sz-header"></header>
 
-<div class="container-fluid">
-  <div class="row">
-
-    <!-- Sidebar -->
-    <nav class="col-md-3 col-lg-2 d-md-block platform-sidebar" aria-label="Admin sidebar">
-      <ul class="nav flex-column pt-2" id="sidebar-nav"></ul>
-    </nav>
+<!-- Sidebar -->
+    <nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
 
     <!-- Main -->
-    <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+    <main class="sz-main">
 
       <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -42,13 +27,13 @@
           <p class="text-muted small mb-0">Complete solar installation registry</p>
         </div>
         <div class="d-flex gap-2">
-          <input type="text" id="search-input" class="form-control form-control-sm" 
+          <input type="text" id="search-input" class="sz-input form-control-sm" 
                  placeholder="Search installations..." style="width:200px" 
                  aria-label="Search installations" />
         </div>
       </div>
 
-      <div id="alert-error" class="alert alert-danger d-none mb-3" role="alert"></div>
+      <div id="alert-error" style="display:none" id="alert-error" mb-3 role="alert"></div>
 
       <!-- Summary row -->
       <div class="row g-2 mb-3">
@@ -64,10 +49,10 @@
       </div>
 
       <!-- Table -->
-      <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
+      <div class="sz-card">
+        <div class="sz-card-body p-0">
           <div class="table-responsive">
-            <table class="table platform-table mb-0">
+            <table class="sz-table">
               <thead>
                 <tr>
                   <th>#</th>
@@ -90,30 +75,51 @@
         </div>
       </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title text-danger" id="deleteModalLabel">
+              <i class="fas fa-exclamation-triangle me-2"></i>Delete Installation
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to delete the installation <strong id="delete-name"></strong>?<br><br>
+            This action cannot be undone and will remove all associated data.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirm-delete">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     </main>
-  </div>
-</div>
 
 <script src="/lib/bootstrap.bundle.min.js"></script>
 <script src="/js/platform_api.js"></script>
+<script src="/js/shell.js"></script>
 <script>
 let gAll = [];
+let gDeleteId = null;
+let deleteModal = null;
 
 (async () => {
   PlatformAPI.showSpinner();
   try {
     const user = await PlatformAPI.requireAdmin();
     if (!user) return;
+    initShell(user, '/admin/installations');
+    // Wire sidebar logout
+    document.querySelectorAll('.sz-nav-link[id=sz-logout-footer-btn]').forEach(el => el.addEventListener('click', () => PlatformAPI.auth.logout()));
 
-    document.getElementById("nav-username").textContent = user.username;
-    document.getElementById("sidebar-nav").innerHTML =
-      PlatformAPI.buildSidebarNav("/admin/installations", user);
+    deleteModal = new bootstrap.Modal(document.getElementById("deleteModal"));
 
     gAll = await PlatformAPI.admin.listInstallations();
     renderTable(gAll);
-
-    document.getElementById("logout-btn").addEventListener("click", () =>
-      PlatformAPI.auth.logout());
 
     document.getElementById("search-input").addEventListener("input", (e) => {
       const q = e.target.value.toLowerCase();
@@ -125,6 +131,28 @@ let gAll = [];
       ));
     });
 
+    document.getElementById("confirm-delete").addEventListener("click", async () => {
+      if (!gDeleteId) return;
+      deleteModal.hide();
+      PlatformAPI.showSpinner();
+      try {
+        await PlatformAPI.installations.delete(gDeleteId);
+        gDeleteId = null;
+        
+        const alertEl = document.getElementById("alert-error");
+        alertEl.className = "alert alert-success";
+        alertEl.textContent = "Installation deleted successfully.";
+        alertEl.style.display = "";
+        
+        gAll = await PlatformAPI.admin.listInstallations();
+        renderTable(gAll);
+      } catch (err) {
+        PlatformAPI.showError(err.data?.error || "Delete failed.");
+      } finally {
+        PlatformAPI.hideSpinner();
+      }
+    });
+
   } catch (err) {
     PlatformAPI.showError("Failed to load installations: " +
       (err.data?.error || err.message || "Unknown error"));
@@ -132,6 +160,12 @@ let gAll = [];
     PlatformAPI.hideSpinner();
   }
 })();
+
+function confirmDelete(id, name) {
+  gDeleteId = id;
+  document.getElementById("delete-name").textContent = name;
+  deleteModal.show();
+}
 
 function renderTable(list) {
   // Update badges
@@ -175,20 +209,24 @@ function renderTable(list) {
       <td>
         <div class="d-flex gap-1">
           <a href="/platform/installations/${i.id}/monitor"
-             class="btn btn-sm btn-solar"
+             class="sz-btn sz-btn-primary sz-btn-sm"
              title="Live Monitor" aria-label="Monitor ${escHtml(i.name)}">
             <i class="fas fa-chart-line"></i>
           </a>
           <a href="/platform/installations/${i.id}"
-             class="btn btn-sm btn-outline-secondary"
+             class="sz-btn sz-btn-secondary sz-btn-sm"
              title="Details" aria-label="Details for ${escHtml(i.name)}">
             <i class="fas fa-eye"></i>
           </a>
           <a href="/platform/installations/${i.id}/edit"
-             class="btn btn-sm btn-outline-secondary"
+             class="sz-btn sz-btn-secondary sz-btn-sm"
              title="Edit" aria-label="Edit ${escHtml(i.name)}">
             <i class="fas fa-pen"></i>
           </a>
+          <button class="sz-btn sz-btn-danger sz-btn-sm"
+                  onclick="confirmDelete(${i.id},'${escHtml(i.name)}')" title="Delete" aria-label="Delete ${escHtml(i.name)}">
+            <i class="fas fa-trash"></i>
+          </button>
         </div>
       </td>
     </tr>

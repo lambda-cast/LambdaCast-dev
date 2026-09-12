@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" fill="none">
+  <!-- Shadow on ground -->
+  <ellipse cx="100" cy="170" rx="60" ry="10" fill="#e0e4ea" opacity="0.5"/>
+
+  <!-- Mounting pole -->
+  <rect x="96" y="110" width="8" height="55" rx="2" fill="#b0b8c8" stroke="#8a94a8" stroke-width="1"/>
+  <!-- Pole base plate -->
+  <ellipse cx="100" cy="162" rx="14" ry="5" fill="#c0c8d4" stroke="#8a94a8" stroke-width="1"/>
+
+  <!-- Panel back (darker) -->
+  <path d="M30 95 L100 55 L170 95 L100 115Z" fill="#6b7a8d" stroke="#555f6e" stroke-width="1.2"/>
+
+  <!-- Panel face (blue-gray with grid) -->
+  <path d="M30 95 L100 55 L170 95 L100 105Z" fill="#3d5a80" stroke="#2c4a6e" stroke-width="1.2"/>
+
+  <!-- Panel grid lines - horizontal -->
+  <line x1="47" y1="89" x2="100" y2="67" stroke="#2c4a6e" stroke-width="0.6" opacity="0.6"/>
+  <line x1="65" y1="93" x2="100" y2="79" stroke="#2c4a6e" stroke-width="0.6" opacity="0.6"/>
+  <line x1="100" y1="97" x2="135" y2="85" stroke="#2c4a6e" stroke-width="0.6" opacity="0.6"/>
+  <line x1="100" y1="91" x2="153" y2="93" stroke="#2c4a6e" stroke-width="0.6" opacity="0.6"/>
+
+  <!-- Panel grid lines - vertical -->
+  <line x1="65" y1="75" x2="65" y2="100" stroke="#2c4a6e" stroke-width="0.6" opacity="0.6"/>
+  <line x1="100" y1="55" x2="100" y2="105" stroke="#2c4a6e" stroke-width="0.6" opacity="0.5"/>
+  <line x1="135" y1="75" x2="135" y2="100" stroke="#2c4a6e" stroke-width="0.6" opacity="0.6"/>
+
+  <!-- Panel cells - left side highlights -->
+  <path d="M32 95 L65 78 L65 93 L47 98Z" fill="#4a7ab5" opacity="0.25"/>
+  <path d="M65 78 L100 60 L100 85 L65 93Z" fill="#5a8ac5" opacity="0.2"/>
+
+  <!-- Panel cells - right side highlights -->
+  <path d="M100 60 L135 78 L135 93 L100 85Z" fill="#4a7ab5" opacity="0.2"/>
+  <path d="M135 78 L168 95 L147 100 L135 93Z" fill="#5a8ac5" opacity="0.15"/>
+
+  <!-- Panel frame highlight (top edge) -->
+  <line x1="30" y1="95" x2="100" y2="55" stroke="#8aaed0" stroke-width="1" opacity="0.5"/>
+  <line x1="100" y1="55" x2="170" y2="95" stroke="#8aaed0" stroke-width="1" opacity="0.3"/>
+
+  <!-- Panel thickness (side view) -->
+  <path d="M30 95 L30 98 L100 108 L100 105Z" fill="#556677" stroke="#4a5a6a" stroke-width="0.5"/>
+  <path d="M170 95 L170 98 L100 108 L100 105Z" fill="#4a5a6a" stroke="#3d4f5e" stroke-width="0.5"/>
+</svg>

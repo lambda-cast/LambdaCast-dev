@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Sunalyzer — Installation</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
@@ -22,32 +24,17 @@
 </head>
 <body class="platform-page">
 
-<div class="spinner-overlay" role="status" aria-label="Loading">
-  <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+<div class="spinner-overlay" role="status"><div class="sz-spinner"></div></div>
 </div>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg platform-navbar px-3">
-  <a class="navbar-brand" href="/platform"><i class="fas fa-sun me-2"></i>Sunalyzer</a>
-  <div class="ms-auto d-flex align-items-center gap-2">
-    <span class="text-warning small fw-semibold" id="nav-username"></span>
-    <span class="badge d-none" id="nav-role-badge"></span>
-    <button class="btn btn-sm btn-outline-light" id="logout-btn">
-      <i class="fas fa-sign-out-alt me-1"></i>Logout
-    </button>
-  </div>
-</nav>
+<header class="sz-header" id="sz-header"></header>
 
-<div class="container-fluid">
-<div class="row">
-
-  <!-- Sidebar -->
-  <nav class="col-md-3 col-lg-2 d-md-block platform-sidebar">
-    <ul class="nav flex-column pt-2" id="sidebar-nav"></ul>
-  </nav>
+<!-- Sidebar -->
+  <nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
 
   <!-- Main content -->
-  <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+  <main class="sz-main">
 
     <nav aria-label="breadcrumb" class="mb-3">
       <ol class="breadcrumb">
@@ -61,52 +48,52 @@
       <h4 class="fw-bold mb-0" id="page-title">Add Installation</h4>
     </div>
 
-    <div id="alert-error" class="alert alert-danger d-none mb-3" role="alert"></div>
-    <div id="alert-success" class="alert alert-success d-none mb-3" role="alert"></div>
+    <div id="alert-error" style="display:none" id="alert-error" mb-3 role="alert"></div>
+    <div id="alert-success" style="display:none" id="alert-success" mb-3 role="alert"></div>
 
     <form id="installation-form" novalidate>
 
       <!-- Basic info -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
+      <div class="sz-card mb-4">
+        <div class="sz-card-body">
           <div class="form-section-header mb-3">Basic Information</div>
           <div class="row g-3">
             <div class="col-md-8">
-              <label class="form-label fw-semibold" for="name">
+              <label class="sz-label fw-semibold" for="name">
                 Installation Name <span class="text-danger">*</span>
               </label>
-              <input type="text" id="name" class="form-control" required
+              <input type="text" id="name" class="sz-input" required
                      placeholder="e.g. Rooftop — Building A"/>
               <div class="invalid-feedback">Name is required.</div>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-semibold" for="status">Status</label>
-              <select id="status" class="form-select">
+              <label class="sz-label fw-semibold" for="status">Status</label>
+              <select id="status" class="sz-select">
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
                 <option value="maintenance">Maintenance</option>
               </select>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-semibold" for="installation_date">Installation Date</label>
-              <input type="date" id="installation_date" class="form-control"/>
+              <label class="sz-label fw-semibold" for="installation_date">Installation Date</label>
+              <input type="date" id="installation_date" class="sz-input"/>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-semibold" for="installed_capacity_kwp">
+              <label class="sz-label fw-semibold" for="installed_capacity_kwp">
                 Installed Capacity (kWp)
               </label>
-              <input type="number" id="installed_capacity_kwp" class="form-control"
+              <input type="number" id="installed_capacity_kwp" class="sz-input"
                      step="0.01" min="0" placeholder="e.g. 10.5"/>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-semibold" for="organization_id">Organization</label>
-              <select id="organization_id" class="form-select">
+              <label class="sz-label fw-semibold" for="organization_id">Organization</label>
+              <select id="organization_id" class="sz-select">
                 <option value="">— None —</option>
               </select>
             </div>
             <div class="col-12">
-              <label class="form-label fw-semibold" for="notes">Notes</label>
-              <textarea id="notes" class="form-control" rows="2"
+              <label class="sz-label fw-semibold" for="notes">Notes</label>
+              <textarea id="notes" class="sz-input" rows="2"
                         placeholder="Optional notes about this installation"></textarea>
             </div>
           </div>
@@ -114,21 +101,21 @@
       </div>
 
       <!-- Location -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
+      <div class="sz-card mb-4">
+        <div class="sz-card-body">
           <div class="form-section-header mb-3">Location</div>
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label fw-semibold" for="address">Address</label>
-              <input type="text" id="address" class="form-control" placeholder="Street address"/>
+              <label class="sz-label fw-semibold" for="address">Address</label>
+              <input type="text" id="address" class="sz-input" placeholder="Street address"/>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" for="city">City</label>
-              <input type="text" id="city" class="form-control" placeholder="e.g. Tunis"/>
+              <label class="sz-label fw-semibold" for="city">City</label>
+              <input type="text" id="city" class="sz-input" placeholder="e.g. Tunis"/>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" for="governorate">Governorate (Wilaya)</label>
-              <select id="governorate" class="form-select">
+              <label class="sz-label fw-semibold" for="governorate">Governorate (Wilaya)</label>
+              <select id="governorate" class="sz-select">
                 <option value="">— Select —</option>
                 <option>Ariana</option><option>Béja</option><option>Ben Arous</option>
                 <option>Bizerte</option><option>Gabès</option><option>Gafsa</option>
@@ -141,29 +128,29 @@
               </select>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" for="delegation">Delegation</label>
-              <input type="text" id="delegation" class="form-control" placeholder="e.g. La Marsa"/>
+              <label class="sz-label fw-semibold" for="delegation">Delegation</label>
+              <input type="text" id="delegation" class="sz-input" placeholder="e.g. La Marsa"/>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" for="country">Country</label>
-              <input type="text" id="country" class="form-control" value="Tunisia"/>
+              <label class="sz-label fw-semibold" for="country">Country</label>
+              <input type="text" id="country" class="sz-input" value="Tunisia"/>
             </div>
             <div class="col-md-2">
-              <label class="form-label fw-semibold" for="latitude">
+              <label class="sz-label fw-semibold" for="latitude">
                 Latitude <span class="text-muted small">(°N)</span>
               </label>
-              <input type="number" id="latitude" class="form-control"
+              <input type="number" id="latitude" class="sz-input"
                      step="0.000001" min="-90" max="90" placeholder="36.8190"/>
             </div>
             <div class="col-md-2">
-              <label class="form-label fw-semibold" for="longitude">
+              <label class="sz-label fw-semibold" for="longitude">
                 Longitude <span class="text-muted small">(°E)</span>
               </label>
-              <input type="number" id="longitude" class="form-control"
+              <input type="number" id="longitude" class="sz-input"
                      step="0.000001" min="-180" max="180" placeholder="10.1660"/>
             </div>
             <div class="col-md-2 d-flex align-items-end">
-              <button type="button" class="btn btn-solar w-100" id="btn-pick-map"
+              <button type="button" class="sz-btn sz-btn-primary w-100" id="btn-pick-map"
                       title="Click on the map to pick coordinates">
                 <i class="fas fa-map-marker-alt me-1"></i>Pick on Map
               </button>
@@ -173,21 +160,21 @@
       </div>
 
       <!-- Panels -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
+      <div class="sz-card mb-4">
+        <div class="sz-card-body">
           <div class="form-section-header mb-3">Panel Configuration</div>
           <div class="row g-3">
             <div class="col-md-4">
-              <label class="form-label fw-semibold" for="panel_manufacturer">Manufacturer</label>
-              <input type="text" id="panel_manufacturer" class="form-control" placeholder="e.g. JinkoSolar"/>
+              <label class="sz-label fw-semibold" for="panel_manufacturer">Manufacturer</label>
+              <input type="text" id="panel_manufacturer" class="sz-input" placeholder="e.g. JinkoSolar"/>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-semibold" for="panel_model">Model</label>
-              <input type="text" id="panel_model" class="form-control" placeholder="e.g. Tiger Neo 415W"/>
+              <label class="sz-label fw-semibold" for="panel_model">Model</label>
+              <input type="text" id="panel_model" class="sz-input" placeholder="e.g. Tiger Neo 415W"/>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-semibold" for="panel_technology">Technology</label>
-              <select id="panel_technology" class="form-select">
+              <label class="sz-label fw-semibold" for="panel_technology">Technology</label>
+              <select id="panel_technology" class="sz-select">
                 <option value="">— Select —</option>
                 <option value="monocrystalline">Monocrystalline</option>
                 <option value="polycrystalline">Polycrystalline</option>
@@ -196,17 +183,17 @@
               </select>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" for="panel_power_wp">Power per Panel (Wp)</label>
-              <input type="number" id="panel_power_wp" class="form-control"
+              <label class="sz-label fw-semibold" for="panel_power_wp">Power per Panel (Wp)</label>
+              <input type="number" id="panel_power_wp" class="sz-input"
                      step="1" min="0" placeholder="e.g. 415"/>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" for="number_of_panels">Number of Panels</label>
-              <input type="number" id="number_of_panels" class="form-control"
+              <label class="sz-label fw-semibold" for="number_of_panels">Number of Panels</label>
+              <input type="number" id="number_of_panels" class="sz-input"
                      step="1" min="0" placeholder="e.g. 24"/>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" for="tilt">
+              <label class="sz-label fw-semibold" for="tilt">
                 Tilt (°)
                 <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-solar"
                         id="btn-recommend-tilt" title="Auto-calculate from latitude"
@@ -214,12 +201,12 @@
                   <i class="fas fa-magic"></i> Auto
                 </button>
               </label>
-              <input type="number" id="tilt" class="form-control"
+              <input type="number" id="tilt" class="sz-input"
                      step="0.1" min="0" max="90" placeholder="e.g. 30"/>
               <div class="form-text" id="tilt-hint" style="display:none"></div>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" for="azimuth">
+              <label class="sz-label fw-semibold" for="azimuth">
                 Azimuth (°)
                 <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-solar"
                         id="btn-recommend-azimuth" title="Auto-calculate from latitude"
@@ -227,7 +214,7 @@
                   <i class="fas fa-magic"></i> Auto
                 </button>
               </label>
-              <input type="number" id="azimuth" class="form-control"
+              <input type="number" id="azimuth" class="sz-input"
                      step="0.1" min="0" max="360" placeholder="180 = South"/>
               <div class="form-text" id="azimuth-hint" style="display:none"></div>
             </div>
@@ -236,7 +223,7 @@
               <div class="alert alert-info py-2 mb-0 d-flex align-items-center gap-2">
                 <i class="fas fa-compass text-solar"></i>
                 <span id="orientation-text"></span>
-                <button type="button" class="btn btn-sm btn-solar ms-auto" id="btn-apply-recommendation">
+                <button type="button" class="sz-btn sz-btn-primary sz-btn-sm ms-auto" id="btn-apply-recommendation">
                   Apply
                 </button>
               </div>
@@ -246,21 +233,21 @@
       </div>
 
       <!-- Inverter -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
+      <div class="sz-card mb-4">
+        <div class="sz-card-body">
           <div class="form-section-header mb-3">Inverter Configuration</div>
           <div class="row g-3">
             <div class="col-md-4">
-              <label class="form-label fw-semibold" for="inverter_manufacturer">Manufacturer</label>
-              <input type="text" id="inverter_manufacturer" class="form-control" placeholder="e.g. Huawei"/>
+              <label class="sz-label fw-semibold" for="inverter_manufacturer">Manufacturer</label>
+              <input type="text" id="inverter_manufacturer" class="sz-input" placeholder="e.g. Huawei"/>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-semibold" for="inverter_model">Model</label>
-              <input type="text" id="inverter_model" class="form-control" placeholder="e.g. SUN2000-10KTL"/>
+              <label class="sz-label fw-semibold" for="inverter_model">Model</label>
+              <input type="text" id="inverter_model" class="sz-input" placeholder="e.g. SUN2000-10KTL"/>
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-semibold" for="inverter_capacity_kw">Capacity (kW)</label>
-              <input type="number" id="inverter_capacity_kw" class="form-control"
+              <label class="sz-label fw-semibold" for="inverter_capacity_kw">Capacity (kW)</label>
+              <input type="number" id="inverter_capacity_kw" class="sz-input"
                      step="0.1" min="0" placeholder="e.g. 10"/>
             </div>
           </div>
@@ -268,12 +255,12 @@
       </div>
 
       <!-- Actions -->
-      <div class="card border-0 shadow-sm mb-5">
-        <div class="card-body d-flex gap-3 justify-content-end">
-          <a href="/platform/installations" class="btn btn-outline-secondary px-4">
+      <div class="sz-card mb-5">
+        <div class="sz-card-body d-flex gap-3 justify-content-end">
+          <a href="/platform/installations" class="sz-btn sz-btn-secondary px-4">
             <i class="fas fa-times me-1"></i>Cancel
           </a>
-          <button type="submit" class="btn btn-solar px-5" id="submit-btn">
+          <button type="submit" class="sz-btn sz-btn-primary px-5" id="submit-btn">
             <span id="submit-spinner" class="spinner-border spinner-border-sm me-2 d-none"></span>
             <i class="fas fa-save me-1" id="submit-icon"></i>
             <span id="submit-label">Save Installation</span>
@@ -283,12 +270,11 @@
 
     </form>
   </main>
-</div>
-</div>
 
 <script src="/lib/bootstrap.bundle.min.js"></script>
 <script src="/lib/leaflet.min.js"></script>
 <script src="/js/platform_api.js"></script>
+<script src="/js/shell.js"></script>
 <script src="/js/map_utils.js"></script>
 <script>
 // Detect edit mode: /platform/installations/<id>/edit
@@ -350,19 +336,11 @@ function populateForm(inst) {
   try {
     const user = await PlatformAPI.requireAuth();
     if (!user) return;
+    initShell(user, '/platform/installations/new');
+    // Wire sidebar logout
+    document.querySelectorAll('.sz-nav-link[id=sz-logout-footer-btn]').forEach(el => el.addEventListener('click', () => PlatformAPI.auth.logout()));
 
     // Navbar
-    document.getElementById("nav-username").textContent = user.username;
-    if (user.role === "ADMIN") {
-      const b = document.getElementById("nav-role-badge");
-      b.textContent = "ADMIN"; b.className = "badge bg-warning text-dark";
-    }
-    document.getElementById("sidebar-nav").innerHTML =
-      PlatformAPI.buildSidebarNav(
-        isEdit ? `/platform/installations/${editId}/edit` : "/platform/installations/new",
-        user
-      );
-
     // Organizations dropdown (admins only)
     if (user.role === "ADMIN") {
       try {
@@ -392,9 +370,6 @@ function populateForm(inst) {
     }
 
     // Event listeners
-    document.getElementById("logout-btn").addEventListener("click", () =>
-      PlatformAPI.auth.logout());
-
     // (btn-use-tunis replaced by map picker — keep handler for safety but it's a no-op now)
     // updateOrientationRecommendation is called by the map picker's confirm button
 
@@ -488,14 +463,10 @@ function populateForm(inst) {
       try {
         if (isEdit) {
           await PlatformAPI.installations.update(editId, data);
-          const succ = document.getElementById("alert-success");
-          succ.textContent = "Installation updated successfully.";
-          succ.classList.remove("d-none");
-          window.scrollTo({ top: 0, behavior: "smooth" });
+          window.location.href = `/platform/installations/${editId}/monitor`;
         } else {
           const res = await PlatformAPI.installations.create(data);
-          // Redirect to the new installation's detail page
-          window.location.href = `/platform/installations/${res.id}`;
+          window.location.href = `/platform/installations/${res.id}/monitor`;
         }
       } catch (err) {
         const msg = err.data?.error || err.message || "Failed to save installation.";
@@ -536,8 +507,8 @@ function populateForm(inst) {
           <i class="fas fa-info-circle me-1"></i>
           Click to place marker · Drag marker to adjust · Scroll to zoom
         </div>
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-solar" id="btn-confirm-location" disabled>
+        <button type="button" class="sz-btn sz-btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="sz-btn sz-btn-primary" id="btn-confirm-location" disabled>
           <i class="fas fa-check me-1"></i>Use This Location
         </button>
       </div>

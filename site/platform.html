@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Sunalyzer — Dashboard</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
@@ -10,52 +12,72 @@
 </head>
 <body class="platform-page">
 
-<div class="spinner-overlay" role="status" aria-label="Loading">
-  <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+<div class="spinner-overlay" role="status"><div class="sz-spinner"></div></div>
 </div>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg platform-navbar px-3">
-  <a class="navbar-brand" href="/platform"><i class="fas fa-sun me-2"></i>Sunalyzer</a>
-  <div class="ms-auto d-flex align-items-center gap-2">
-    <span class="text-warning small fw-semibold" id="nav-username"></span>
-    <span class="badge d-none" id="nav-role-badge"></span>
-    <button class="btn btn-sm btn-outline-light" id="logout-btn">
-      <i class="fas fa-sign-out-alt me-1"></i>Logout
-    </button>
-  </div>
-</nav>
+<header class="sz-header" id="sz-header"></header>
 
-<div class="container-fluid">
-<div class="row">
-  <nav class="col-md-3 col-lg-2 d-md-block platform-sidebar">
-    <ul class="nav flex-column pt-2" id="sidebar-nav"></ul>
-  </nav>
+<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
 
-  <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+  <main class="sz-main">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Page header -->
+    <div class="sz-page-header">
       <div>
-        <h4 class="fw-bold mb-0">Welcome, <span id="welcome-name">…</span></h4>
-        <p class="text-muted small mb-0">Your solar installations at a glance</p>
+        <h1 class="sz-page-title">My Installations</h1>
+        <p class="sz-page-subtitle">Hello, <span id="welcome-name">…</span> — your solar portfolio</p>
       </div>
-      <a href="/platform/installations/new" class="btn btn-solar">
-        <i class="fas fa-plus me-1"></i>Add Installation
+      <a href="/platform/installations/new" class="sz-btn sz-btn-primary">
+        <i class="fas fa-plus"></i>Add Installation
       </a>
     </div>
 
-    <div id="alert-error" class="alert alert-danger d-none mb-3" role="alert"></div>
+    <div id="alert-error" style="display:none"></div>
 
-    <!-- Summary cards -->
+    <!-- KPI row -->
     <div class="row g-3 mb-4">
-      <div class="col-sm-6 col-xl-3">
-        <div class="card stat-card p-3">
-          <div class="d-flex align-items-center">
-            <div class="card-icon bg-solar me-3"><i class="fas fa-solar-panel"></i></div>
-            <div>
-              <div class="text-muted small">Total Installations</div>
-              <div class="fs-4 fw-bold" id="stat-count">—</div>
-            </div>
+      <div class="col-6 col-md-3">
+        <div class="sz-kpi">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <span class="sz-kpi-label">Installations</span>
+            <div class="sz-kpi-accent orange"><i class="fas fa-solar-panel"></i></div>
+          </div>
+          <div class="sz-kpi-value" id="stat-count">—</div>
+          <div class="sz-kpi-unit">sites</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="sz-kpi">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <span class="sz-kpi-label">Total Capacity</span>
+            <div class="sz-kpi-accent orange"><i class="fas fa-bolt"></i></div>
+          </div>
+          <div class="sz-kpi-value" id="stat-capacity">—</div>
+          <div class="sz-kpi-unit">kWp installed</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="sz-kpi">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <span class="sz-kpi-label">Active</span>
+            <div class="sz-kpi-accent green"><i class="fas fa-circle-check"></i></div>
+          </div>
+          <div class="sz-kpi-value" id="stat-active">—</div>
+          <div class="sz-kpi-unit">online</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="sz-kpi">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <span class="sz-kpi-label">Maintenance</span>
+            <div class="sz-kpi-accent amber"><i class="fas fa-wrench"></i></div>
+          </div>
+          <div class="sz-kpi-value" id="stat-maintenance">—</div>
+          <div class="sz-kpi-unit">sites</div>
+        </div>
+      </div>
+    </div>
           </div>
         </div>
       </div>
@@ -95,21 +117,21 @@
     </div>
 
     <!-- Recent installations -->
-    <div class="card border-0 shadow-sm">
-      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div class="sz-card">
+      <div class="sz-card-header d-flex justify-content-between align-items-center">
         <span class="fw-semibold">Recent Installations</span>
-        <a href="/platform/installations" class="btn btn-sm btn-outline-secondary">View All</a>
+        <a href="/platform/installations" class="sz-btn sz-btn-secondary sz-btn-sm">View All</a>
       </div>
-      <div class="card-body p-0">
+      <div class="sz-card-body p-0">
         <div id="empty-state" class="text-center py-5 d-none">
           <i class="fas fa-solar-panel fa-3x mb-3 text-warning opacity-50"></i>
           <p class="text-muted">No installations yet.</p>
-          <a href="/platform/installations/new" class="btn btn-solar">
+          <a href="/platform/installations/new" class="sz-btn sz-btn-primary">
             <i class="fas fa-plus me-1"></i>Add your first installation
           </a>
         </div>
         <div class="table-responsive">
-          <table class="table platform-table mb-0" id="installations-table">
+          <table class="sz-table" id="installations-table">
             <thead>
               <tr><th>Name</th><th>Location</th><th>Capacity</th><th>Status</th><th>Installed</th><th></th></tr>
             </thead>
@@ -120,17 +142,19 @@
     </div>
 
   </main>
-</div>
-</div>
 
 <script src="/lib/bootstrap.bundle.min.js"></script>
 <script src="/js/platform_api.js"></script>
+<script src="/js/shell.js"></script>
 <script>
 (async () => {
   try {
   PlatformAPI.showSpinner();
   const user = await PlatformAPI.requireAuth();
   if (!user) return;
+    initShell(user, '/platform');
+    // Wire sidebar logout
+    document.querySelectorAll('.sz-nav-link[id=sz-logout-footer-btn]').forEach(el => el.addEventListener('click', () => PlatformAPI.auth.logout()));
 
   // Admin has their own dashboard
   if (user.role === "ADMIN") {
@@ -139,9 +163,6 @@
   }
 
   // Sidebar (role-aware)
-  document.getElementById("sidebar-nav").innerHTML =
-    PlatformAPI.buildSidebarNav("/platform", user);
-
   document.getElementById("welcome-name").textContent = user.username;
 
   try {
@@ -156,9 +177,7 @@
     PlatformAPI.hideSpinner();
   }
 
-  document.getElementById("logout-btn").addEventListener("click", () =>
-    PlatformAPI.auth.logout());
-})();
+  })();
 
 function renderStats(list) {
   document.getElementById("stat-count").textContent = list.length;
@@ -184,7 +203,7 @@ function renderTable(list) {
       <td><span class="capacity-badge">${i.installed_capacity_kwp != null ? i.installed_capacity_kwp + " kWp" : "—"}</span></td>
       <td><span class="status-dot ${i.status}"></span>${esc(i.status || "—")}</td>
       <td class="text-muted small">${i.installation_date || "—"}</td>
-      <td><a href="/platform/installations/${i.id}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i></a></td>
+      <td><a href="/platform/installations/${i.id}" class="sz-btn sz-btn-secondary sz-btn-sm"><i class="fas fa-eye"></i></a></td>
     </tr>`).join("");
 }
 

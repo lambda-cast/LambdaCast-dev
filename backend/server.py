@@ -95,8 +95,9 @@ def get_platform_map():
 
 @app.route('/platform/installations/<int:installation_id>')
 def get_installation_detail(installation_id: int = None):
-    '''Serves the installation detail page.'''
-    return send_from_directory("../site", "installation_detail.html")
+    '''Redirect detail page → monitor (old detail page removed).'''
+    from flask import redirect
+    return redirect(f'/platform/installations/{installation_id}/monitor')
 
 
 @app.route('/platform/installations/<int:installation_id>/monitor')
@@ -113,9 +114,9 @@ def get_file(path):
 
 
 # Returns JSON response containing current data
-def get_json_data_current():
+def get_json_data_current(db_path):
     '''Returns JSON response containing current data'''
-    db = Database("data/db.sqlite")
+    db = Database(db_path)
     # Current
     rows_cur = db.execute("SELECT * FROM current")
     # All time
@@ -179,13 +180,13 @@ def get_json_data_current():
 
 
 # Returns JSON response containing available years
-def get_json_data_statistics():
+def get_json_data_statistics(db_path):
     '''Returns JSON response containing inverter statistics.'''
     # Date based data
     start_date = config.config_data['device']['start_date']
     num_days = (date.today() - start_date).days
     # Averages
-    db = Database("data/db.sqlite")
+    db = Database(db_path)
     rows_all_time = db.execute("SELECT * FROM all_time")
     total_production_kwh = rows_all_time[0][2]
     average_production_kwhpd = total_production_kwh / num_days
@@ -220,9 +221,9 @@ def get_json_data_statistics():
 
 
 # Returns JSON response containing available years
-def get_json_data_dates():
+def get_json_data_dates(db_path):
     '''Returns JSON response containing available years.'''
-    db = Database("data/db.sqlite")
+    db = Database(db_path)
     rows = db.execute("SELECT min(date) FROM years")
     data = {
         "state": "ok",
@@ -233,9 +234,9 @@ def get_json_data_dates():
 
 
 # Returns JSON response containing history details
-def get_json_data_history_details(table, date_search_string):
+def get_json_data_history_details(table, date_search_string, db_path):
     '''Returns JSON response containing history details.'''
-    db = Database("data/db.sqlite")
+    db = Database(db_path)
     if len(date_search_string) > 0:
         rows = db.execute(
             f"SELECT * FROM {table} WHERE date LIKE '{date_search_string}%'")
@@ -259,19 +260,19 @@ def get_json_data_history_details(table, date_search_string):
 
 
 # Returns JSON response containing monthly data for a year
-def get_json_data_real_time(hours):
+def get_json_data_real_time(hours, db_path):
     '''Returns JSON response containing monthly data for a year.'''
     num_results = int(hours) * 60
-    db = Database("data/db.sqlite")
+    db = Database(db_path)
     rows = db.execute(f"SELECT * FROM real_time "
                       f"ORDER BY ID DESC LIMIT {num_results}")
     return json.dumps(rows)
 
 
 # Returns JSON response containing historical data
-def get_json_data_history(table, search_date):
+def get_json_data_history(table, search_date, db_path):
     '''Returns JSON response containing historical data.'''
-    db = Database("data/db.sqlite")
+    db = Database(db_path)
     rows = db.execute(f"SELECT * FROM {table} WHERE date='{search_date}'")
     # No data?
     if not rows:
@@ -345,47 +346,55 @@ def get_json_data_history(table, search_date):
 # .../query?type=dates
 # .../query?type=historical&table=days&date=2022-08-03
 # etc.
+
 @app.route("/query", methods=['GET'])
 def handle_request():
     '''Answers all query requests.'''
     try:
         _type = request.args['type']
+        inst_id = request.args.get('inst_id')
+        if inst_id:
+            db_path = f"data/db_{inst_id}.sqlite"
+        else:
+            db_path = "data/db.sqlite"
+
         logging.debug(f"Server: REST request of type '{_type}' received")
 
         if _type == "current":
-            data = get_json_data_current()
+            data = get_json_data_current(db_path)
             return data
         elif _type == "dates":
-            data = get_json_data_dates()
+            data = get_json_data_dates(db_path)
             return data
         elif _type == "historical":
             table = request.args['table']
             _date = request.args['date']
-            data = get_json_data_history(table, _date)
+            data = get_json_data_history(table, _date, db_path)
             return data
         elif _type == "real_time":
             hours = request.args['h']
-            data = get_json_data_real_time(hours)
+            data = get_json_data_real_time(hours, db_path)
             return data
         elif _type == "days_in_month":
             _month = request.args['date']
-            data = get_json_data_history_details("days", _month)
+            data = get_json_data_history_details("days", _month, db_path)
             return data
         elif _type == "months_in_year":
             _year = request.args['date']
-            data = get_json_data_history_details("months", _year)
+            data = get_json_data_history_details("months", _year, db_path)
             return data
         elif _type == "years_in_all_time":
-            data = get_json_data_history_details("years", "")
+            data = get_json_data_history_details("years", "", db_path)
             return data
         elif _type == "statistics":
-            data = get_json_data_statistics()
+            data = get_json_data_statistics(db_path)
             return data
 
     except Exception:
         logging.exception("Error while handling HTTP request")
         data = {"state": "error"}
         return json.dumps(data)
+
 
 @app.route("/name", methods=['GET'])
 def handle_name():

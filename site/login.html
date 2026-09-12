@@ -1,125 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sunalyzer — Login</title>
-  <link href="/lib/bootstrap.min.css" rel="stylesheet" />
-  <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet" />
-  <link href="/css/platform.css" rel="stylesheet" />
+  <meta charset="utf-8"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sunalyzer — Sign In</title>
+  <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
+  <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
+  <link href="/css/platform.css" rel="stylesheet"/>
 </head>
-<body class="platform-page">
+<body class="sz-auth-page">
 
-<div class="auth-wrapper p-3">
-  <div class="auth-card card p-4 p-md-5 mx-auto">
+<div class="sz-auth-card">
 
-    <!-- Logo -->
-    <div class="text-center mb-4">
-      <div class="auth-logo mb-2">
-        <i class="fas fa-sun"></i>
-      </div>
-      <h4 class="fw-bold text-dark">Sunalyzer Platform</h4>
-      <p class="text-muted small">Sign in to manage your solar installations</p>
+  <div class="sz-auth-logo">
+    <div class="sz-auth-logo-icon"><i class="fas fa-sun"></i></div>
+    <span class="sz-auth-logo-name">Sunalyzer</span>
+  </div>
+
+  <p class="sz-auth-tagline">Solar Fleet Management Platform</p>
+  <h2 class="sz-auth-title">Sign in to your account</h2>
+
+  <div id="alert-error" class="sz-alert sz-alert-err d-none" role="alert">
+    <i class="fas fa-circle-exclamation"></i>
+    <span id="alert-error-text"></span>
+  </div>
+
+  <form id="login-form" novalidate>
+    <div class="sz-field">
+      <label class="sz-label" for="username">Username or Email</label>
+      <input type="text" id="username" class="sz-input"
+             placeholder="Enter username or email"
+             required autocomplete="username"/>
     </div>
 
-    <!-- Alert -->
-    <div id="alert-error" class="alert alert-danger d-none" role="alert"></div>
-
-    <!-- Form -->
-    <form id="login-form" novalidate>
-      <div class="mb-3">
-        <label for="username" class="form-label fw-semibold">Username or Email</label>
-        <div class="input-group">
-          <span class="input-group-text"><i class="fas fa-user"></i></span>
-          <input type="text" id="username" class="form-control"
-                 placeholder="Enter username or email" required autocomplete="username" />
-        </div>
+    <div class="sz-field">
+      <label class="sz-label" for="password">Password</label>
+      <div style="position:relative">
+        <input type="password" id="password" class="sz-input"
+               placeholder="Enter password"
+               required autocomplete="current-password"
+               style="padding-right:38px"/>
+        <button type="button" id="toggle-password" aria-label="Toggle password"
+                style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                       background:none;border:none;cursor:pointer;color:var(--c-text-muted);
+                       font-size:13px;padding:0">
+          <i class="fas fa-eye"></i>
+        </button>
       </div>
+    </div>
 
-      <div class="mb-4">
-        <label for="password" class="form-label fw-semibold">Password</label>
-        <div class="input-group">
-          <span class="input-group-text"><i class="fas fa-lock"></i></span>
-          <input type="password" id="password" class="form-control"
-                 placeholder="Enter password" required autocomplete="current-password" />
-          <button class="btn btn-outline-secondary" type="button" id="toggle-password"
-                  aria-label="Toggle password visibility">
-            <i class="fas fa-eye"></i>
-          </button>
-        </div>
-      </div>
+    <button type="submit" class="sz-btn sz-btn-primary w-100 mt-2" id="login-btn"
+            style="justify-content:center;padding:9px 14px;font-size:14px;font-weight:600">
+      <span id="login-spinner" class="d-none" style="display:inline-block">
+        <i class="fas fa-circle-notch fa-spin me-1"></i>
+      </span>
+      Sign In
+    </button>
+  </form>
 
-      <button type="submit" class="btn btn-solar w-100 py-2 fw-semibold" id="login-btn">
-        <span id="login-spinner" class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
-        Sign In
-      </button>
-    </form>
-
-    <hr class="my-4" />
-    <p class="text-center text-muted small mb-0">
-      Sunalyzer National Solar Monitoring Platform
-    </p>
-  </div>
+  <p style="font-size:11px;color:var(--c-text-muted);text-align:center;margin-top:20px">
+    Sunalyzer — National Solar Monitoring Platform
+  </p>
 </div>
 
 <script src="/lib/bootstrap.bundle.min.js"></script>
 <script src="/js/platform_api.js"></script>
 <script>
-  // If already logged in, redirect to platform (only if token in localStorage)
+  // Already logged in → redirect
   const existing = localStorage.getItem("sunalyzer_token");
   if (existing) {
-    PlatformAPI.auth.me().then(user => {
-      if (user && user.role === "ADMIN") window.location.href = "/admin";
-      else if (user) window.location.href = "/platform";
-    }).catch(() => {
-      // Token invalid/expired — clear it and stay on login page
-      localStorage.removeItem("sunalyzer_token");
-    });
+    PlatformAPI.auth.me().then(u => {
+      window.location.replace(u.role === "ADMIN" ? "/admin" : "/platform");
+    }).catch(() => localStorage.removeItem("sunalyzer_token"));
   }
 
-  // Toggle password visibility
   document.getElementById("toggle-password").addEventListener("click", () => {
-    const pwd = document.getElementById("password");
-    const icon = document.querySelector("#toggle-password i");
-    if (pwd.type === "password") {
-      pwd.type = "text";
-      icon.classList.replace("fa-eye", "fa-eye-slash");
-    } else {
-      pwd.type = "password";
-      icon.classList.replace("fa-eye-slash", "fa-eye");
-    }
+    const p = document.getElementById("password");
+    const i = document.querySelector("#toggle-password i");
+    p.type = p.type === "password" ? "text" : "password";
+    i.className = p.type === "password" ? "fas fa-eye" : "fas fa-eye-slash";
   });
 
-  // Login form submit
+  function showError(msg) {
+    document.getElementById("alert-error-text").textContent = msg;
+    document.getElementById("alert-error").classList.remove("d-none");
+  }
+
   document.getElementById("login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    PlatformAPI.hideError();
-
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value;
-    const btn      = document.getElementById("login-btn");
-    const spinner  = document.getElementById("login-spinner");
-
+    document.getElementById("alert-error").classList.add("d-none");
+    const btn = document.getElementById("login-btn");
+    const sp  = document.getElementById("login-spinner");
     btn.disabled = true;
-    spinner.classList.remove("d-none");
-
+    sp.classList.remove("d-none");
     try {
-      const resp = await PlatformAPI.auth.login(username, password);
-      // Save token to localStorage as fallback for cookie-blocked environments
-      if (resp.access_token) {
-        localStorage.setItem("sunalyzer_token", resp.access_token);
-      }
-      // Redirect based on role
-      if (resp.user.role === "ADMIN") {
-        window.location.href = "/admin";
-      } else {
-        window.location.href = "/platform";
-      }
+      const r = await PlatformAPI.auth.login(
+        document.getElementById("username").value.trim(),
+        document.getElementById("password").value
+      );
+      window.location.replace(r.user.role === "ADMIN" ? "/admin" : "/platform");
     } catch (err) {
-      PlatformAPI.showError(err.data?.error || "Login failed. Check your credentials.");
+      showError(err.data?.error || "Invalid credentials. Please try again.");
     } finally {
       btn.disabled = false;
-      spinner.classList.add("d-none");
+      sp.classList.add("d-none");
     }
   });
 </script>

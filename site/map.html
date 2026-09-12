@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Sunalyzer — My Installations Map</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
@@ -14,41 +16,26 @@
 </head>
 <body class="platform-page">
 
-<div class="spinner-overlay" role="status" aria-label="Loading">
-  <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+<div class="spinner-overlay" role="status"><div class="sz-spinner"></div></div>
 </div>
 
-<nav class="navbar navbar-expand-lg platform-navbar px-3">
-  <a class="navbar-brand" href="/platform"><i class="fas fa-sun me-2"></i>Sunalyzer</a>
-  <div class="ms-auto d-flex align-items-center gap-2">
-    <span class="text-warning small fw-semibold" id="nav-username"></span>
-    <span class="badge d-none" id="nav-role-badge"></span>
-    <button class="btn btn-sm btn-outline-light" id="logout-btn">
-      <i class="fas fa-sign-out-alt me-1"></i>Logout
-    </button>
-  </div>
-</nav>
+<header class="sz-header" id="sz-header"></header>
 
-<div class="container-fluid">
-<div class="row">
+<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
 
-  <nav class="col-md-3 col-lg-2 d-md-block platform-sidebar">
-    <ul class="nav flex-column pt-2" id="sidebar-nav"></ul>
-  </nav>
-
-  <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+  <main class="sz-main">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
         <h4 class="fw-bold mb-0">My Installations — Map</h4>
         <p class="text-muted small mb-0" id="map-subtitle">Loading…</p>
       </div>
-      <a href="/platform/installations" class="btn btn-sm btn-outline-secondary">
+      <a href="/platform/installations" class="sz-btn sz-btn-secondary sz-btn-sm">
         <i class="fas fa-list me-1"></i>List View
       </a>
     </div>
 
-    <div id="alert-error" class="alert alert-danger d-none mb-3"></div>
+    <div id="alert-error" style="display:none" id="alert-error" mb-3></div>
 
     <div class="d-flex gap-3 mb-2 flex-wrap small">
       <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#27ae60;margin-right:4px"></span>Active</span>
@@ -65,12 +52,11 @@
     </div>
 
   </main>
-</div>
-</div>
 
 <script src="/lib/bootstrap.bundle.min.js"></script>
 <script src="/lib/leaflet.min.js"></script>
 <script src="/js/platform_api.js"></script>
+<script src="/js/shell.js"></script>
 <script src="/js/map_utils.js"></script>
 <script>
 (async () => {
@@ -78,14 +64,9 @@
   try {
     const user = await PlatformAPI.requireAuth();
     if (!user) return;
-
-    document.getElementById('nav-username').textContent = user.username;
-    if (user.role === 'ADMIN') {
-      const b = document.getElementById('nav-role-badge');
-      b.textContent = 'ADMIN'; b.className = 'badge bg-warning text-dark';
-    }
-    document.getElementById('sidebar-nav').innerHTML =
-      PlatformAPI.buildSidebarNav('/platform/map', user);
+    initShell(user, '/platform/map');
+    // Wire sidebar logout
+    document.querySelectorAll('.sz-nav-link[id=sz-logout-footer-btn]').forEach(el => el.addEventListener('click', () => PlatformAPI.auth.logout()));
 
     const map = MapUtils.createTunisiaMap('map');
 
@@ -126,10 +107,7 @@
       MapUtils.fitToBounds(map, layer);
     }
 
-    document.getElementById('logout-btn').addEventListener('click', () =>
-      PlatformAPI.auth.logout());
-
-  } catch (err) {
+    } catch (err) {
     PlatformAPI.showError('Failed to load map data: ' + (err.data?.error || err.message));
   } finally {
     PlatformAPI.hideSpinner();

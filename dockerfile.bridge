@@ -1,0 +1,20 @@
+FROM python:3.12.4-slim-bookworm
+
+# Install bridge dependencies
+RUN pip install fastapi uvicorn pysolarcloud aiohttp requests
+
+# Copy the bridge source
+COPY local_testing/backend.py /app/backend.py
+
+# Persist OAuth tokens in /data (mounted volume)
+VOLUME ["/data"]
+
+WORKDIR /app
+
+# Expose the bridge API port
+EXPOSE 8000
+
+ENV PYTHONUNBUFFERED=1
+
+# Run uvicorn
+ENTRYPOINT ["uvicorn", "backend:app", "--host", "0.0.0.0", "--port", "8000"]
