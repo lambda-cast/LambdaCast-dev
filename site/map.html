@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Sunalyzer — My Installations Map</title>
+  <title>Sunalyzer — Carte de mes installations</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
   <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
   <link href="/lib/leaflet.min.css" rel="stylesheet"/>
@@ -21,7 +21,7 @@
 
 <header class="sz-header" id="sz-header"></header>
 
-<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
+<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Déconnexion</button></li></ul></div></nav>
 
   <main class="sz-main">
 
@@ -108,7 +108,7 @@
     }
 
     } catch (err) {
-    PlatformAPI.showError('Failed to load map data: ' + (err.data?.error || err.message));
+    PlatformAPI.showError('Échec du chargement de la carte data: ' + (err.data?.error || err.message));
   } finally {
     PlatformAPI.hideSpinner();
   }

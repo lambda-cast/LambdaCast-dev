@@ -14,7 +14,8 @@ import version
 
 # Real time (24h) data
 NUM_REAL_TIME_VALUES = 24*60  # 24h * 60 Minutes
-real_time_seconds_counter = 0
+# Per-installation real-time counters (keyed by db_path)
+real_time_counters = {}
 config = None
 run = True
 
@@ -27,23 +28,56 @@ def insert_historical_values(
         produced,
         consumed,
         fed_in):
-    '''Helper function to insert new values into the DB.'''
+    '''Helper function to insert new values into the DB.
+
+    Schema: (date, produced_a, produced_b, consumed_a, consumed_b, fed_in_a, fed_in_b)
+    The _a columns hold the cumulative meter reading at the START of the period.
+    The _b columns hold the latest cumulative reading.
+    Period production = b - a.
+
+    Special case: if the row was first written when the device was offline
+    (all zeros), the _a baseline is wrong (0 instead of the actual meter
+    value at period start).  We detect this by checking whether _a == 0
+    while the current reading is non-zero, and correct _a in that case so
+    that the period delta starts from "now" rather than showing lifetime
+    totals.
+    '''
     query = f"SELECT * FROM {table_name} WHERE date='{date_string}'"
     rows = db.execute(query)
 
     if len(rows) == 0:
-        # Create new row
+        # New period — baseline = current meter reading
         query = (f"INSERT INTO {table_name} VALUES ('{date_string}',"
                  f"{str(produced)}, {str(produced)}, "
                  f"{str(consumed)}, {str(consumed)}, "
                  f"{str(fed_in)}, {str(fed_in)})")
         db.execute(query)
     else:
-        # Update existing row
-        query = (f"UPDATE {table_name} SET "
-                 f"produced_b = {str(produced)}, "
-                 f"consumed_b = {str(consumed)}, "
-                 f"fed_in_b = {str(fed_in)} WHERE date='{date_string}'")
+        # Row exists — check if baseline was written as zero while device
+        # was offline (produced_a == 0 but we now have a real reading).
+        # Note: all_time intentionally starts with a=0 (lifetime accumulator),
+        # so we only apply the baseline correction for time-bounded periods.
+        existing_produced_a = rows[0][1]
+        if (table_name != "all_time"
+                and existing_produced_a == 0.0
+                and produced > 0.0):
+            # Correct the baseline: treat this moment as the start of the
+            # period so no historical kWh are attributed to it.
+            query = (f"UPDATE {table_name} SET "
+                     f"produced_a = {str(produced)}, produced_b = {str(produced)}, "
+                     f"consumed_a = {str(consumed)}, consumed_b = {str(consumed)}, "
+                     f"fed_in_a = {str(fed_in)}, fed_in_b = {str(fed_in)} "
+                     f"WHERE date='{date_string}'")
+            logging.info(
+                f"Grabber: corrected zero baseline in {table_name}/{date_string} "
+                f"(produced_a set to {produced:.3f} kWh)"
+            )
+        else:
+            # Normal update — only advance the _b (latest) reading
+            query = (f"UPDATE {table_name} SET "
+                     f"produced_b = {str(produced)}, "
+                     f"consumed_b = {str(consumed)}, "
+                     f"fed_in_b = {str(fed_in)} WHERE date='{date_string}'")
         db.execute(query)
 
 
@@ -236,7 +270,11 @@ def set_time_zone(tz):
 
 def update_data(device, db_path):
     '''Updates data in the data base.'''
-    global real_time_seconds_counter
+    global real_time_counters
+
+    # Per-installation real-time countdown (seconds until next 1-minute sample)
+    if db_path not in real_time_counters:
+        real_time_counters[db_path] = 0
 
     # Download new data from the actual PV device
     device.update()
@@ -298,9 +336,8 @@ def update_data(device, db_path):
     insert_high_scores(db, day_string, device.current_power_produced_kw)
 
     # Store the real time data
-    real_time_seconds_counter = real_time_seconds_counter - \
-        config.config_data['grabber']['interval_s']
-    if real_time_seconds_counter <= 0:
+    real_time_counters[db_path] -= config.config_data['grabber']['interval_s']
+    if real_time_counters[db_path] <= 0:
         # Time string
         time_string = datetime.now().strftime("%H:%M")
         # Store in data base
@@ -325,7 +362,7 @@ def update_data(device, db_path):
             device.current_power_consumed_total_kw,
             device.current_power_fed_in_kw)
 
-        real_time_seconds_counter = 60  # Reset counter to one minute
+        real_time_counters[db_path] = 60  # Reset counter to one minute
 
 
 # This is called when SIGTERM is received

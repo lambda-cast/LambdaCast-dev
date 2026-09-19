@@ -113,6 +113,10 @@ CREATE TABLE IF NOT EXISTS installations (
     status                  TEXT    DEFAULT 'active',  -- active | inactive | maintenance
     notes                   TEXT,
 
+    -- Device integration (grabber plugin config)
+    device_type             TEXT,    -- plugin name: iSolarCloud | Fronius | Sunsynk | Dummy | null
+    device_params           TEXT,    -- JSON object with plugin-specific params (bridge_url, plant_id, etc.)
+
     created_at              TEXT    DEFAULT (datetime('now')),
     updated_at              TEXT    DEFAULT (datetime('now'))
 );
@@ -174,6 +178,7 @@ class PlatformDatabase:
         # Priority: explicit arg > env var > default
         self.db_path = db_path or os.environ.get("SUNALYZER_PLATFORM_DB", _DEFAULT_DB_PATH)
         self._ensure_schema()
+        self._ensure_device_columns()
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -194,6 +199,18 @@ class PlatformDatabase:
             conn.executescript(_SCHEMA_SQL)
             conn.commit()
         logging.info(f"PlatformDatabase: schema ready at {self.db_path}")
+
+    def _ensure_device_columns(self):
+        """Add device_type / device_params if this is an older DB missing them."""
+        with self._connect() as conn:
+            info = [r[1] for r in conn.execute("PRAGMA table_info(installations)").fetchall()]
+            if "device_type" not in info:
+                conn.execute("ALTER TABLE installations ADD COLUMN device_type TEXT")
+                logging.info("PlatformDatabase: added device_type column")
+            if "device_params" not in info:
+                conn.execute("ALTER TABLE installations ADD COLUMN device_params TEXT")
+                logging.info("PlatformDatabase: added device_params column")
+            conn.commit()
 
     # ------------------------------------------------------------------
     # Generic helpers
@@ -310,6 +327,7 @@ class PlatformDatabase:
             "tilt", "azimuth",
             "inverter_manufacturer", "inverter_model", "inverter_capacity_kw",
             "installation_date", "status", "notes",
+            "device_type", "device_params",
         }
         filtered = {k: v for k, v in data.items() if k in allowed_columns}
         columns = ", ".join(filtered.keys())
@@ -358,6 +376,7 @@ class PlatformDatabase:
             "tilt", "azimuth",
             "inverter_manufacturer", "inverter_model", "inverter_capacity_kw",
             "installation_date", "status", "notes",
+            "device_type", "device_params",
         }
         filtered = {k: v for k, v in data.items() if k in allowed_columns}
         if not filtered:

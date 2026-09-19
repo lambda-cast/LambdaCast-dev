@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -31,7 +31,7 @@
 <header class="sz-header" id="sz-header"></header>
 
 <!-- Sidebar -->
-  <nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
+  <nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Déconnexion</button></li></ul></div></nav>
 
   <!-- Main content -->
   <main class="sz-main">
@@ -40,7 +40,7 @@
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/platform" class="text-decoration-none">Dashboard</a></li>
         <li class="breadcrumb-item"><a href="/platform/installations" class="text-decoration-none">Installations</a></li>
-        <li class="breadcrumb-item active" id="breadcrumb-current">New Installation</li>
+        <li class="breadcrumb-item active" id="breadcrumb-current">Nouvelle installation</li>
       </ol>
     </nav>
 
@@ -60,27 +60,27 @@
           <div class="row g-3">
             <div class="col-md-8">
               <label class="sz-label fw-semibold" for="name">
-                Installation Name <span class="text-danger">*</span>
+                Nom de l'installation <span class="text-danger">*</span>
               </label>
               <input type="text" id="name" class="sz-input" required
                      placeholder="e.g. Rooftop — Building A"/>
               <div class="invalid-feedback">Name is required.</div>
             </div>
             <div class="col-md-4">
-              <label class="sz-label fw-semibold" for="status">Status</label>
+              <label class="sz-label fw-semibold" for="status">Statut</label>
               <select id="status" class="sz-select">
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
-                <option value="maintenance">Maintenance</option>
+                <option value="maintenance">En maintenance</option>
               </select>
             </div>
             <div class="col-md-4">
-              <label class="sz-label fw-semibold" for="installation_date">Installation Date</label>
+              <label class="sz-label fw-semibold" for="installation_date">Date d'installation</label>
               <input type="date" id="installation_date" class="sz-input"/>
             </div>
             <div class="col-md-4">
               <label class="sz-label fw-semibold" for="installed_capacity_kwp">
-                Installed Capacity (kWp)
+                Puissance installée (kWc)
               </label>
               <input type="number" id="installed_capacity_kwp" class="sz-input"
                      step="0.01" min="0" placeholder="e.g. 10.5"/>
@@ -100,17 +100,17 @@
         </div>
       </div>
 
-      <!-- Location -->
+      <!-- Localisation -->
       <div class="sz-card mb-4">
         <div class="sz-card-body">
-          <div class="form-section-header mb-3">Location</div>
+          <div class="form-section-header mb-3">Localisation</div>
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="sz-label fw-semibold" for="address">Address</label>
-              <input type="text" id="address" class="sz-input" placeholder="Street address"/>
+              <label class="sz-label fw-semibold" for="address">Adresse</label>
+              <input type="text" id="address" class="sz-input" placeholder="Adresse"/>
             </div>
             <div class="col-md-3">
-              <label class="sz-label fw-semibold" for="city">City</label>
+              <label class="sz-label fw-semibold" for="city">Ville</label>
               <input type="text" id="city" class="sz-input" placeholder="e.g. Tunis"/>
             </div>
             <div class="col-md-3">
@@ -128,11 +128,12 @@
               </select>
             </div>
             <div class="col-md-3">
-              <label class="sz-label fw-semibold" for="delegation">Delegation</label>
-              <input type="text" id="delegation" class="sz-input" placeholder="e.g. La Marsa"/>
+              <label class="sz-label fw-semibold" for="delegation">District / Délégation <span class="text-danger">*</span></label>
+              <input type="text" id="delegation" class="sz-input" placeholder="ex. La Marsa" required/>
+              <div class="form-text">Nécessaire pour l'agrégation nationale</div>
             </div>
             <div class="col-md-3">
-              <label class="sz-label fw-semibold" for="country">Country</label>
+              <label class="sz-label fw-semibold" for="country">Pays</label>
               <input type="text" id="country" class="sz-input" value="Tunisia"/>
             </div>
             <div class="col-md-2">
@@ -176,9 +177,9 @@
               <label class="sz-label fw-semibold" for="panel_technology">Technology</label>
               <select id="panel_technology" class="sz-select">
                 <option value="">— Select —</option>
-                <option value="monocrystalline">Monocrystalline</option>
-                <option value="polycrystalline">Polycrystalline</option>
-                <option value="thin_film">Thin Film</option>
+                <option value="monocrystalline">Monocristallin</option>
+                <option value="polycrystalline">Polycristallin</option>
+                <option value="thin_film">Couche mince</option>
                 <option value="bifacial">Bifacial</option>
               </select>
             </div>
@@ -188,7 +189,7 @@
                      step="1" min="0" placeholder="e.g. 415"/>
             </div>
             <div class="col-md-3">
-              <label class="sz-label fw-semibold" for="number_of_panels">Number of Panels</label>
+              <label class="sz-label fw-semibold" for="number_of_panels">Nombre de panneaux</label>
               <input type="number" id="number_of_panels" class="sz-input"
                      step="1" min="0" placeholder="e.g. 24"/>
             </div>
@@ -207,7 +208,7 @@
             </div>
             <div class="col-md-3">
               <label class="sz-label fw-semibold" for="azimuth">
-                Azimuth (°)
+                Azimut (°)
                 <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-solar"
                         id="btn-recommend-azimuth" title="Auto-calculate from latitude"
                         style="font-size:.75rem;vertical-align:baseline">
@@ -232,10 +233,10 @@
         </div>
       </div>
 
-      <!-- Inverter -->
+      <!-- Onduleur -->
       <div class="sz-card mb-4">
         <div class="sz-card-body">
-          <div class="form-section-header mb-3">Inverter Configuration</div>
+          <div class="form-section-header mb-3">Onduleur Configuration</div>
           <div class="row g-3">
             <div class="col-md-4">
               <label class="sz-label fw-semibold" for="inverter_manufacturer">Manufacturer</label>
@@ -258,12 +259,12 @@
       <div class="sz-card mb-5">
         <div class="sz-card-body d-flex gap-3 justify-content-end">
           <a href="/platform/installations" class="sz-btn sz-btn-secondary px-4">
-            <i class="fas fa-times me-1"></i>Cancel
+            <i class="fas fa-times me-1"></i>Annuler
           </a>
           <button type="submit" class="sz-btn sz-btn-primary px-5" id="submit-btn">
             <span id="submit-spinner" class="spinner-border spinner-border-sm me-2 d-none"></span>
             <i class="fas fa-save me-1" id="submit-icon"></i>
-            <span id="submit-label">Save Installation</span>
+            <span id="submit-label">Enregistrer l'installation</span>
           </button>
         </div>
       </div>
@@ -357,9 +358,9 @@ function populateForm(inst) {
 
     // Edit mode: pre-fill form
     if (isEdit) {
-      document.getElementById("page-title").textContent = "Edit Installation";
+      document.getElementById("page-title").textContent = "Modifier l'installation";
       document.getElementById("breadcrumb-current").textContent = "Edit";
-      document.getElementById("submit-label").textContent = "Update Installation";
+      document.getElementById("submit-label").textContent = "Mettre à jour l'installation";
       document.getElementById("submit-icon").className = "fas fa-save me-1";
       try {
         const inst = await PlatformAPI.installations.get(editId);
@@ -491,7 +492,7 @@ function populateForm(inst) {
       <div class="modal-header py-2">
         <h5 class="modal-title" id="mapPickerLabel">
           <i class="fas fa-map-marker-alt me-2 text-solar"></i>
-          Pick Installation Location — Click anywhere on the map
+          Pick Installation Localisation — Click anywhere on the map
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -507,9 +508,9 @@ function populateForm(inst) {
           <i class="fas fa-info-circle me-1"></i>
           Click to place marker · Drag marker to adjust · Scroll to zoom
         </div>
-        <button type="button" class="sz-btn sz-btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="sz-btn sz-btn-secondary" data-bs-dismiss="modal">Annuler</button>
         <button type="button" class="sz-btn sz-btn-primary" id="btn-confirm-location" disabled>
-          <i class="fas fa-check me-1"></i>Use This Location
+          <i class="fas fa-check me-1"></i>Use This Localisation
         </button>
       </div>
     </div>

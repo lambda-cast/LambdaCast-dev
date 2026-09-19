@@ -27,6 +27,7 @@ GET /api/installations/map                  → GeoJSON for the authenticated us
 
 import logging
 from flask import Blueprint, request, jsonify, g
+import json as _json
 
 from auth import require_auth
 from platform_db import PlatformDatabase

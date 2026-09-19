@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Sunalyzer — Sign In</title>
+  <title>Sunalyzer — Connexion</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
   <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
   <link href="/css/platform.css" rel="stylesheet"/>
@@ -19,8 +19,8 @@
     <span class="sz-auth-logo-name">Sunalyzer</span>
   </div>
 
-  <p class="sz-auth-tagline">Solar Fleet Management Platform</p>
-  <h2 class="sz-auth-title">Sign in to your account</h2>
+  <p class="sz-auth-tagline">Plateforme Nationale de Prévision PV — STEG</p>
+  <h2 class="sz-auth-title">Connectez-vous à votre compte</h2>
 
   <div id="alert-error" class="sz-alert sz-alert-err d-none" role="alert">
     <i class="fas fa-circle-exclamation"></i>
@@ -29,17 +29,17 @@
 
   <form id="login-form" novalidate>
     <div class="sz-field">
-      <label class="sz-label" for="username">Username or Email</label>
+      <label class="sz-label" for="username">Nom d'utilisateur ou e-mail</label>
       <input type="text" id="username" class="sz-input"
-             placeholder="Enter username or email"
+             placeholder="Entrez votre nom d'utilisateur ou e-mail"
              required autocomplete="username"/>
     </div>
 
     <div class="sz-field">
-      <label class="sz-label" for="password">Password</label>
+      <label class="sz-label" for="password">Mot de passe</label>
       <div style="position:relative">
         <input type="password" id="password" class="sz-input"
-               placeholder="Enter password"
+               placeholder="Entrez votre mot de passe"
                required autocomplete="current-password"
                style="padding-right:38px"/>
         <button type="button" id="toggle-password" aria-label="Toggle password"
@@ -56,12 +56,12 @@
       <span id="login-spinner" class="d-none" style="display:inline-block">
         <i class="fas fa-circle-notch fa-spin me-1"></i>
       </span>
-      Sign In
+      Connexion
     </button>
   </form>
 
   <p style="font-size:11px;color:var(--c-text-muted);text-align:center;margin-top:20px">
-    Sunalyzer — National Solar Monitoring Platform
+    Sunalyzer — Plateforme Nationale de Suivi Solaire — STEG
   </p>
 </div>
 
@@ -102,7 +102,7 @@
       );
       window.location.replace(r.user.role === "ADMIN" ? "/admin" : "/platform");
     } catch (err) {
-      showError(err.data?.error || "Invalid credentials. Please try again.");
+      showError(err.data?.error || "Identifiants incorrects. Veuillez réessayer.");
     } finally {
       btn.disabled = false;
       sp.classList.add("d-none");

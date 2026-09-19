@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Sunalyzer — Dashboard</title>
+  <title>Sunalyzer — Tableau de bord</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
   <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
   <link href="/css/platform.css" rel="stylesheet"/>
@@ -18,18 +18,18 @@
 <!-- Navbar -->
 <header class="sz-header" id="sz-header"></header>
 
-<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
+<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Déconnexion</button></li></ul></div></nav>
 
   <main class="sz-main">
 
     <!-- Page header -->
     <div class="sz-page-header">
       <div>
-        <h1 class="sz-page-title">My Installations</h1>
-        <p class="sz-page-subtitle">Hello, <span id="welcome-name">…</span> — your solar portfolio</p>
+        <h1 class="sz-page-title">Mes installations</h1>
+        <p class="sz-page-subtitle">Hello, <span id="welcome-name">…</span> — votre portefeuille solaire</p>
       </div>
       <a href="/platform/installations/new" class="sz-btn sz-btn-primary">
-        <i class="fas fa-plus"></i>Add Installation
+        <i class="fas fa-plus"></i>Ajouter une installation
       </a>
     </div>
 
@@ -50,27 +50,27 @@
       <div class="col-6 col-md-3">
         <div class="sz-kpi">
           <div class="d-flex align-items-start justify-content-between mb-2">
-            <span class="sz-kpi-label">Total Capacity</span>
+            <span class="sz-kpi-label">Capacité totale</span>
             <div class="sz-kpi-accent orange"><i class="fas fa-bolt"></i></div>
           </div>
           <div class="sz-kpi-value" id="stat-capacity">—</div>
-          <div class="sz-kpi-unit">kWp installed</div>
+          <div class="sz-kpi-unit">kWp installés</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
         <div class="sz-kpi">
           <div class="d-flex align-items-start justify-content-between mb-2">
-            <span class="sz-kpi-label">Active</span>
+            <span class="sz-kpi-label">Actives</span>
             <div class="sz-kpi-accent green"><i class="fas fa-circle-check"></i></div>
           </div>
           <div class="sz-kpi-value" id="stat-active">—</div>
-          <div class="sz-kpi-unit">online</div>
+          <div class="sz-kpi-unit">en ligne</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
         <div class="sz-kpi">
           <div class="d-flex align-items-start justify-content-between mb-2">
-            <span class="sz-kpi-label">Maintenance</span>
+            <span class="sz-kpi-label">En maintenance</span>
             <div class="sz-kpi-accent amber"><i class="fas fa-wrench"></i></div>
           </div>
           <div class="sz-kpi-value" id="stat-maintenance">—</div>
@@ -86,7 +86,7 @@
           <div class="d-flex align-items-center">
             <div class="card-icon bg-green me-3"><i class="fas fa-bolt"></i></div>
             <div>
-              <div class="text-muted small">Total Capacity</div>
+              <div class="text-muted small">Capacité totale</div>
               <div class="fs-4 fw-bold" id="stat-capacity">—</div>
             </div>
           </div>
@@ -97,7 +97,7 @@
           <div class="d-flex align-items-center">
             <div class="card-icon bg-blue me-3"><i class="fas fa-check-circle"></i></div>
             <div>
-              <div class="text-muted small">Active</div>
+              <div class="text-muted small">Actives</div>
               <div class="fs-4 fw-bold" id="stat-active">—</div>
             </div>
           </div>
@@ -108,7 +108,7 @@
           <div class="d-flex align-items-center">
             <div class="card-icon bg-purple me-3"><i class="fas fa-wrench"></i></div>
             <div>
-              <div class="text-muted small">Maintenance</div>
+              <div class="text-muted small">En maintenance</div>
               <div class="fs-4 fw-bold" id="stat-maintenance">—</div>
             </div>
           </div>
@@ -119,21 +119,21 @@
     <!-- Recent installations -->
     <div class="sz-card">
       <div class="sz-card-header d-flex justify-content-between align-items-center">
-        <span class="fw-semibold">Recent Installations</span>
-        <a href="/platform/installations" class="sz-btn sz-btn-secondary sz-btn-sm">View All</a>
+        <span class="fw-semibold">Installations récentes</span>
+        <a href="/platform/installations" class="sz-btn sz-btn-secondary sz-btn-sm">Voir tout</a>
       </div>
       <div class="sz-card-body p-0">
         <div id="empty-state" class="text-center py-5 d-none">
           <i class="fas fa-solar-panel fa-3x mb-3 text-warning opacity-50"></i>
-          <p class="text-muted">No installations yet.</p>
+          <p class="text-muted">Aucune installation.</p>
           <a href="/platform/installations/new" class="sz-btn sz-btn-primary">
-            <i class="fas fa-plus me-1"></i>Add your first installation
+            <i class="fas fa-plus me-1"></i>Ajouter votre première installation
           </a>
         </div>
         <div class="table-responsive">
           <table class="sz-table" id="installations-table">
             <thead>
-              <tr><th>Name</th><th>Location</th><th>Capacity</th><th>Status</th><th>Installed</th><th></th></tr>
+              <tr><th>Nom</th><th>Localisation</th><th>Capacité</th><th>Statut</th><th>Date</th><th></th></tr>
             </thead>
             <tbody id="installations-tbody"></tbody>
           </table>
@@ -170,7 +170,7 @@
     renderStats(list);
     renderTable(list);
   } catch (err) {
-    PlatformAPI.showError("Failed to load installations.");
+    PlatformAPI.showError("Échec du chargement des installations.");
   }
 
   } finally {

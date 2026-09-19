@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Sunalyzer — Admin Fleet Map</title>
+  <title>Sunalyzer — Admin Carte du parc</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
   <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
   <link href="/lib/leaflet.min.css" rel="stylesheet"/>
@@ -25,13 +25,13 @@
 
 <header class="sz-header" id="sz-header"></header>
 
-<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
+<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Déconnexion</button></li></ul></div></nav>
 
   <main class="sz-main">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
-        <h4 class="fw-bold mb-0">Fleet Map — Tunisia</h4>
+        <h4 class="fw-bold mb-0">Carte du parc — Tunisia</h4>
         <p class="text-muted small mb-0" id="map-subtitle">Loading…</p>
       </div>
       <a href="/admin/installations" class="sz-btn sz-btn-secondary sz-btn-sm">
@@ -55,22 +55,22 @@
       <div>
         <label class="sz-label small fw-semibold mb-1">Governorate</label>
         <select id="filter-gov" class="sz-select form-select-sm" style="min-width:140px">
-          <option value="">All Governorates</option>
+          <option value="">Tous Governorates</option>
         </select>
       </div>
       <div>
         <label class="sz-label small fw-semibold mb-1">Status</label>
         <select id="filter-status" class="sz-select form-select-sm">
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="maintenance">Maintenance</option>
-          <option value="inactive">Inactive</option>
+          <option value="">Tous Statuses</option>
+          <option value="active">Actives</option>
+          <option value="maintenance">En maintenance</option>
+          <option value="inactive">Inactives</option>
         </select>
       </div>
       <div>
         <label class="sz-label small fw-semibold mb-1">Organization</label>
         <select id="filter-org" class="sz-select form-select-sm" style="min-width:140px">
-          <option value="">All Organizations</option>
+          <option value="">Tous Organizations</option>
         </select>
       </div>
       <button class="sz-btn sz-btn-primary btn-sm" id="btn-apply-filters">
@@ -81,9 +81,9 @@
 
     <!-- Legend -->
     <div class="d-flex gap-3 mb-2 flex-wrap small">
-      <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#27ae60;margin-right:4px"></span>Active</span>
-      <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#f39c12;margin-right:4px"></span>Maintenance</span>
-      <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#95a5a6;margin-right:4px"></span>Inactive</span>
+      <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#27ae60;margin-right:4px"></span>Actives</span>
+      <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#f39c12;margin-right:4px"></span>En maintenance</span>
+      <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#95a5a6;margin-right:4px"></span>Inactives</span>
     </div>
 
     <div id="map"></div>

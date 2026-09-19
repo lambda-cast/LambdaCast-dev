@@ -56,7 +56,7 @@ async function pageInit(activePath, requireAdmin = false) {
     initShell(user, activePath);
     return user;
   } catch (err) {
-    PlatformAPI.showError("Page load error: " + (err.message || "Unknown"));
+    PlatformAPI.showError("Erreur de chargement : " + (err.message || "Erreur inconnue"));
     return null;
   } finally {
     PlatformAPI.hideSpinner();

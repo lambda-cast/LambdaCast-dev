@@ -191,22 +191,23 @@ const PlatformAPI = (() => {
 
     if (isAdmin) {
       return `
-        ${link("/admin", "gauge-high", "Dashboard")}
-        ${sep("Fleet")}
-        ${link("/admin/installations", "solar-panel", "All Installations")}
-        ${link("/admin/map", "map-location-dot", "Fleet Map")}
-        ${sep("People")}
-        ${link("/admin/users", "users", "Users")}
-        ${sep("System")}
-        ${link("/platform/installations/new", "plus", "Add Installation")}
+        ${link("/admin", "gauge-high", "Tableau de bord")}
+        ${sep("Parc")}
+        ${link("/admin/installations", "solar-panel", "Toutes les installations")}
+        ${link("/admin/map", "map-location-dot", "Carte du parc")}
+        ${sep("Utilisateurs")}
+        ${link("/admin/users", "users", "Utilisateurs")}
+        ${sep("Système")}
+        ${link("/platform/installations/new", "plus", "Ajouter une installation")}
       `;
     }
 
     return `
-      ${link("/platform", "gauge-high", "Dashboard")}
-      ${sep("My Fleet")}
+      ${link("/platform", "gauge-high", "Tableau de bord")}
+      ${sep("Mon parc")}
       ${link("/platform/installations", "solar-panel", "Installations")}
-      ${link("/platform/installations/new", "plus", "Add Installation")}
+      ${link("/platform/map", "map-location-dot", "Carte")}
+      ${link("/platform/installations/new", "plus", "Ajouter une installation")}
     `;
   }
 
@@ -225,7 +226,7 @@ const PlatformAPI = (() => {
       </a>
       <div class="sz-search">
         <i class="sz-search-icon fas fa-magnifying-glass"></i>
-        <input type="text" placeholder="Search installations…" id="sz-search-input" autocomplete="off"/>
+        <input type="text" placeholder="Rechercher des installations…" id="sz-search-input" autocomplete="off"/>
       </div>
       <div class="sz-header-right">
         <button class="sz-header-btn" title="Notifications" aria-label="Notifications">
@@ -237,7 +238,7 @@ const PlatformAPI = (() => {
           <span class="sz-user-name">${user ? user.username : "…"}</span>
           <i class="fas fa-chevron-down" style="font-size:9px;color:var(--c-text-muted)"></i>
         </div>
-        <button class="sz-header-btn sz-btn-ghost" id="sz-logout-btn" title="Sign out" aria-label="Sign out">
+        <button class="sz-header-btn sz-btn-ghost" id="sz-logout-btn" title="Déconnexion" aria-label="Déconnexion">
           <i class="fas fa-right-from-bracket"></i>
         </button>
       </div>

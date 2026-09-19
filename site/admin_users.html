@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Sunalyzer — Manage Users</title>
+  <title>Sunalyzer — Utilisateurs</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
   <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
   <link href="/css/platform.css" rel="stylesheet"/>
@@ -17,17 +17,17 @@
 
 <header class="sz-header" id="sz-header"></header>
 
-<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
+<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Déconnexion</button></li></ul></div></nav>
 
   <main class="sz-main">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h4 class="fw-bold mb-0">Manage Users</h4>
-        <p class="text-muted small mb-0">Create users and assign installations</p>
+        <h4 class="fw-bold mb-0">Gestion des utilisateurs</h4>
+        <p class="text-muted small mb-0">Créer des utilisateurs et assigner des installations</p>
       </div>
       <button class="sz-btn sz-btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
-        <i class="fas fa-user-plus me-1"></i>Create User
+        <i class="fas fa-user-plus me-1"></i>Créer un utilisateur
       </button>
     </div>
 
@@ -37,19 +37,19 @@
     <!-- Users table -->
     <div class="sz-card mb-4">
       <div class="sz-card-header fw-semibold">
-        <i class="fas fa-users me-2 text-solar"></i>Users
+        <i class="fas fa-users me-2 text-solar"></i>Utilisateurs
       </div>
       <div class="sz-card-body p-0">
         <div class="table-responsive">
           <table class="sz-table">
             <thead>
               <tr>
-                <th>Username</th><th>Email</th><th>Role</th>
-                <th>Installations</th><th>Status</th><th>Last Login</th><th>Actions</th>
+                <th>Utilisateur</th><th>E-mail</th><th>Rôle</th>
+                <th>Installations</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th>
               </tr>
             </thead>
             <tbody id="users-tbody">
-              <tr><td colspan="7" class="text-center text-muted py-3">Loading…</td></tr>
+              <tr><td colspan="7" class="text-center text-muted py-3">Chargement…</td></tr>
             </tbody>
           </table>
         </div>
@@ -83,7 +83,7 @@
 
   </main>
 
-<!-- Create User Modal -->
+<!-- Créer un utilisateur Modal -->
 <div class="modal fade" id="createUserModal" tabindex="-1" aria-modal="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -94,20 +94,20 @@
       <div class="modal-body">
         <div id="modal-error" style="display:none" id="alert-error"></div>
         <div class="mb-3">
-          <label class="sz-label fw-semibold">Username <span class="text-danger">*</span></label>
+          <label class="sz-label fw-semibold">Nom d'utilisateur <span class="text-danger">*</span></label>
           <input type="text" id="new-username" class="sz-input" placeholder="e.g. john.doe"/>
         </div>
         <div class="mb-3">
-          <label class="sz-label fw-semibold">Email <span class="text-danger">*</span></label>
+          <label class="sz-label fw-semibold">E-mail <span class="text-danger">*</span></label>
           <input type="email" id="new-email" class="sz-input" placeholder="e.g. john@example.com"/>
         </div>
         <div class="mb-3">
-          <label class="sz-label fw-semibold">Password <span class="text-danger">*</span></label>
+          <label class="sz-label fw-semibold">Mot de passe <span class="text-danger">*</span></label>
           <input type="password" id="new-password" class="sz-input" placeholder="Min. 8 characters"/>
           <div class="form-text">The user can change this after first login.</div>
         </div>
         <div class="mb-3">
-          <label class="sz-label fw-semibold">Role</label>
+          <label class="sz-label fw-semibold">Rôle</label>
           <select id="new-role" class="sz-select">
             <option value="USER">USER — can see own installations only</option>
             <option value="ADMIN">ADMIN — full access</option>
@@ -115,32 +115,32 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="sz-btn sz-btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="sz-btn sz-btn-secondary" data-bs-dismiss="modal">Annuler</button>
         <button class="sz-btn sz-btn-primary" id="btn-create-user">
           <span id="create-spinner" class="spinner-border spinner-border-sm me-1 d-none"></span>
-          Create User
+          Créer un utilisateur
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Reset Password Modal -->
+<!-- Reset Mot de passe Modal -->
 <div class="modal fade" id="resetPwdModal" tabindex="-1" aria-modal="true">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Reset Password</h5>
+        <h5 class="modal-title">Reset Mot de passe</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p class="text-muted small mb-2">New password for <strong id="reset-username"></strong>:</p>
+        <p class="text-muted small mb-2">Nouveau mot de passe pour <strong id="reset-username"></strong>:</p>
         <input type="password" id="reset-password" class="sz-input" placeholder="Min. 8 characters"/>
         <div id="reset-error" class="text-danger small mt-1 d-none"></div>
       </div>
       <div class="modal-footer">
-        <button class="sz-btn sz-btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-warning btn-sm" id="btn-confirm-reset">Reset Password</button>
+        <button class="sz-btn sz-btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+        <button class="btn btn-warning btn-sm" id="btn-confirm-reset">Reset Mot de passe</button>
       </div>
     </div>
   </div>
@@ -191,7 +191,7 @@ const resetModal  = new bootstrap.Modal(document.getElementById("resetPwdModal")
       try {
         await PlatformAPI.admin.resetPassword(gResetUserId, pwd);
         resetModal.hide();
-        showSuccess("Password reset successfully.");
+        showSuccess("Mot de passe réinitialisé.");
       } catch (err) {
         document.getElementById("reset-error").textContent = err.data?.error || "Failed.";
         document.getElementById("reset-error").classList.remove("d-none");
@@ -239,21 +239,21 @@ function renderUsers() {
       </td>
       <td>
         <span class="badge ${u.is_active ? "bg-success" : "bg-danger"}">
-          ${u.is_active ? "Active" : "Disabled"}
+          ${u.is_active ? "Actif" : "Désactivé"}
         </span>
       </td>
       <td class="text-muted small">
-        ${u.last_login ? new Date(u.last_login).toLocaleString() : "Never"}
+        ${u.last_login ? new Date(u.last_login).toLocaleString() : "Jamais"}
       </td>
       <td>
         <div class="d-flex gap-1 flex-wrap">
-          <button class="sz-btn sz-btn-secondary sz-btn-sm" title="Reset password"
+          <button class="sz-btn sz-btn-secondary sz-btn-sm" title="Réinitialiser le mot de passe"
                   onclick="openResetPwd(${u.id}, '${esc(u.username)}')">
             <i class="fas fa-key"></i>
           </button>
           <button class="btn btn-sm ${u.role === "ADMIN" ? "btn-outline-warning" : "btn-outline-primary"}"
                   title="${u.role === "ADMIN" ? "Demote to USER" : "Promote to ADMIN"}"
-                  onclick="toggleRole(${u.id}, '${u.role}')">
+                  onclick="toggleRôle(${u.id}, '${u.role}')">
             <i class="fas ${u.role === "ADMIN" ? "fa-user-minus" : "fa-user-shield"}"></i>
           </button>
           <button class="sz-btn sz-btn-danger sz-btn-sm" title="${u.is_active ? "Disable" : "Already disabled"}"
@@ -417,12 +417,12 @@ function openResetPwd(userId, username) {
   resetModal.show();
 }
 
-async function toggleRole(userId, currentRole) {
-  const newRole = currentRole === "ADMIN" ? "USER" : "ADMIN";
-  if (!confirm(`Change role to ${newRole}?`)) return;
+async function toggleRôle(userId, currentRôle) {
+  const newRôle = currentRôle === "ADMIN" ? "USER" : "ADMIN";
+  if (!confirm(`Change role to ${newRôle}?`)) return;
   try {
-    await PlatformAPI.admin.updateUser(userId, { role: newRole });
-    showSuccess("Role updated.");
+    await PlatformAPI.admin.updateUser(userId, { role: newRôle });
+    showSuccess("Rôle updated.");
     await loadData();
   } catch (err) {
     PlatformAPI.showError(err.data?.error || "Failed.");

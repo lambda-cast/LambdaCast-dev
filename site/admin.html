@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Sunalyzer — Dashboard</title>
+  <title>Sunalyzer — Tableau de bord</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
   <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
   <link href="/css/platform.css" rel="stylesheet"/>
@@ -27,7 +27,7 @@
     <ul class="sz-nav" style="padding:0">
       <li class="sz-nav-item">
         <button class="sz-nav-link" id="sz-logout-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer">
-          <i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out
+          <i class="sz-nav-icon fas fa-right-from-bracket"></i>Déconnexion
         </button>
       </li>
     </ul>
@@ -40,11 +40,11 @@
   <!-- Page header -->
   <div class="sz-page-header">
     <div>
-      <h1 class="sz-page-title">Dashboard</h1>
-      <p class="sz-page-subtitle">Fleet overview — <span id="today-date"></span></p>
+      <h1 class="sz-page-title">Tableau de bord</h1>
+      <p class="sz-page-subtitle">Vue d'ensemble du parc — <span id="today-date"></span></p>
     </div>
     <a href="/platform/installations/new" class="sz-btn sz-btn-primary">
-      <i class="fas fa-plus"></i>Add Installation
+      <i class="fas fa-plus"></i>Ajouter une installation
     </a>
   </div>
 
@@ -67,27 +67,27 @@
     <div class="col-6 col-xl-2">
       <div class="sz-kpi">
         <div class="d-flex align-items-start justify-content-between mb-2">
-          <span class="sz-kpi-label">Fleet Capacity</span>
+          <span class="sz-kpi-label">Capacité du parc</span>
           <div class="sz-kpi-accent orange"><i class="fas fa-bolt"></i></div>
         </div>
         <div class="sz-kpi-value" id="kpi-capacity">—</div>
-        <div class="sz-kpi-unit">kWp installed</div>
+        <div class="sz-kpi-unit">kWp installés</div>
       </div>
     </div>
     <div class="col-6 col-xl-2">
       <div class="sz-kpi">
         <div class="d-flex align-items-start justify-content-between mb-2">
-          <span class="sz-kpi-label">Active</span>
+          <span class="sz-kpi-label">Actives</span>
           <div class="sz-kpi-accent green"><i class="fas fa-circle-check"></i></div>
         </div>
         <div class="sz-kpi-value" id="kpi-active">—</div>
-        <div class="sz-kpi-unit">online</div>
+        <div class="sz-kpi-unit">en ligne</div>
       </div>
     </div>
     <div class="col-6 col-xl-2">
       <div class="sz-kpi">
         <div class="d-flex align-items-start justify-content-between mb-2">
-          <span class="sz-kpi-label">Maintenance</span>
+          <span class="sz-kpi-label">En maintenance</span>
           <div class="sz-kpi-accent amber"><i class="fas fa-wrench"></i></div>
         </div>
         <div class="sz-kpi-value" id="kpi-maint">—</div>
@@ -97,21 +97,41 @@
     <div class="col-6 col-xl-2">
       <div class="sz-kpi">
         <div class="d-flex align-items-start justify-content-between mb-2">
-          <span class="sz-kpi-label">Users</span>
+          <span class="sz-kpi-label">Utilisateurs</span>
           <div class="sz-kpi-accent blue"><i class="fas fa-users"></i></div>
         </div>
         <div class="sz-kpi-value" id="kpi-users">—</div>
-        <div class="sz-kpi-unit">active accounts</div>
+        <div class="sz-kpi-unit">comptes actifs</div>
       </div>
     </div>
     <div class="col-6 col-xl-2">
       <div class="sz-kpi">
         <div class="d-flex align-items-start justify-content-between mb-2">
-          <span class="sz-kpi-label">Organizations</span>
+          <span class="sz-kpi-label">Organisations</span>
           <div class="sz-kpi-accent gray"><i class="fas fa-building"></i></div>
         </div>
         <div class="sz-kpi-value" id="kpi-orgs">—</div>
-        <div class="sz-kpi-unit">entities</div>
+        <div class="sz-kpi-unit">entités</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <!-- Prévision Nationale (Placeholder) -->
+    <div class="col-12">
+      <div class="sz-card" style="border-left: 4px solid var(--c-brand)">
+        <div class="sz-card-header mb-0">
+          <div class="d-flex justify-content-between align-items-center w-100">
+            <span class="sz-card-title">
+              <i class="sz-card-icon fas fa-chart-line"></i>Prévision Nationale J à J+3 (Modèle IA en cours de développement)
+            </span>
+            <div class="d-flex align-items-center gap-3">
+              <span class="sz-meta">Production estimée aujourd'hui :</span>
+              <span class="fw-bold" style="font-size: 1.25rem; color: var(--c-brand)" id="kpi-est-production">—</span>
+              <span class="sz-meta">kWh</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -119,24 +139,25 @@
   <div class="row g-3">
 
     <!-- Fleet by Governorate -->
-    <div class="col-lg-4">
+    <div class="col-lg-5">
       <div class="sz-card h-100">
         <div class="sz-card-header">
           <span class="sz-card-title">
-            <i class="sz-card-icon fas fa-map-pin"></i>By Governorate
+            <i class="sz-card-icon fas fa-map-pin"></i>Par gouvernorat
           </span>
         </div>
         <div class="sz-card-body" style="padding-top:10px">
           <table class="sz-table" id="gov-table">
             <thead>
               <tr>
-                <th>Governorate</th>
+                <th>Gouvernorat</th>
                 <th style="text-align:right">Sites</th>
-                <th style="text-align:right">Capacity</th>
+                <th style="text-align:right">Capacité</th>
+                <th style="text-align:right">Est. Jour</th>
               </tr>
             </thead>
             <tbody id="gov-tbody">
-              <tr><td colspan="3" style="text-align:center;color:var(--c-text-muted);padding:20px">Loading…</td></tr>
+              <tr><td colspan="4" style="text-align:center;color:var(--c-text-muted);padding:20px">Chargement…</td></tr>
             </tbody>
           </table>
         </div>
@@ -148,20 +169,20 @@
       <div class="sz-card">
         <div class="sz-card-header mb-2" style="padding-bottom:14px;border-bottom:1px solid var(--c-border)">
           <span class="sz-card-title">
-            <i class="sz-card-icon fas fa-users"></i>Users
+            <i class="sz-card-icon fas fa-users"></i>Utilisateurs
           </span>
-          <a href="/admin/users" class="sz-btn sz-btn-secondary sz-btn-sm">Manage Users</a>
+          <a href="/admin/users" class="sz-btn sz-btn-secondary sz-btn-sm">Gérer les utilisateurs</a>
         </div>
         <div class="sz-card-body-flush">
           <table class="sz-table">
             <thead>
               <tr>
-                <th>Username</th><th>Role</th>
-                <th>Installations</th><th>Status</th><th>Last Login</th><th></th>
+                <th>Utilisateur</th><th>Rôle</th>
+                <th>Installations</th><th>Statut</th><th>Dernière connexion</th><th></th>
               </tr>
             </thead>
             <tbody id="users-tbody">
-              <tr><td colspan="6" style="text-align:center;color:var(--c-text-muted);padding:20px">Loading…</td></tr>
+              <tr><td colspan="6" style="text-align:center;color:var(--c-text-muted);padding:20px">Chargement…</td></tr>
             </tbody>
           </table>
         </div>
@@ -175,7 +196,7 @@
 <script src="/js/platform_api.js"></script>
 <script src="/js/shell.js"></script>
 <script>
-document.getElementById("today-date").textContent = new Date().toLocaleDateString("en-US",
+document.getElementById("today-date").textContent = new Date().toLocaleDateString("fr-FR",
   { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 
 (async () => {
@@ -205,16 +226,26 @@ document.getElementById("today-date").textContent = new Date().toLocaleDateStrin
     document.getElementById("kpi-users").textContent    = stats.total_active_users;
     document.getElementById("kpi-orgs").textContent     = orgs.length;
 
-    // Governorate
+    // Governorate & Estimated Production
     const govs = stats.by_governorate || [];
+    let totalEst = 0;
+    
     document.getElementById("gov-tbody").innerHTML = govs.length
-      ? govs.map(g => `
+      ? govs.map(g => {
+          const estDay = (g.total_kwp || 0) * 5.2; // Rough estimation: capacity * 5.2 peak sun hours
+          totalEst += estDay;
+          return `
         <tr>
-          <td class="fw-name">${esc(g.governorate || "Unknown")}</td>
+          <td class="fw-name">${esc(g.governorate || "Inconnu")}</td>
           <td style="text-align:right"><span class="sz-badge inactive">${g.cnt}</span></td>
           <td style="text-align:right" class="sz-meta">${(g.total_kwp||0).toFixed(1)} kWp</td>
-        </tr>`).join("")
-      : `<tr><td colspan="3" class="sz-meta" style="text-align:center;padding:16px">No governorate data</td></tr>`;
+          <td style="text-align:right" class="sz-meta">${estDay.toFixed(0)} kWh</td>
+        </tr>`;
+        }).join("")
+      : `<tr><td colspan="4" class="sz-meta" style="text-align:center;padding:16px">Aucune donnée par gouvernorat</td></tr>`;
+
+    // Update National Estimated Production KPI
+    document.getElementById("kpi-est-production").textContent = totalEst.toLocaleString("fr-FR", {maximumFractionDigits: 0});
 
     // Users
     const instByUser = {};
@@ -226,11 +257,11 @@ document.getElementById("today-date").textContent = new Date().toLocaleDateStrin
             <span class="sz-meta">${esc(u.email)}</span></td>
         <td><span class="sz-badge ${u.role==="ADMIN"?"admin-role":"user-role"}">${u.role}</span></td>
         <td><a href="/admin/users" class="sz-meta" style="text-decoration:none;color:var(--c-brand)">${instByUser[u.id]||0} sites</a></td>
-        <td><span class="sz-badge ${u.is_active?"active":"inactive"}">${u.is_active?"Active":"Disabled"}</span></td>
-        <td class="sz-meta">${u.last_login ? new Date(u.last_login).toLocaleDateString() : "Never"}</td>
+        <td><span class="sz-badge ${u.is_active?"active":"inactive"}">${u.is_active?"Actif":"Désactivé"}</span></td>
+        <td class="sz-meta">${u.last_login ? new Date(u.last_login).toLocaleDateString() : "Jamais"}</td>
         <td>
           <div class="sz-actions">
-            <button class="sz-btn sz-btn-ghost sz-btn-icon" title="Toggle role" onclick="toggleRole(${u.id},'${u.role}')">
+            <button class="sz-btn sz-btn-ghost sz-btn-icon" title="Changer le rôle" onclick="toggleRole(${u.id},'${u.role}')">
               <i class="fas ${u.role==="ADMIN"?"fa-user-minus":"fa-user-shield"}"></i>
             </button>
           </div>
@@ -238,7 +269,7 @@ document.getElementById("today-date").textContent = new Date().toLocaleDateStrin
       </tr>`).join("");
 
   } catch (err) {
-    PlatformAPI.showError("Failed to load dashboard: " + (err.data?.error || err.message));
+    PlatformAPI.showError("Échec du chargement du tableau de bord : " + (err.data?.error || err.message));
   } finally {
     PlatformAPI.hideSpinner();
   }
@@ -246,7 +277,7 @@ document.getElementById("today-date").textContent = new Date().toLocaleDateStrin
 
 async function toggleRole(userId, cur) {
   const newRole = cur === "ADMIN" ? "USER" : "ADMIN";
-  if (!confirm(`Change user ${userId} to ${newRole}?`)) return;
+  if (!confirm(`Changer l'utilisateur ${userId} to ${newRole}?`)) return;
   try { await PlatformAPI.admin.updateUser(userId, { role: newRole }); location.reload(); }
   catch (err) { PlatformAPI.showError(err.data?.error || "Failed."); }
 }

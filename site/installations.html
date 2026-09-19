@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Sunalyzer — My Installations</title>
+  <title>Sunalyzer — Mes installations</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
   <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
   <link href="/css/platform.css" rel="stylesheet"/>
@@ -17,7 +17,7 @@
 
 <header class="sz-header" id="sz-header"></header>
 
-<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out</button></li></ul></div></nav>
+<nav class="sz-sidebar" aria-label="Main navigation"><ul class="sz-nav" id="sz-sidebar-nav"></ul><div class="sz-sidebar-footer"><ul class="sz-nav" style="padding:0"><li class="sz-nav-item"><button class="sz-nav-link" id="sz-logout-footer-btn" style="width:100%;text-align:left;border:none;background:none;cursor:pointer"><i class="sz-nav-icon fas fa-right-from-bracket"></i>Déconnexion</button></li></ul></div></nav>
 
   <main class="sz-main">
 
@@ -41,7 +41,7 @@
     <div id="list-panel">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h4 class="fw-bold mb-0">My Installations</h4>
+          <h4 class="fw-bold mb-0">Mes installations</h4>
           <p class="text-muted small mb-0">Manage your solar PV sites</p>
         </div>
         <a href="/platform/installations/new" class="sz-btn sz-btn-primary">
@@ -54,7 +54,7 @@
 
       <div id="empty-state" class="text-center py-5 d-none">
         <i class="fas fa-solar-panel fa-4x mb-3 text-warning opacity-50"></i>
-        <h5>No installations yet</h5>
+        <h5>Aucune installation</h5>
         <p class="text-muted">Add your first solar installation to get started.</p>
         <a href="/platform/installations/new" class="sz-btn sz-btn-primary">
           <i class="fas fa-plus me-1"></i>Add Installation
@@ -71,16 +71,16 @@
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Delete Installation</h5>
+        <h5 class="modal-title">Supprimer l'installation</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        Are you sure you want to delete <strong id="delete-name"></strong>?
+        Êtes-vous sûr de vouloir supprimer <strong id="delete-name"></strong>?
         This cannot be undone.
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button class="sz-btn sz-btn-danger btn-sm" id="confirm-delete">Delete</button>
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+        <button class="sz-btn sz-btn-danger btn-sm" id="confirm-delete">Supprimer</button>
       </div>
     </div>
   </div>
@@ -138,12 +138,12 @@ const deleteModal = new bootstrap.Modal(document.getElementById("deleteModal"));
       try {
         await PlatformAPI.installations.delete(gDeleteId);
         gDeleteId = null;
-        document.getElementById("alert-success").textContent = "Installation deleted.";
+        document.getElementById("alert-success").textContent = "Installation supprimée.";
         document.getElementById("alert-success").classList.remove("d-none");
         gInstallations = await PlatformAPI.installations.list();
         renderGrid(gInstallations);
       } catch (err) {
-        PlatformAPI.showError(err.data?.error || "Delete failed.");
+        PlatformAPI.showError(err.data?.error || "Échec de la suppression.");
       } finally {
         PlatformAPI.hideSpinner();
       }
@@ -178,7 +178,7 @@ function renderGrid(list) {
           </div>
           <p class="text-muted small mb-2">
             <i class="fas fa-map-marker-alt me-1"></i>
-            ${esc(i.city || i.governorate || "Location not set")}
+            ${esc(i.city || i.governorate || "Localisation non définie")}
             ${i.latitude != null && i.longitude != null ? `<br><i class="fas fa-globe me-1 opacity-50"></i>${(+i.latitude).toFixed(4)}, ${(+i.longitude).toFixed(4)}` : ""}
           </p>
           <div class="d-flex gap-2 flex-wrap small text-muted">
@@ -193,13 +193,13 @@ function renderGrid(list) {
           </span>
           <div class="d-flex gap-1" onclick="event.stopPropagation()">
             <a href="/platform/installations/${i.id}/monitor"
-               class="sz-btn sz-btn-primary sz-btn-sm" title="Live Monitor">
+               class="sz-btn sz-btn-primary sz-btn-sm" title="Monitoring en direct">
               <i class="fas fa-chart-line"></i></a>
             <a href="/platform/installations/${i.id}/edit"
-               class="sz-btn sz-btn-secondary sz-btn-sm" title="Edit">
+               class="sz-btn sz-btn-secondary sz-btn-sm" title="Modifier">
               <i class="fas fa-pen"></i></a>
             <button class="sz-btn sz-btn-danger sz-btn-sm"
-                    onclick="confirmDelete(${i.id},'${esc(i.name)}')" title="Delete">
+                    onclick="confirmDelete(${i.id},'${esc(i.name)}')" title="Supprimer">
               <i class="fas fa-trash"></i></button>
           </div>
         </div>
