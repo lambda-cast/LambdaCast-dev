@@ -1,0 +1,43 @@
+# .dockerignore
+# Exclude these from Docker build context to speed up builds
+
+# Data directory (mounted as volume)
+data/
+
+# Python cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+pytest/
+local_testing/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

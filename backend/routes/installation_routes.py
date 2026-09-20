@@ -397,3 +397,221 @@ def get_forecast_input(installation_id: int):
     fi      = ForecastInterface()
     payload = fi.build_forecast_input(installation=inst)
     return jsonify(payload)
+
+
+# ===========================================================================
+# Device configuration endpoints
+# ===========================================================================
+
+# Supported device types and their required/optional parameters
+DEVICE_REGISTRY = {
+    "iSolarCloud": {
+        "label":       "iSolarCloud (Sungrow)",
+        "params": {
+            "bridge_url": {"label": "Bridge URL",  "required": True,  "default": "http://isolarcloud-bridge:8000"},
+            "plant_id":   {"label": "Plant ID",    "required": True,  "default": ""},
+            "fetch_interval_s": {"label": "Fetch interval (s)", "required": False, "default": 60},
+        },
+    },
+    "Fronius": {
+        "label": "Fronius Symo/GEN24",
+        "params": {
+            "host_name": {"label": "Inverter hostname/IP", "required": True,  "default": ""},
+            "has_meter": {"label": "Smart Meter present",  "required": True,  "default": True},
+        },
+    },
+    "Sunsynk": {
+        "label": "Sunsynk / Deye hybrid",
+        "params": {
+            "connection":     {"label": "Connection type", "required": True,  "default": "solarman"},
+            "host_name":      {"label": "Logger hostname/IP (solarman)", "required": False, "default": ""},
+            "logger_serial":  {"label": "Logger serial (solarman)",      "required": False, "default": ""},
+            "serial_port":    {"label": "Serial port (modbus_rtu)",       "required": False, "default": ""},
+        },
+    },
+    "Dummy": {
+        "label": "Dummy (demo/test)",
+        "params": {},
+    },
+}
+
+
+@installations_bp.route("/device-registry", methods=["GET"])
+@require_auth
+def get_device_registry():
+    """
+    GET /api/installations/device-registry
+    Returns the list of supported device types and their parameter schemas.
+    Used by the UI to dynamically render the device config form.
+    """
+    return jsonify(DEVICE_REGISTRY)
+
+
+@installations_bp.route("/<int:installation_id>/device", methods=["GET"])
+@require_auth
+def get_device_config(installation_id: int):
+    """GET current device config for an installation."""
+    inst, _ = _get_installation_or_404(installation_id, g.current_user)
+    if not inst:
+        return jsonify({"error": "Installation not found"}), 404
+    return jsonify({
+        "installation_id": installation_id,
+        "device_type":   inst.get("device_type"),
+        "device_params": _json.loads(inst["device_params"]) if inst.get("device_params") else {},
+    })
+
+
+@installations_bp.route("/<int:installation_id>/device", methods=["POST"])
+@require_auth
+def set_device_config(installation_id: int):
+    """
+    POST /api/installations/<id>/device
+    Save device type and params. Bootstraps the telemetry DB if needed.
+    Body: { "device_type": "iSolarCloud", "device_params": { "plant_id": "...", ... } }
+    """
+    inst, db = _get_installation_or_404(installation_id, g.current_user)
+    if not inst:
+        return jsonify({"error": "Installation not found"}), 404
+
+    body = request.get_json(silent=True) or {}
+    device_type   = body.get("device_type", "").strip()
+    device_params = body.get("device_params", {})
+
+    if not device_type:
+        return jsonify({"error": "device_type is required"}), 400
+    if device_type not in DEVICE_REGISTRY:
+        return jsonify({"error": f"Unknown device_type '{device_type}'. "
+                                  f"Valid: {list(DEVICE_REGISTRY)}"}), 400
+    if not isinstance(device_params, dict):
+        return jsonify({"error": "device_params must be a JSON object"}), 400
+
+    # Validate required params
+    schema = DEVICE_REGISTRY[device_type]["params"]
+    missing = [k for k, v in schema.items() if v["required"] and not device_params.get(k)]
+    if missing:
+        return jsonify({"error": f"Missing required params: {missing}"}), 400
+
+    # Persist to platform.db
+    db.update_installation(installation_id, {
+        "device_type":   device_type,
+        "device_params": _json.dumps(device_params),
+    })
+
+    # Bootstrap the telemetry DB if it doesn't exist yet
+    import os
+    from os.path import exists
+    db_path = f"data/db_{installation_id}.sqlite"
+    if not exists(db_path):
+        _bootstrap_telemetry_db(db_path)
+        logging.info(f"Device config: bootstrapped telemetry DB at {db_path}")
+
+    logging.info(
+        f"Device config: installation {installation_id} set to "
+        f"{device_type} by user {g.current_user['id']}"
+    )
+    return jsonify({
+        "message":         "Device configuration saved",
+        "installation_id": installation_id,
+        "device_type":     device_type,
+        "telemetry_db":    db_path,
+        "db_bootstrapped": True,
+    }), 200
+
+
+@installations_bp.route("/<int:installation_id>/device", methods=["DELETE"])
+@require_auth
+def delete_device_config(installation_id: int):
+    """Remove device config from an installation (stops data collection on next grabber restart)."""
+    inst, db = _get_installation_or_404(installation_id, g.current_user)
+    if not inst:
+        return jsonify({"error": "Installation not found"}), 404
+    db.update_installation(installation_id, {"device_type": None, "device_params": None})
+    return jsonify({"message": "Device configuration removed"})
+
+
+def _bootstrap_telemetry_db(db_path: str):
+    """Create a fresh telemetry SQLite DB with the standard Sunalyzer schema."""
+    import sqlite3
+    conn = sqlite3.connect(db_path)
+    conn.execute("PRAGMA journal_mode=WAL")
+
+    tables = ["days", "months", "years", "all_time"]
+    for name in tables:
+        conn.execute(
+            f"CREATE TABLE IF NOT EXISTS {name} ("
+            "date STRING PRIMARY KEY,"
+            "produced_a REAL, produced_b REAL,"
+            "consumed_a REAL, consumed_b REAL,"
+            "fed_in_a REAL, fed_in_b REAL)"
+        )
+    conn.execute("INSERT OR IGNORE INTO all_time VALUES ('all_time',0,0,0,0,0,0)")
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS current "
+        "(date STRING PRIMARY KEY, produced REAL, consumed_grid REAL, "
+        "consumed_pv REAL, consumed_total REAL, fed_in REAL)"
+    )
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS real_time "
+        "(ID INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "time STRING, produced REAL, consumed REAL, fed_in REAL)"
+    )
+    for i in range(24 * 60):
+        conn.execute(f"INSERT INTO real_time VALUES ('{i}','...','0.0','0.0','0.0')")
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS highscores "
+        "(type STRING PRIMARY KEY, date STRING, value REAL)"
+    )
+    conn.execute("INSERT OR IGNORE INTO highscores VALUES ('production','...',0.0)")
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS high_res "
+        "(date STRING PRIMARY KEY, hrvalues STRING)"
+    )
+    conn.commit()
+    conn.close()
+
+
+# ---------------------------------------------------------------------------
+# ML Forecast endpoints
+# ---------------------------------------------------------------------------
+
+@installations_bp.route("/forecast/models", methods=["GET"])
+@installations_bp.route("/<int:installation_id>/forecast/models", methods=["GET"])
+@require_auth
+def get_forecast_models(installation_id: int = None):
+    """
+    GET /api/installations/forecast/models
+    GET /api/installations/<id>/forecast/models
+    Returns the list of available ML models found in models/ folder.
+    """
+    import forecast_service as fs
+    models = fs.discover_models()
+    return jsonify({"models": models})
+
+
+@installations_bp.route("/<int:installation_id>/forecast", methods=["GET"])
+@require_auth
+def get_installation_forecast(installation_id: int):
+    """
+    GET /api/installations/<id>/forecast?model=xgb_PV1_Power_W_1&date=2026-09-20
+    Calculates PV power forecast using the chosen model and real Open-Meteo weather features.
+    """
+    inst, db = _get_installation_or_404(installation_id, g.current_user)
+    if not inst:
+        return jsonify({"error": "Installation not found"}), 404
+
+    model_name = request.args.get("model")
+    target_date = request.args.get("date")
+
+    lat = inst.get("latitude") or 34.73
+    lon = inst.get("longitude") or 10.72
+
+    import forecast_service as fs
+    try:
+        data = fs.get_forecast(model_name=model_name, lat=lat, lon=lon, target_date=target_date)
+        return jsonify(data)
+    except Exception as e:
+        logging.exception("Forecast generation error")
+        return jsonify({"error": str(e)}), 500

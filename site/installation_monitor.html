@@ -5,398 +5,177 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Sunalyzer — Monitoring</title>
+  <title>LambdaCast — Monitoring</title>
   <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
   <link href="/css/platform.css" rel="stylesheet"/>
   <style>
 /* ═══════════════════════════════════════════════════════
-   MONITOR PAGE  —  iSolarCloud-inspired redesign
+   MONITOR PAGE — Modern SaaS Dashboard Redesign
+   Inspired by: Linear, Vercel, Tesla Energy, Stripe
    ═══════════════════════════════════════════════════════ */
-
 *, *::before, *::after { box-sizing: border-box; }
 
-/* ── Flow section (full-width, light gray) ─────────── */
-.mon-flow-section {
-  background: #f5f6fa;
-  border-bottom: 1px solid var(--c-border);
-  padding: 0;
-  position: relative;
-  min-height: 340px;
+/* ── Page header bar ─────────────────────────────────── */
+.mon-page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 32px; background: #fff;
+  border-bottom: 1px solid var(--c-border); flex-wrap: wrap; gap: 12px;
 }
+.mon-header-left { display: flex; flex-direction: column; gap: 4px; }
+.mon-header-left h1 { font-size: 22px; font-weight: 700; color: var(--c-text-primary); margin: 0; line-height: 1.2; }
+.mon-header-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.mon-location { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--c-text-secondary); }
+.mon-location i { font-size: 11px; color: var(--c-text-muted); }
 
-/* Status / weather bar */
-.mon-top-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 28px 0;
-  flex-wrap: wrap;
-}
-
-.live-pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 600;
-}
-.live-pill.online  { background: #f0fdf4; color: #16a34a; border: 1px solid rgba(22,163,74,.25); }
-.live-pill.offline { background: #f9fafb; color: #9ca3af; border: 1px solid var(--c-border); }
-.live-pill.delayed { background: #fffbeb; color: #d97706; border: 1px solid rgba(217,119,6,.25); }
+/* Status pill */
+.live-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.live-pill.online  { background: #F0FDF4; color: #16a34a; border: 1px solid rgba(34,197,94,.25); }
+.live-pill.offline { background: #F9FAFB; color: #9ca3af; border: 1px solid var(--c-border); }
+.live-pill.delayed { background: #FFFBEB; color: #d97706; border: 1px solid rgba(245,158,11,.25); }
 .live-pill-dot { width: 7px; height: 7px; border-radius: 50%; }
-.live-pill.online  .live-pill-dot { background: #16a34a; animation: sz-pulse 2s infinite; }
+.live-pill.online  .live-pill-dot { background: #22C55E; animation: sz-pulse 2s infinite; }
 .live-pill.offline .live-pill-dot { background: #9ca3af; }
-.live-pill.delayed .live-pill-dot { background: #d97706; animation: sz-pulse 2s infinite; }
+.live-pill.delayed .live-pill-dot { background: #F59E0B; animation: sz-pulse 2s infinite; }
+@keyframes sz-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-.mon-refresh-btn {
-  width: 28px; height: 28px; border-radius: 50%;
-  border: 1px solid var(--c-border); background: #fff;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--c-text-muted); font-size: 12px;
-  transition: all .2s;
-}
-.mon-refresh-btn:hover { background: var(--c-brand-light); color: var(--c-brand); }
+.mon-header-right { display: flex; align-items: center; gap: 16px; }
+.mon-weather { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--c-text-primary); }
+.mon-weather i { font-size: 18px; color: #F59E0B; }
+.mon-weather-desc { font-size: 12px; font-weight: 400; color: var(--c-text-muted); }
+.mon-update-info { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--c-text-muted); padding: 6px 14px; background: #FAFBFD; border: 1px solid var(--c-border); border-radius: 8px; }
+.mon-refresh-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--c-border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--c-text-muted); font-size: 13px; transition: all .2s; text-decoration: none; }
+.mon-refresh-btn:hover { background: var(--c-brand-light); color: var(--c-brand); border-color: var(--c-brand); }
 
-/* ── Flow layout (illustration + KPIs side by side) ── */
-.mon-flow-layout {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 40px;
-  padding: 20px 28px 28px;
-  min-height: 280px;
-  flex-wrap: wrap;
-}
-
-/* Illustration area */
-.flow-illustration {
-  position: relative;
-  width: 520px;
-  height: 260px;
-  flex-shrink: 0;
-}
-
-/* Isometric images */
-.iso-panel {
-  position: absolute;
-  top: 0; left: 140px;
-  width: 160px; height: 140px;
-  z-index: 2;
-}
-.iso-panel img {
-  width: 100%; height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.08));
-  transition: filter .3s;
-}
-.iso-panel.active img {
-  filter: drop-shadow(0 4px 12px rgba(244,124,32,.2));
-}
-
-.iso-house {
-  position: absolute;
-  bottom: 0; left: 0;
-  width: 180px; height: 150px;
-  z-index: 2;
-}
-.iso-house img {
-  width: 100%; height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.08));
-}
-
-.iso-pylon {
-  position: absolute;
-  bottom: -5px; right: 30px;
-  width: 140px; height: 170px;
-  z-index: 2;
-}
-.iso-pylon img {
-  width: 100%; height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.08));
-}
-
-/* Connection lines SVG overlay */
-.flow-lines-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  overflow: visible;
-}
-
-.flow-line {
-  fill: none;
-  stroke: #c8d0dc;
-  stroke-width: 2;
-  transition: stroke .3s, opacity .3s;
-}
-.flow-line.active {
-  stroke-width: 2.5;
-}
-
-/* Flow value labels on the lines */
-.flow-val-label {
-  position: absolute;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--c-text-muted);
-  background: #f5f6fa;
-  padding: 1px 6px;
-  border-radius: 8px;
-  white-space: nowrap;
-  z-index: 2;
-  transition: color .3s;
-}
-.flow-val-label.active { color: var(--c-text-primary); }
-
-/* ── KPI panel (right side of flow) ──────────────── */
-.flow-kpi-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  min-width: 200px;
-}
-
-.flow-kpi {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.flow-kpi-label {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--c-text-secondary);
-}
-
-.flow-kpi-value {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.flow-kpi-number {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--c-text-primary);
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-.flow-kpi-number.val-none {
-  font-size: 28px;
-  color: var(--c-text-muted);
-  font-weight: 400;
-  letter-spacing: 1px;
-}
-
-.flow-kpi-unit {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--c-text-secondary);
-}
-
-/* ── (i) info button ────────────────────────────────── */
-.info-btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 11px; color: var(--c-text-muted); cursor: pointer;
-  background: none; border: none; padding: 0;
-}
-.info-btn:hover { color: var(--c-brand); }
-
-.panel-popover {
-  display: none; position: absolute;
-  background: var(--c-surface); border: 1px solid var(--c-border);
-  border-radius: 10px; padding: 12px 14px; font-size: 12px;
-  box-shadow: var(--shadow-md); z-index: 30; min-width: 200px;
-  top: calc(100% + 4px); left: 0;
-}
+/* Info popover */
+.info-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--c-text-muted); cursor: pointer; background: none; border: none; padding: 2px 8px; border-radius: 6px; transition: all .15s; }
+.info-btn:hover { color: var(--c-brand); background: var(--c-brand-light); }
+.panel-popover { display: none; position: absolute; background: #fff; border: 1px solid var(--c-border); border-radius: 12px; padding: 16px; font-size: 12px; box-shadow: var(--shadow-lg); z-index: 30; min-width: 240px; top: calc(100% + 6px); left: 0; }
 .panel-popover.show { display: block; }
-.pp-row {
-  display: flex; justify-content: space-between; gap: 10px;
-  padding: 3px 0; border-bottom: 1px solid var(--c-border);
-}
+.pp-row { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid #F3F4F6; }
 .pp-row:last-child { border-bottom: none; }
 .pp-k { color: var(--c-text-muted); }
 .pp-v { font-weight: 600; color: var(--c-text-primary); }
 
-/* ── Chart section ──────────────────────────────────── */
-.mon-chart-section {
-  background: var(--c-surface);
+/* ── Hero section: KPI row ──────────────────────────── */
+.mon-kpi-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  padding: 20px 32px; background: #FAFBFD; border-bottom: 1px solid var(--c-border);
+}
+.kpi-card { background: #fff; border: 1px solid var(--c-border); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 10px; transition: box-shadow .2s, border-color .2s; }
+.kpi-card:hover { box-shadow: var(--shadow-md); border-color: #D1D5DB; }
+.kpi-card-header { display: flex; align-items: center; justify-content: space-between; }
+.kpi-card-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.kpi-card-icon.blue   { background: #EFF6FF; color: #2563EB; }
+.kpi-card-icon.yellow { background: #FEF3C7; color: #F59E0B; }
+.kpi-card-icon.green  { background: #F0FDF4; color: #22C55E; }
+.kpi-card-icon.purple { background: #F5F3FF; color: #8B5CF6; }
+.kpi-card-body { display: flex; flex-direction: column; gap: 2px; }
+.kpi-card-label { font-size: 12px; font-weight: 500; color: var(--c-text-muted); }
+.kpi-card-value { font-size: 28px; font-weight: 700; color: var(--c-text-primary); line-height: 1.1; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: 4px; }
+.kpi-card-unit { font-size: 14px; font-weight: 500; color: var(--c-text-secondary); }
+.kpi-card-sub { font-size: 11px; color: var(--c-text-muted); margin-top: 2px; }
+
+/* ── Navigation tabs ─────────────────────────────────── */
+
+/* ── Main content: Flow + Chart side by side ─────────── */
+.mon-main-row {
+  display: flex; gap: 0; background: #fff; border-bottom: 1px solid var(--c-border);
+  min-height: 410px;
 }
 
-/* Period bar */
-.period-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 28px;
-  border-bottom: 1px solid var(--c-border);
-  flex-wrap: wrap; gap: 0;
+/* Flow panel — spacious isometric 3D canvas */
+.mon-flow-panel {
+  width: 480px; flex-shrink: 0;
+  background: #FAFBFD; border-right: 1px solid var(--c-border);
+  padding: 20px 24px; display: flex; flex-direction: column;
 }
-.period-tabs { display: flex; }
-.ptab {
-  font-size: 13px; font-weight: 500;
-  padding: 12px 16px; border: none; background: transparent;
-  color: var(--c-text-muted); border-bottom: 2px solid transparent;
-  cursor: pointer; white-space: nowrap;
-  transition: color .15s, border-color .15s;
-}
-.ptab:hover { color: var(--c-text-primary); }
-.ptab.active { color: var(--c-text-primary); border-bottom-color: var(--c-text-primary); font-weight: 600; }
-.ptab.disabled {
-  color: var(--c-text-muted); opacity: 0.5; cursor: default;
-}
+.flow-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--c-text-muted); margin-bottom: 10px; }
+.flow-diagram { position: relative; width: 420px; height: 270px; margin: 0 auto; }
+.flow-node { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 3px; z-index: 2; }
+.flow-node-icon { display: flex; align-items: center; justify-content: center; }
+.flow-node-icon img { width: 105px; height: 95px; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(0,0,0,.07)); transition: filter .3s, transform .3s; }
+.flow-node-icon.active img { filter: drop-shadow(0 8px 18px rgba(37,99,235,.22)); transform: scale(1.04); }
+.flow-node-label { font-size: 10px; font-weight: 600; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 1px; }
+.flow-node-value { font-size: 12px; font-weight: 700; color: var(--c-text-primary); background: #fff; padding: 2px 10px; border-radius: 20px; border: 1px solid var(--c-border); white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,.06); }
 
-.date-nav {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 12px; color: var(--c-text-secondary);
-}
-.date-nav-btn {
-  width: 28px; height: 28px; border: 1px solid var(--c-border);
-  border-radius: 6px; background: var(--c-surface); cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; transition: background .15s;
-}
-.date-nav-btn:hover { background: var(--c-surface-alt); }
-.date-nav-date {
-  min-width: 120px; text-align: center;
-  font-size: 13px; font-weight: 500;
-  padding: 4px 14px;
-  border: 1px solid var(--c-border);
-  border-radius: 6px;
-  background: var(--c-surface);
-}
+/* 3-node layout: solar top-center, house bottom-left, grid bottom-right */
+.fn-solar    { top: 5px; left: 50%; transform: translateX(-50%); }
+.fn-house    { bottom: 5px; left: 15px; }
+.fn-grid     { bottom: 5px; right: 15px; }
 
-/* ── Energy pill summary ────────────────────────────── */
-.energy-pills {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  padding: 16px 28px;
-  flex-wrap: wrap;
-}
+.flow-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.flow-track { fill: none; stroke: #E2E8F0; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.flow-line { fill: none; stroke: transparent; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; transition: stroke .3s, opacity .3s; }
+.flow-line.active { stroke-dasharray: 8 6; }
 
-.energy-pill {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 32px;
-  border-radius: 40px;
-  font-size: 14px;
-  font-weight: 500;
-  min-width: 240px;
-  justify-content: center;
-  transition: box-shadow .2s;
-}
+/* Key figures below flow */
+.flow-key-figures { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--c-border); display: flex; flex-direction: column; gap: 12px; }
+.flow-kf { display: flex; align-items: center; gap: 10px; }
+.flow-kf-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+.flow-kf-info { display: flex; flex-direction: column; flex: 1; }
+.flow-kf-label { font-size: 11px; color: var(--c-text-muted); font-weight: 500; }
+.flow-kf-row { display: flex; align-items: baseline; justify-content: space-between; }
+.flow-kf-val { font-size: 16px; font-weight: 700; color: var(--c-text-primary); font-variant-numeric: tabular-nums; }
 
-.energy-pill-primary {
-  background: #f0ebe4;
-  color: #6b5b4e;
-}
+/* Chart panel (main area, fills remaining space) */
+.mon-chart-panel { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
-.energy-pill-secondary {
-  background: #f5f6fa;
-  color: var(--c-text-secondary);
-  border: 1px solid var(--c-border);
-}
+.period-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; border-bottom: 1px solid #F3F4F6; flex-wrap: wrap; gap: 10px; }
+.period-pills { display: flex; gap: 4px; background: #F9FAFB; padding: 3px; border-radius: 10px; border: 1px solid var(--c-border); }
+.ppill { font-size: 12px; font-weight: 500; padding: 6px 14px; border: none; background: transparent; color: var(--c-text-muted); border-radius: 7px; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.ppill:hover { color: var(--c-text-primary); }
+.ppill.active { background: #2563EB; color: #fff; font-weight: 600; box-shadow: 0 1px 3px rgba(37,99,235,.3); }
+.date-nav { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--c-text-secondary); }
+.date-nav-btn { width: 30px; height: 30px; border: 1px solid var(--c-border); border-radius: 8px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--c-text-secondary); transition: all .15s; }
+.date-nav-btn:hover { background: #F9FAFB; border-color: #D1D5DB; }
+.date-nav-date { min-width: 130px; text-align: center; font-size: 13px; font-weight: 600; padding: 6px 16px; border: 1px solid var(--c-border); border-radius: 8px; background: #fff; color: var(--c-text-primary); }
 
-.pill-value {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--c-text-primary);
-}
+.energy-pills { display: flex; gap: 12px; padding: 12px 24px; flex-wrap: wrap; }
+.energy-pill { display: flex; align-items: center; gap: 10px; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; transition: all .2s; }
+.energy-pill-primary { background: #EFF6FF; color: #2563EB; border: 1px solid rgba(37,99,235,.15); }
+.energy-pill-secondary { background: #F9FAFB; color: var(--c-text-secondary); border: 1px solid var(--c-border); }
+.pill-value { font-size: 20px; font-weight: 700; color: var(--c-text-primary); }
+.pill-unit { font-size: 12px; font-weight: 400; color: var(--c-text-secondary); }
 
-.pill-unit {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--c-text-secondary);
-}
-
-/* ── Chart area ─────────────────────────────────────── */
-.chart-toolbar {
-  display: flex; gap: 6px;
-  padding: 12px 28px 0;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.chart-toggles {
-  display: flex;
-  gap: 6px;
-  margin-right: auto;
-}
-.ctoggle {
-  padding: 4px 12px;
-  border-radius: 14px;
-  border: 1px solid var(--c-border);
-  background: var(--c-surface);
-  color: var(--c-text-muted);
-  font-size: 11.5px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all .2s;
-}
+.chart-toolbar { display: flex; gap: 6px; padding: 8px 24px 0; justify-content: flex-end; align-items: center; }
+.chart-toggles { display: flex; gap: 4px; margin-right: auto; background: #F9FAFB; padding: 2px; border-radius: 8px; border: 1px solid var(--c-border); }
+.ctoggle { padding: 5px 14px; border-radius: 6px; border: none; background: transparent; color: var(--c-text-muted); font-size: 11.5px; font-weight: 500; cursor: pointer; transition: all .15s; }
 .ctoggle:hover { color: var(--c-text-primary); }
-.ctoggle.active {
-  background: var(--c-brand-light);
-  color: var(--c-brand);
-  border-color: rgba(244,124,32,.3);
-  font-weight: 600;
-}
-
-.chart-tool {
-  width: 30px; height: 30px; border-radius: 50%;
-  border: 1px solid var(--c-border); background: var(--c-surface);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 12px; color: var(--c-text-muted);
-  transition: background .15s, color .15s;
-}
-.chart-tool:hover { background: var(--c-brand-light); color: var(--c-brand); }
-
-#pv-chart { height: 320px; padding: 0 20px 16px; }
-
-/* no-data overlay */
-.chart-nodata {
-  height: 260px; display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: 8px; color: var(--c-text-muted);
-}
-.chart-nodata i { font-size: 28px; opacity: .35; }
+.ctoggle.active { background: #fff; color: #2563EB; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+.chart-tool { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--c-border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: var(--c-text-muted); transition: all .15s; }
+.chart-tool:hover { background: var(--c-brand-light); color: var(--c-brand); border-color: var(--c-brand); }
+#pv-chart { flex: 1; min-height: 260px; padding: 0 16px 12px; }
+.chart-nodata { flex: 1; min-height: 300px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; color: var(--c-text-muted); }
+.chart-nodata i { font-size: 32px; opacity: .3; }
 .chart-nodata p { font-size: 13px; }
 
-/* ── Responsive ─────────────────────────────────────── */
-@media (max-width: 900px) {
-  .mon-flow-layout {
-    flex-direction: column;
-    gap: 20px;
-  }
-  .flow-illustration {
-    width: 100%;
-    max-width: 460px;
-    height: 240px;
-  }
-  .flow-kpi-panel {
-    flex-direction: row;
-    gap: 32px;
-    justify-content: center;
-  }
-  .energy-pills {
-    flex-direction: column;
-    align-items: center;
-  }
-}
+/* ── Forecast panel ──────────────────────────────────── */
+.mon-forecast { padding: 24px 32px; background: #FAFBFD; border-top: 1px solid var(--c-border); }
+.section-title { font-size: 14px; font-weight: 700; color: var(--c-text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.section-title i { color: var(--c-text-muted); font-size: 14px; }
+.forecast-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.forecast-card { background: #fff; border: 1px solid var(--c-border); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 6px; position: relative; }
+.forecast-badge { position: absolute; top: 12px; right: 12px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #8B5CF6; background: #F5F3FF; padding: 2px 8px; border-radius: 20px; display: flex; align-items: center; gap: 3px; }
+.forecast-label { font-size: 12px; font-weight: 500; color: var(--c-text-muted); }
+.forecast-value { font-size: 28px; font-weight: 700; color: var(--c-text-primary); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.forecast-unit { font-size: 14px; font-weight: 500; color: var(--c-text-secondary); }
+.forecast-sub { font-size: 11px; color: var(--c-text-muted); }
 
-@media (max-width: 520px) {
-  .flow-illustration {
-    height: 200px;
-  }
-  .iso-panel { width: 120px; height: 110px; left: 100px; }
-  .iso-house { width: 140px; height: 120px; }
-  .iso-pylon { width: 110px; height: 140px; }
-  .flow-kpi-panel {
-    flex-direction: column;
-    align-items: center;
-  }
-  .flow-kpi-number { font-size: 26px; }
-  .energy-pill { min-width: 200px; padding: 10px 24px; }
-  .period-tabs { overflow-x: auto; }
+/* ── System status footer ────────────────────────────── */
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width:1200px) { .mon-kpi-row{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:900px) {
+  .mon-main-row{flex-direction:column} .mon-flow-panel{width:100%;border-right:none;border-bottom:1px solid var(--c-border)}
+  .mon-kpi-row{grid-template-columns:repeat(2,1fr)} .forecast-grid{grid-template-columns:1fr}
+  .mon-page-header,.mon-kpi-row,.mon-forecast{padding-left:20px;padding-right:20px}
+  .period-bar,.energy-pills,.chart-toolbar{padding-left:16px;padding-right:16px}
+  #pv-chart{padding:0 8px 12px}
+}
+@media (max-width:600px) {
+  .mon-flow-panel{display:none} .mon-kpi-row{grid-template-columns:1fr}
+  .mon-header-right{flex-wrap:wrap} .period-pills{overflow-x:auto;flex-wrap:nowrap}
+  .kpi-card-value{font-size:22px}
 }
   </style>
 </head>
@@ -408,9 +187,8 @@
   <ul class="sz-nav" id="sz-sidebar-nav"></ul>
   <div class="sz-sidebar-footer">
     <ul class="sz-nav" style="padding:0">
-      <li><button class="sz-nav-link sz-logout-trigger"
-          style="width:100%;text-align:left;border:none;background:none;cursor:pointer">
-        <i class="sz-nav-icon fas fa-right-from-bracket"></i>Sign Out
+      <li><button class="sz-nav-link sz-logout-trigger" style="width:100%;text-align:left;border:none;background:none;cursor:pointer">
+        <i class="sz-nav-icon fas fa-right-from-bracket"></i>Déconnexion
       </button></li>
     </ul>
   </div>
@@ -418,926 +196,543 @@
 
 <main class="sz-main" style="padding:0">
 
-  <!-- ── Page header ─────────────────────────────────── -->
-  <div style="padding:12px 28px;background:var(--c-surface);border-bottom:1px solid var(--c-border)">
-    <div class="sz-breadcrumb mb-1">
-      <a href="/platform/installations">Installations</a>
-      <span class="sz-breadcrumb-sep">/</span>
-      <a href="#" id="bc-inst">—</a>
-    </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+  <!-- ═══ SECTION 1: PAGE HEADER ═══ -->
+  <div class="mon-page-header">
+    <div class="mon-header-left">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <h1 class="sz-page-title" id="inst-name" style="margin:0">Loading…</h1>
-        <!-- (i) spec button -->
+        <h1 id="inst-name">Chargement…</h1>
         <div style="position:relative">
-          <button class="info-btn" id="info-btn" aria-label="Panel specification">
-            <i class="fas fa-circle-info"></i> Spec
-          </button>
+          <button class="info-btn" id="info-btn" aria-label="Spécification"><i class="fas fa-circle-info"></i> Spec</button>
           <div class="panel-popover" id="panel-popover">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;
-                        letter-spacing:.6px;color:var(--c-text-muted);margin-bottom:8px">
-              Installation Spec
-            </div>
-            <div class="pp-row"><span class="pp-k">Technology</span><span class="pp-v" id="pi-tech">—</span></div>
-            <div class="pp-row"><span class="pp-k">Manufacturer</span><span class="pp-v" id="pi-make">—</span></div>
-            <div class="pp-row"><span class="pp-k">Model</span><span class="pp-v" id="pi-model">—</span></div>
-            <div class="pp-row"><span class="pp-k">Power / panel</span><span class="pp-v" id="pi-power">—</span></div>
-            <div class="pp-row"><span class="pp-k">Count</span><span class="pp-v" id="pi-count">—</span></div>
-            <div class="pp-row"><span class="pp-k">Tilt / Azimuth</span><span class="pp-v" id="pi-orient">—</span></div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--c-text-muted);margin-bottom:10px">Spécification Installation</div>
+            <div class="pp-row"><span class="pp-k">Technologie</span><span class="pp-v" id="pi-tech">—</span></div>
+            <div class="pp-row"><span class="pp-k">Fabricant</span><span class="pp-v" id="pi-make">—</span></div>
+            <div class="pp-row"><span class="pp-k">Modèle</span><span class="pp-v" id="pi-model">—</span></div>
+            <div class="pp-row"><span class="pp-k">Puissance / panneau</span><span class="pp-v" id="pi-power">—</span></div>
+            <div class="pp-row"><span class="pp-k">Nombre</span><span class="pp-v" id="pi-count">—</span></div>
+            <div class="pp-row"><span class="pp-k">Inclinaison / Azimut</span><span class="pp-v" id="pi-orient">—</span></div>
             <div class="pp-row"><span class="pp-k">Onduleur</span><span class="pp-v" id="pi-inv">—</span></div>
           </div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:11px;color:var(--c-text-muted)" id="last-update"></span>
-        <a href="#" id="btn-edit" class="sz-btn sz-btn-secondary sz-btn-sm">
-          <i class="fas fa-pen"></i> Edit
-        </a>
+      <div class="mon-header-meta">
+        <span class="mon-location"><i class="fas fa-map-pin"></i><span id="inst-location">—</span></span>
+        <div class="live-pill offline" id="status-pill"><span class="live-pill-dot"></span><span id="status-text">Hors ligne</span></div>
       </div>
+    </div>
+    <div class="mon-header-right">
+      <div id="weather-widget" style="display:none" class="mon-weather">
+        <i id="weather-icon" class="fas fa-cloud"></i>
+        <div><span id="weather-temp">--°C</span><div class="mon-weather-desc" id="weather-desc">—</div></div>
+      </div>
+      <div class="mon-update-info"><i class="fas fa-clock" style="font-size:11px"></i><span id="last-update">—</span></div>
+      <button class="mon-refresh-btn" onclick="hardRefresh()" title="Actualiser"><i class="fas fa-rotate-right"></i></button>
+      <a href="#" id="btn-edit" class="mon-refresh-btn" title="Modifier"><i class="fas fa-pen" style="font-size:11px"></i></a>
     </div>
   </div>
 
-  <div id="alert-error" style="display:none;margin:10px 28px"></div>
+  <div id="alert-error" style="display:none;margin:10px 32px"></div>
 
-  <!-- ══════════════════════════════════════════════════
-       ENERGY FLOW SECTION (full-width, isometric)
-       ══════════════════════════════════════════════════ -->
-  <div class="mon-flow-section">
+  <!-- ═══ SECTION 2: KPI CARDS ROW ═══ -->
+  <div class="mon-kpi-row">
+    <div class="kpi-card"><div class="kpi-card-header"><div class="kpi-card-icon blue"><i class="fas fa-bolt"></i></div></div><div class="kpi-card-body"><span class="kpi-card-label">Production actuelle</span><div class="kpi-card-value"><span id="kpi-realtime">--</span><span class="kpi-card-unit" id="kpi-rt-unit">kW</span></div><span class="kpi-card-sub">Puissance instantanée</span></div></div>
+    <div class="kpi-card"><div class="kpi-card-header"><div class="kpi-card-icon yellow"><i class="fas fa-sun"></i></div></div><div class="kpi-card-body"><span class="kpi-card-label">Énergie du jour</span><div class="kpi-card-value"><span id="kpi-today-energy">--</span><span class="kpi-card-unit" id="kpi-today-unit">kWh</span></div><span class="kpi-card-sub">Aujourd'hui</span></div></div>
+    <div class="kpi-card"><div class="kpi-card-header"><div class="kpi-card-icon purple"><i class="fas fa-chart-line"></i></div></div><div class="kpi-card-body"><span class="kpi-card-label">Énergie totale</span><div class="kpi-card-value"><span id="kpi-total-energy">--</span><span class="kpi-card-unit" id="kpi-total-unit">MWh</span></div><span class="kpi-card-sub">Production à vie</span></div></div>
+    <div class="kpi-card"><div class="kpi-card-header"><div class="kpi-card-icon green"><i class="fas fa-gauge-high"></i></div></div><div class="kpi-card-body"><span class="kpi-card-label">Puissance installée</span><div class="kpi-card-value"><span id="kpi-capacity">--</span><span class="kpi-card-unit">kWp</span></div><span class="kpi-card-sub">Capacité nominale</span></div></div>
+  </div>
 
-    <!-- Status bar -->
-    <div class="mon-top-bar">
-      <span style="font-size:12px;font-weight:500;color:var(--c-text-secondary)">Status:</span>
-      <div class="live-pill offline" id="status-pill">
-        <span class="live-pill-dot"></span>
-        <span id="status-text">Hors ligne</span>
-      </div>
-      <button class="mon-refresh-btn" onclick="hardRefresh()" title="Refresh">
-        <i class="fas fa-rotate-right"></i>
-      </button>
+  <!-- ═══ SECTION 4: FLOW + CHART SIDE BY SIDE ═══ -->
+  <div class="mon-main-row">
 
-      <!-- Weather -->
-      <div id="weather-widget" style="display:none; align-items:center; gap:6px; margin-left:16px; font-size:13px; font-weight:500; color:var(--c-text-primary);">
-        <i id="weather-icon" class="fas fa-cloud"></i>
-        <span id="weather-temp">--°C</span>
-      </div>
-    </div>
-
-    <!-- Flow layout: illustration + KPIs -->
-    <div class="mon-flow-layout">
-
-      <!-- Isometric illustration -->
-      <div class="flow-illustration" id="flow-illustration">
-
-        <!-- SVG connection lines -->
-        <svg class="flow-lines-svg" id="flow-svg" viewBox="0 0 520 260" preserveAspectRatio="xMidYMid meet">
-          <!-- Panel → House (L-shaped: down from panel, left to house) -->
-          <path id="fl-panel-house" class="flow-line"
-                d="M 220 130 L 220 200 L 90 200"
-                stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- Panel → Pylon (L-shaped: down from panel, right to pylon) -->
-          <path id="fl-panel-pylon" class="flow-line"
-                d="M 220 130 L 220 200 L 400 200"
-                stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- House → Pylon (horizontal line at bottom) -->
-          <path id="fl-house-pylon" class="flow-line"
-                d="M 170 210 L 380 210"
-                stroke-linecap="round"/>
+    <!-- Left: Energy flow diagram + key figures -->
+    <div class="mon-flow-panel">
+      <div class="flow-title">Flux d'énergie</div>
+      <div class="flow-diagram">
+        <svg class="flow-svg" viewBox="0 0 420 270" preserveAspectRatio="xMidYMid meet">
+          <!-- Static background guide tracks -->
+          <path class="flow-track" d="M 160 55 L 75 55 Q 55 55 55 75 L 55 175"/>
+          <path class="flow-track" d="M 260 55 L 345 55 Q 365 55 365 75 L 365 175"/>
+          <path class="flow-track" d="M 125 235 L 295 235"/>
+          <!-- Dynamic active flow paths -->
+          <path id="fl-solar-house" class="flow-line" d="M 160 55 L 75 55 Q 55 55 55 75 L 55 175"/>
+          <path id="fl-solar-grid" class="flow-line" d="M 260 55 L 345 55 Q 365 55 365 75 L 365 175"/>
+          <path id="fl-house-grid" class="flow-line" d="M 125 235 L 295 235"/>
         </svg>
-
-        <!-- Solar panel (top center) -->
-        <div class="iso-panel" id="iso-panel">
-          <img src="/img/isometric_panel.svg" alt="Panneau solaire"/>
-        </div>
-
-        <!-- House (bottom left) -->
-        <div class="iso-house" id="iso-house">
-          <img src="/img/isometric_house.svg" alt="Consommation"/>
-        </div>
-
-        <!-- Power pylon (bottom right) -->
-        <div class="iso-pylon" id="iso-pylon">
-          <img src="/img/isometric_pylon.svg" alt="Réseau"/>
-        </div>
-
-        <!-- Value labels on flow lines (hidden by default) -->
-        <div class="flow-val-label" id="fv-solar" style="top:60px;left:245px;display:none"></div>
-        <div class="flow-val-label" id="fv-load" style="bottom:65px;left:95px;display:none"></div>
-        <div class="flow-val-label" id="fv-grid" style="bottom:65px;right:40px;display:none"></div>
-      </div>
-
-      <!-- KPI panel (right side) -->
-      <div class="flow-kpi-panel">
-        <div class="flow-kpi">
-          <div class="flow-kpi-label">Puissance temps réel</div>
-          <div class="flow-kpi-value">
-            <span class="flow-kpi-number val-none" id="kpi-realtime">--</span>
-            <span class="flow-kpi-unit" id="kpi-rt-unit"></span>
+        <div class="flow-node fn-solar" id="fn-solar">
+          <div class="flow-node-icon solar" id="fni-solar">
+            <img src="https://img.icons8.com/3d-fluency/188/solar-panel.png" onerror="this.onerror=null;this.src='/img/isometric_panel.svg'" alt="Panneaux solaires">
           </div>
+          <span class="flow-node-label">Panneaux</span>
+          <span class="flow-node-value" id="fv-solar" style="display:none">--</span>
         </div>
-        <div class="flow-kpi">
-          <div class="flow-kpi-label">Puissance installée</div>
-          <div class="flow-kpi-value">
-            <span class="flow-kpi-number val-none" id="kpi-capacity">--</span>
-            <span class="flow-kpi-unit">kWp</span>
+        <div class="flow-node fn-house" id="fn-house">
+          <div class="flow-node-icon house" id="fni-house">
+            <img src="https://img.icons8.com/3d-fluency/188/home.png" onerror="this.onerror=null;this.src='/img/isometric_house.svg'" alt="Maison">
           </div>
+          <span class="flow-node-label">Consommation</span>
+          <span class="flow-node-value" id="fv-load" style="display:none">--</span>
+        </div>
+        <div class="flow-node fn-grid" id="fn-grid">
+          <div class="flow-node-icon grid" id="fni-grid">
+            <img src="https://img.icons8.com/3d-fluency/188/transmission-tower.png" onerror="this.onerror=null;this.src='/img/isometric_pylon.svg'" alt="Réseau">
+          </div>
+          <span class="flow-node-label">Réseau</span>
+          <span class="flow-node-value" id="fv-grid" style="display:none">--</span>
         </div>
       </div>
 
-    </div>
-  </div><!-- /mon-flow-section -->
-
-  <!-- ══════════════════════════════════════════════════
-       CHART SECTION
-       ══════════════════════════════════════════════════ -->
-  <div class="mon-chart-section">
-
-    <!-- Period tabs + date nav -->
-    <div class="period-bar">
-      <div class="period-tabs">
-        <button class="ptab active" onclick="setPeriod('day',this)">Jour</button>
-        <button class="ptab" onclick="setPeriod('week',this)">Semaine</button>
-        <button class="ptab" onclick="setPeriod('month',this)">Mois</button>
-        <button class="ptab" onclick="setPeriod('year',this)">Année</button>
-        <button class="ptab" onclick="setPeriod('lifetime',this)">Historique</button>
-        <button class="ptab" onclick="setPeriod('custom',this)">Custom</button>
-      </div>
-      <div class="date-nav" id="date-nav-std">
-        <button class="date-nav-btn" onclick="navDate(-1)"><i class="fas fa-chevron-left"></i></button>
-        <span class="date-nav-date" id="nav-date-label"></span>
-        <button class="date-nav-btn" onclick="navDate(+1)"><i class="fas fa-chevron-right"></i></button>
-      </div>
-      <!-- Custom range picker (hidden by default) -->
-      <div class="date-nav" id="date-nav-custom" style="display:none;gap:8px;flex-wrap:wrap">
-        <input type="date" id="custom-from" class="date-nav-date" style="min-width:130px;cursor:pointer"/>
-        <span style="font-size:12px;color:var(--c-text-muted)">→</span>
-        <input type="date" id="custom-to"   class="date-nav-date" style="min-width:130px;cursor:pointer"/>
-        <select id="custom-interval" class="date-nav-date" style="min-width:90px;cursor:pointer">
-          <option value="minute">Par minute</option>
-          <option value="hour">Par heure</option>
-          <option value="day" selected>Par jour</option>
-          <option value="month">Par mois</option>
-        </select>
-        <button class="date-nav-btn" onclick="loadChartData()" title="Apply" style="width:auto;padding:0 10px;font-size:11px">
-          <i class="fas fa-check"></i>
-        </button>
+      <!-- Key figures below flow -->
+      <div class="flow-key-figures">
+        <div class="flow-kf">
+          <div class="flow-kf-icon" style="background:#EFF6FF;color:#2563EB"><i class="fas fa-bolt"></i></div>
+          <div class="flow-kf-info"><span class="flow-kf-label">Puissance actuelle</span><div class="flow-kf-row"><span class="flow-kf-val" id="kf-power">-- kW</span></div></div>
+        </div>
+        <div class="flow-kf">
+          <div class="flow-kf-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fas fa-sun"></i></div>
+          <div class="flow-kf-info"><span class="flow-kf-label">Énergie journalière</span><div class="flow-kf-row"><span class="flow-kf-val" id="kf-daily">-- kWh</span></div></div>
+        </div>
+        <div class="flow-kf">
+          <div class="flow-kf-icon" style="background:#F0FDF4;color:#22C55E"><i class="fas fa-calendar"></i></div>
+          <div class="flow-kf-info"><span class="flow-kf-label">Énergie mensuelle</span><div class="flow-kf-row"><span class="flow-kf-val" id="kf-monthly">-- MWh</span></div></div>
+        </div>
+        <div class="flow-kf">
+          <div class="flow-kf-icon" style="background:#F5F3FF;color:#8B5CF6"><i class="fas fa-chart-line"></i></div>
+          <div class="flow-kf-info"><span class="flow-kf-label">Énergie totale</span><div class="flow-kf-row"><span class="flow-kf-val" id="kf-total">-- MWh</span></div></div>
+        </div>
       </div>
     </div>
 
-    <!-- Energy pill summary -->
-    <div class="energy-pills">
-      <div class="energy-pill energy-pill-primary">
-        <span>Energy analysis</span>
-        <span class="pill-value" id="pill-energy">--</span>
-        <span class="pill-unit" id="pill-energy-unit">kWh</span>
+    <!-- Right: Chart area -->
+    <div class="mon-chart-panel">
+      <div class="period-bar">
+        <div class="period-pills">
+          <button class="ppill active" onclick="setPeriod('day',this)">Jour</button>
+          <button class="ppill" onclick="setPeriod('week',this)">7J</button>
+          <button class="ppill" onclick="setPeriod('month',this)">30J</button>
+          <button class="ppill" onclick="setPeriod('year',this)">Année</button>
+          <button class="ppill" onclick="setPeriod('lifetime',this)">Historique</button>
+          <button class="ppill" onclick="setPeriod('custom',this)">Personnalisé</button>
+        </div>
+        <div class="date-nav" id="date-nav-std">
+          <button class="date-nav-btn" onclick="navDate(-1)"><i class="fas fa-chevron-left"></i></button>
+          <span class="date-nav-date" id="nav-date-label"></span>
+          <button class="date-nav-btn" onclick="navDate(+1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="date-nav" id="date-nav-custom" style="display:none;gap:8px;flex-wrap:wrap">
+          <input type="date" id="custom-from" class="date-nav-date" style="min-width:130px;cursor:pointer"/>
+          <span style="font-size:12px;color:var(--c-text-muted)">→</span>
+          <input type="date" id="custom-to" class="date-nav-date" style="min-width:130px;cursor:pointer"/>
+          <select id="custom-interval" class="date-nav-date" style="min-width:90px;cursor:pointer">
+            <option value="minute">Par minute</option><option value="hour" selected>Par heure</option><option value="day">Par jour</option><option value="month">Par mois</option>
+          </select>
+          <button class="date-nav-btn" onclick="loadChartData()" title="Appliquer" style="width:auto;padding:0 12px;font-size:11px"><i class="fas fa-check"></i></button>
+        </div>
       </div>
-      <div class="energy-pill energy-pill-secondary">
-        <span>Production</span>
-        <span class="pill-value" id="pill-production">--</span>
-        <span class="pill-unit" id="pill-production-unit">kWh</span>
+      <div class="energy-pills">
+        <div class="energy-pill energy-pill-primary"><i class="fas fa-chart-area" style="font-size:14px"></i><span>Analyse d'énergie</span><span class="pill-value" id="pill-energy">--</span><span class="pill-unit" id="pill-energy-unit">kWh</span></div>
+        <div class="energy-pill energy-pill-secondary"><i class="fas fa-solar-panel" style="font-size:14px"></i><span>Production</span><span class="pill-value" id="pill-production">--</span><span class="pill-unit" id="pill-production-unit">kWh</span></div>
       </div>
+      <div class="chart-toolbar">
+        <div class="chart-toggles">
+          <button class="ctoggle active" onclick="setChartMode('realtime', this)">Temps réel</button>
+          <button class="ctoggle" onclick="setChartMode('forecast', this)">Prévision IA</button>
+          <button class="ctoggle" onclick="setChartMode('overlap', this)">Superposition</button>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <div class="d-flex align-items-center gap-1" style="font-size:12px;color:var(--c-text-secondary);background:var(--c-surface-alt);border:1px solid var(--c-border);padding:2px 8px;border-radius:6px">
+            <i class="fas fa-brain" style="color:var(--c-brand);font-size:11px"></i>
+            <span style="font-weight:600;font-size:11px">Modèle IA :</span>
+            <select id="model-select" class="form-select form-select-sm" style="width:auto;min-width:150px;font-size:12px;padding:2px 24px 2px 6px;border:none;background:transparent;cursor:pointer;font-weight:500;color:var(--c-text-primary)" onchange="onModelChange()">
+              <option value="">Chargement…</option>
+            </select>
+          </div>
+          <div class="chart-tool" title="Télécharger" onclick="downloadChart()"><i class="fas fa-download"></i></div>
+        </div>
+      </div>
+      <div id="pv-chart"></div>
+      <div class="chart-nodata" id="chart-nodata" style="display:none"><i class="fas fa-chart-area"></i><p id="chart-nodata-text">Aucune donnée disponible pour cette période</p></div>
     </div>
 
-    <!-- Chart toolbar -->
-    <div class="chart-toolbar">
-      <div class="chart-toggles">
-        <button class="ctoggle active" onclick="setChartMode('realtime', this)">Temps réel</button>
-        <button class="ctoggle" onclick="setChartMode('forecast', this)">Prévision</button>
-        <button class="ctoggle" onclick="setChartMode('overlap', this)">Superposition</button>
-      </div>
-      <div class="chart-tool" title="Info"><i class="fas fa-circle-info"></i></div>
-      <div class="chart-tool" title="Settings"><i class="fas fa-gear"></i></div>
-      <div class="chart-tool" title="Table view"><i class="fas fa-list"></i></div>
-      <div class="chart-tool" title="Download" onclick="downloadChart()"><i class="fas fa-download"></i></div>
+  </div><!-- /mon-main-row -->
+
+  <!-- ═══ SECTION 5: FORECAST PANEL ═══ -->
+  <div class="mon-forecast">
+    <div class="section-title d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div><i class="fas fa-wand-magic-sparkles"></i> Prévisions IA (<span id="fc-active-model-name">Modèle</span>)</div>
+      <div class="sz-meta" style="font-size:11px"><i class="fas fa-satellite-dish me-1"></i>Variables météo réelles : Radiation, Temp, Humidité, Vent, Pluie, PM2.5, PM10</div>
     </div>
-
-    <!-- ECharts container -->
-    <div id="pv-chart"></div>
-
-    <!-- No-data fallback -->
-    <div class="chart-nodata" id="chart-nodata" style="display:none">
-      <i class="fas fa-chart-area"></i>
-      <p id="chart-nodata-text">No data available for this period</p>
+    <div class="forecast-grid">
+      <div class="forecast-card"><div class="forecast-badge"><i class="fas fa-sparkles" style="font-size:8px"></i> IA</div><span class="forecast-label">Prédiction demain</span><div><span class="forecast-value" id="fc-tomorrow">--</span><span class="forecast-unit">kWh</span></div><span class="forecast-sub" id="fc-tomorrow-sub">Modèle IA</span></div>
+      <div class="forecast-card"><div class="forecast-badge"><i class="fas fa-sparkles" style="font-size:8px"></i> IA</div><span class="forecast-label">Pic attendu</span><div><span class="forecast-value" id="fc-peak">--:--</span></div><span class="forecast-sub">Heure de pointe solaire</span></div>
+      <div class="forecast-card"><div class="forecast-badge"><i class="fas fa-sparkles" style="font-size:8px"></i> IA</div><span class="forecast-label">Production estimée jour</span><div><span class="forecast-value" id="fc-today-est">--</span><span class="forecast-unit">kWh</span></div><span class="forecast-sub" id="fc-today-sub">Estimation journée courante</span></div>
     </div>
-
-  </div><!-- /mon-chart-section -->
+  </div>
 
 </main>
 
-<!-- Scripts -->
 <script src="/lib/echarts.min.js"></script>
 <script src="/js/platform_api.js"></script>
 <script src="/js/shell.js"></script>
 <script>
 'use strict';
 
-// ═══════════════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════════════
+const INST_ID = parseInt(window.location.pathname.split('/').filter(Boolean).find((s,i,a)=>a[i-1]==='installations'&&/^\d+$/.test(s)));
+let gInst=null, gPeriod='day', gChartMode='realtime', gCurDate=new Date(), gLiveInterval=null, gChartInterval=null, gChartInstance=null, gLastProduced=null;
+let gSelectedModel='', gAvailableModels=[], gCachedForecast=null;
 
-const INST_ID = parseInt(
-  window.location.pathname.split('/').filter(Boolean)
-    .find((s, i, a) => a[i-1] === 'installations' && /^\d+$/.test(s))
-);
+function setChartMode(mode,btn){gChartMode=mode;document.querySelectorAll('.ctoggle').forEach(b=>b.classList.remove('active'));btn.classList.add('active');loadChartData();}
 
-let gInst          = null;
-let gPeriod        = 'day';
-let gChartMode     = 'realtime'; // 'realtime', 'forecast', 'overlap'
-let gCurDate       = new Date();
-let gLiveInterval  = null;
-let gChartInstance = null;
-let gLastProduced  = null;
+// Chart auto-refresh intervals per period (ms). 0 = no auto-refresh.
+const CHART_REFRESH_MS = {
+  day:      60_000,   // 1 min — matches grabber real_time write cadence
+  week:    300_000,   // 5 min
+  month:   300_000,   // 5 min
+  year:    600_000,   // 10 min
+  lifetime:600_000,   // 10 min
+  custom:        0,   // static range — no auto-refresh
+};
 
-function setChartMode(mode, btn) {
-  gChartMode = mode;
-  document.querySelectorAll('.ctoggle').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  loadChartData();
+function _startChartAutoRefresh() {
+  if (gChartInterval) clearInterval(gChartInterval);
+  gChartInterval = null;
+  const ms = CHART_REFRESH_MS[gPeriod] || 0;
+  if (ms > 0) {
+    gChartInterval = setInterval(() => {
+      loadChartData(true); // true = silent refresh (no spinner)
+      if (gPeriod === 'day') loadEnergySummary(); // keep pills in sync
+    }, ms);
+  }
 }
 
-// ═══════════════════════════════════════════════════════
-//  BOOT
-// ═══════════════════════════════════════════════════════
-
-(async () => {
+// ═══ BOOT ═══
+(async()=>{
   PlatformAPI.showSpinner();
-  try {
-    const user = await PlatformAPI.requireAuth();
-    if (!user) return;
-    initShell(user, '/platform/installations');
-
-    if (isNaN(INST_ID)) { PlatformAPI.showError('Invalid installation ID.'); return; }
-
-    try {
-      gInst = await PlatformAPI.installations.get(INST_ID);
-    } catch {
-      PlatformAPI.showError('Installation not found or access denied.'); return;
-    }
-
-    populateHeader();
-    populateSpec();
-    initInfoBtn();
-    initECharts();
-    initCustomPicker();
-    updateDateLabel();
-
-    await Promise.all([refreshLive(), loadChartData(), loadEnergySummary(), loadWeather()]);
-
-    gLiveInterval = setInterval(refreshLive, 5000);
-
-  } catch (err) {
-    PlatformAPI.showError('Error: ' + (err.message || 'Unknown'));
-  } finally {
-    PlatformAPI.hideSpinner();
-  }
+  try{
+    const user=await PlatformAPI.requireAuth();if(!user)return;
+    initShell(user,'/platform/installations');
+    if(isNaN(INST_ID)){PlatformAPI.showError('ID d\'installation invalide.');return;}
+    try{gInst=await PlatformAPI.installations.get(INST_ID);}catch{PlatformAPI.showError('Installation introuvable ou accès refusé.');return;}
+    populateHeader();populateSpec();initInfoBtn();initECharts();initCustomPicker();updateDateLabel();
+    await initModels();
+    await Promise.all([refreshLive(),loadChartData(),loadEnergySummary(),loadWeather(),loadForecast()]);
+    gLiveInterval=setInterval(refreshLive,5000);
+    _startChartAutoRefresh();
+  }catch(err){PlatformAPI.showError('Erreur: '+(err.message||'Inconnue'));}
+  finally{PlatformAPI.hideSpinner();}
 })();
 
-async function loadWeather() {
-  const g = gInst;
-  if (!g) return;
-  const lat = g.latitude || 36.8065;
-  const lon = g.longitude || 10.1815;
-  try {
-    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
-    const data = await res.json();
-    if (data && data.current_weather) {
-      const w = data.current_weather;
-      document.getElementById('weather-widget').style.display = 'flex';
-      document.getElementById('weather-temp').textContent = Math.round(w.temperature) + '°C';
-      const c = w.weathercode;
-      let icon = 'fa-cloud';
-      if (c === 0) icon = 'fa-sun';
-      else if (c <= 2) icon = 'fa-cloud-sun';
-      else if (c === 3) icon = 'fa-cloud';
-      else if (c >= 45 && c <= 48) icon = 'fa-smog';
-      else if (c >= 51 && c <= 67) icon = 'fa-cloud-rain';
-      else if (c >= 71 && c <= 77) icon = 'fa-snowflake';
-      else if (c >= 80 && c <= 82) icon = 'fa-cloud-showers-heavy';
-      else if (c >= 95) icon = 'fa-bolt';
-      document.getElementById('weather-icon').className = 'fas ' + icon;
+// ═══ WEATHER ═══
+async function loadWeather(){
+  const g=gInst;if(!g)return;const lat=g.latitude||36.8065,lon=g.longitude||10.1815;
+  try{
+    const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+    const data=await res.json();
+    if(data&&data.current_weather){
+      const w=data.current_weather;
+      document.getElementById('weather-widget').style.display='flex';
+      document.getElementById('weather-temp').textContent=Math.round(w.temperature)+'°C';
+      const c=w.weathercode;let icon='fa-cloud',desc='Nuageux';
+      if(c===0){icon='fa-sun';desc='Ensoleillé';}
+      else if(c<=2){icon='fa-cloud-sun';desc='Partiellement nuageux';}
+      else if(c===3){icon='fa-cloud';desc='Nuageux';}
+      else if(c>=45&&c<=48){icon='fa-smog';desc='Brouillard';}
+      else if(c>=51&&c<=67){icon='fa-cloud-rain';desc='Pluie';}
+      else if(c>=71&&c<=77){icon='fa-snowflake';desc='Neige';}
+      else if(c>=80&&c<=82){icon='fa-cloud-showers-heavy';desc='Averses';}
+      else if(c>=95){icon='fa-bolt';desc='Orage';}
+      document.getElementById('weather-icon').className='fas '+icon;
+      document.getElementById('weather-desc').textContent=desc;
     }
-  } catch(e) { console.error('Weather load failed', e); }
+  }catch(e){console.error('Weather load failed',e);}
 }
 
-// ═══════════════════════════════════════════════════════
-//  HEADER / SPEC
-// ═══════════════════════════════════════════════════════
+// ═══ HEADER / SPEC ═══
+function populateHeader(){
+  const g=gInst;setTxt('inst-name',g.name);setHref('btn-edit',`/platform/installations/${INST_ID}/edit`);
+  const parts=[g.city,g.state,g.country].filter(Boolean);
+  setTxt('inst-location',parts.length?parts.join(', '):(g.governorate||'—'));
+  if(g.installed_capacity_kwp!=null)document.getElementById('kpi-capacity').textContent=g.installed_capacity_kwp;
+}
+function populateSpec(){
+  const g=gInst;
+  ppRow('pi-tech',g.panel_technology);ppRow('pi-make',g.panel_manufacturer);ppRow('pi-model',g.panel_model);
+  ppRow('pi-power',g.panel_power_wp?g.panel_power_wp+' Wp':null);ppRow('pi-count',g.number_of_panels);
+  ppRow('pi-orient',g.tilt!=null&&g.azimuth!=null?`${g.tilt}° / ${g.azimuth}°`:null);
+  ppRow('pi-inv',[g.inverter_manufacturer,g.inverter_model,g.inverter_capacity_kw?g.inverter_capacity_kw+' kW':null].filter(Boolean).join(' / ')||null);
+}
+function initInfoBtn(){const btn=document.getElementById('info-btn'),pop=document.getElementById('panel-popover');btn.addEventListener('click',e=>{e.stopPropagation();pop.classList.toggle('show');});document.addEventListener('click',()=>pop.classList.remove('show'));}
 
-function populateHeader() {
-  const g = gInst;
-  setTxt('inst-name', g.name);
-  setTxt('bc-inst', g.name);
-  setHref('bc-inst', `/platform/installations/${INST_ID}/monitor`);
-  setHref('btn-edit', `/platform/installations/${INST_ID}/edit`);
-  const cap = g.installed_capacity_kwp;
-  if (cap != null) {
-    const el = document.getElementById('kpi-capacity');
-    el.className = 'flow-kpi-number';
-    el.textContent = cap;
+// ═══ LIVE DATA ═══
+async function refreshLive(){
+  try{
+    const s=await fetch(`/query?inst_id=${gInst.id}&type=current`).then(r=>r.json());
+    if(s.state!=='ok'){setOfflineUI();return;}
+    const produced=s.currently_produced_w??null,fedIn=s.currently_fed_in_w??null,fromReseau=s.currently_consumed_grid_w??null,selfUse=s.currently_consumed_pv_w??null;
+    gLastProduced=produced;updateInstallationStatusPill();
+
+    updateFlowNode('solar',produced>0);updateFlowNode('house',selfUse>0);updateFlowNode('grid',fedIn>0||fromReseau>0);
+    animFlowLine('fl-solar-house',selfUse>0,'#2563EB');animFlowLine('fl-solar-grid',fedIn>0,'#22C55E');animFlowLine('fl-house-grid',fromReseau>0||fedIn>0,fromReseau>0?'#F59E0B':'#8B5CF6');
+    setFlowLabel('fv-solar',produced,produced>0);setFlowLabel('fv-load',selfUse,selfUse>0);setFlowLabel('fv-grid',fedIn>0?fedIn:fromReseau,fedIn>0||fromReseau>0);
+
+    // KPI cards
+    setFlowKPI('kpi-realtime',produced,'W','kpi-rt-unit');
+    if(s.today_produced_kwh!=null){const tKwh=Math.max(0,s.today_produced_kwh);document.getElementById('kpi-today-energy').textContent=tKwh.toFixed(1);document.getElementById('kpi-today-unit').textContent='kWh';setTxt('kf-daily',tKwh.toFixed(1)+' kWh');}
+    if(s.total_produced_kwh!=null){const t=s.total_produced_kwh;if(t>=1000){document.getElementById('kpi-total-energy').textContent=(t/1000).toFixed(1);document.getElementById('kpi-total-unit').textContent='MWh';setTxt('kf-total',(t/1000).toFixed(1)+' MWh');}else{document.getElementById('kpi-total-energy').textContent=t.toFixed(1);document.getElementById('kpi-total-unit').textContent='kWh';setTxt('kf-total',t.toFixed(1)+' kWh');}}
+
+    // Key figures in flow panel
+    if(produced!=null)setTxt('kf-power',produced>=1000?(produced/1000).toFixed(2)+' kW':Math.round(produced)+' W');
+    setTxt('last-update','Mis à jour '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));
+  }catch(_){setOfflineUI();}
+}
+
+function updateInstallationStatusPill(){if(!gInst)return;const s=gInst.status||'active';if(s==='inactive')setPillStatus('offline','Inactive');else if(s==='maintenance')setPillStatus('delayed','Maintenance');else setPillStatus('online','En ligne');}
+function setOfflineUI(){updateInstallationStatusPill();['solar','house','grid'].forEach(n=>updateFlowNode(n,false));['fl-solar-house','fl-solar-grid','fl-house-grid'].forEach(id=>animFlowLine(id,false,'#E5E7EB'));['fv-solar','fv-load','fv-grid'].forEach(id=>setFlowLabel(id,null,false));}
+function setPillStatus(state,label){const el=document.getElementById('status-pill');if(!el)return;el.className='live-pill '+state;setTxt('status-text',label);}
+
+// ═══ FLOW DIAGRAM ═══
+function updateFlowNode(name,active){const el=document.getElementById('fni-'+name);if(!el)return;el.classList.toggle('active',active);el.style.opacity=active?'1':'0.5';}
+function animFlowLine(id,active,color){const el=document.getElementById(id);if(!el)return;if(active){el.classList.add('active');el.style.stroke=color;el.style.opacity='1';el.style.strokeDasharray='8 4';el._flowTimer&&clearInterval(el._flowTimer);let o=0;el._flowTimer=setInterval(()=>{o-=1;el.style.strokeDashoffset=o;},35);}else{el._flowTimer&&clearInterval(el._flowTimer);el.classList.remove('active');el.style.stroke='#E5E7EB';el.style.opacity='0.4';el.style.strokeDasharray='none';el.style.strokeDashoffset='0';}}
+function setFlowLabel(id,watt,active){const el=document.getElementById(id);if(!el)return;if(!active||watt==null){el.style.display='none';return;}el.style.display='';el.textContent=fmtW(watt);}
+function setFlowKPI(id,val,unit,unitId){const el=document.getElementById(id);if(!el)return;if(val==null||(typeof val==='number'&&isNaN(val))){el.textContent='--';if(unitId)setTxt(unitId,'');return;}if(unit==='W'&&typeof val==='number'&&val>=1000){el.textContent=(val/1000).toFixed(2);if(unitId)setTxt(unitId,'kW');}else{el.textContent=typeof val==='number'?Math.round(val).toLocaleString():val;if(unitId)setTxt(unitId,unit);}}
+
+// ═══ ECHARTS ═══
+function initECharts(){gChartInstance=echarts.init(document.getElementById('pv-chart'),null,{renderer:'canvas'});window.addEventListener('resize',()=>gChartInstance.resize());}
+
+function buildEChartsOption(xData,yData,yDataForecast,isPower){
+  const hasData=yData.some(v=>v!=null&&v>0)||yDataForecast.some(v=>v!=null&&v>0);
+  const yAxisLabel=isPower?'Puissance (W)':'Énergie (kWh)';
+  const makeS=(name,data,color,dashed)=>({name,type:isPower?'line':'bar',data,smooth:isPower?0.4:false,symbol:'none',lineStyle:{color,width:2,...(dashed?{type:'dashed'}:{})},areaStyle:isPower?{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:color+'40'},{offset:1,color:color+'05'}]}}:undefined,itemStyle:{color,borderRadius:isPower?0:[4,4,0,0]},connectNulls:false,barMaxWidth:36});
+  const realS=makeS('Réel',yData,'#2563EB',false);
+  realS.areaStyle=isPower?{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(37,99,235,.30)'},{offset:1,color:'rgba(37,99,235,.02)'}]}}:undefined;
+  const foreS=makeS('Prévision',yDataForecast,'#8B5CF6',true);
+  foreS.areaStyle=isPower?{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(139,92,246,.20)'},{offset:1,color:'rgba(139,92,246,.02)'}]}}:undefined;
+  const series=gChartMode==='realtime'?[realS]:gChartMode==='forecast'?[foreS]:[foreS,realS];
+  
+  // Add "now" marker line if in day view with forecast
+  const markLines=[];
+  if(isPower&&yDataForecast.some(v=>v!=null)){
+    const now=new Date();
+    const currentTime=now.toTimeString().slice(0,5);
+    const nowIdx=xData.findIndex(t=>t>=currentTime);
+    if(nowIdx>0&&nowIdx<xData.length){
+      markLines.push({
+        markLine:{
+          silent:true,
+          symbol:'none',
+          data:[{xAxis:xData[nowIdx-1],label:{show:true,position:'end',formatter:'Maintenant',color:'#F59E0B',fontSize:10,fontWeight:600},lineStyle:{color:'#F59E0B',width:2,type:'dashed',opacity:0.7}}]
+        }
+      });
+    }
+  }
+  
+  return{animation:true,animationDuration:600,animationEasing:'cubicOut',backgroundColor:'transparent',grid:{top:40,right:24,bottom:48,left:56},
+    legend:series.length>1?{data:series.map(s=>s.name),top:6,right:24,textStyle:{fontSize:11,color:'#6B7280'}}:{show:false},
+    tooltip:{trigger:'axis',backgroundColor:'#fff',borderColor:'#EAECEF',borderWidth:1,padding:[12,16],textStyle:{color:'#111827',fontSize:12},extraCssText:'box-shadow:0 8px 24px rgba(0,0,0,.12);border-radius:12px;',axisPointer:{type:'line',lineStyle:{color:'#2563EB',width:1,type:'dashed'}},
+      formatter(params){
+        const xLabel=params[0].name;
+        const now=new Date();
+        const currentTime=now.toTimeString().slice(0,5);
+        const isFuture=xLabel>currentTime;
+        let h=`<div style="font-size:11px;color:#9CA3AF;margin-bottom:6px">${params[0].name}${isFuture?' <span style="background:#8B5CF6;color:#fff;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:600;margin-left:4px">FUTUR</span>':''}</div>`;
+        params.forEach(p=>{const v=p.value;const d=v==null?'N/A':isPower?(v>=1000?(v/1000).toFixed(2)+' kW':Math.round(v)+' W'):v.toFixed(2)+' kWh';h+=`<div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="width:8px;height:8px;border-radius:50%;background:${p.color};display:inline-block"></span><span style="font-weight:500">${p.seriesName}:</span><span style="font-weight:700;margin-left:auto">${d}</span></div>`;});
+        return h;}},
+    xAxis:{type:'category',data:xData,boundaryGap:!isPower,axisLine:{show:false},axisTick:{show:false},axisLabel:{color:'#9CA3AF',fontSize:10,fontFamily:'Inter',interval:xData.length>30?Math.floor(xData.length/15):'auto',rotate:xData.length>20?30:0},splitLine:{show:false}},
+    yAxis:{type:'value',name:yAxisLabel,nameTextStyle:{color:'#9CA3AF',fontSize:10,fontFamily:'Inter'},axisLine:{show:false},axisTick:{show:false},axisLabel:{color:'#9CA3AF',fontSize:10,fontFamily:'Inter',formatter:v=>v>=1000?(v/1000).toFixed(1)+'k':v},splitLine:{lineStyle:{color:'#F3F4F6',type:'dashed'}},min:0},
+    series:series.concat(markLines),graphic:hasData?[]:[{type:'text',left:'center',top:'middle',style:{text:'Aucune donnée pour cette période',fill:'#9CA3AF',fontSize:13,fontFamily:'Inter'}}]};
+}
+
+function renderChart(xData,yData,yDataForecast,isPower,silent=false){
+  if(!gChartInstance)return;const chartEl=document.getElementById('pv-chart'),noData=document.getElementById('chart-nodata');
+  if(!xData.length){chartEl.style.display='none';noData.style.display='flex';setTxt('chart-nodata-text','Aucune donnée pour cette période');return;}
+  chartEl.style.display='';noData.style.display='none';
+  try{
+    gChartInstance.setOption(buildEChartsOption(xData,yData,yDataForecast,isPower),{notMerge:true});gChartInstance.resize();
+  }catch(err){
+    if(!silent){console.error('Chart render error:',err);}
   }
 }
 
-function populateSpec() {
-  const g = gInst;
-  ppRow('pi-tech',  g.panel_technology);
-  ppRow('pi-make',  g.panel_manufacturer);
-  ppRow('pi-model', g.panel_model);
-  ppRow('pi-power', g.panel_power_wp ? g.panel_power_wp + ' Wp' : null);
-  ppRow('pi-count', g.number_of_panels);
-  ppRow('pi-orient',
-    g.tilt != null && g.azimuth != null ? `${g.tilt}° / ${g.azimuth}°` : null);
-  ppRow('pi-inv',
-    [g.inverter_manufacturer, g.inverter_model,
-     g.inverter_capacity_kw ? g.inverter_capacity_kw + ' kW' : null]
-    .filter(Boolean).join(' / ') || null);
+// ═══ ML MODELS ═══
+async function initModels(){
+  try{
+    const res=await fetch(`/api/installations/${gInst.id}/forecast/models`).then(r=>r.json());
+    gAvailableModels=res.models||[];
+    const sel=document.getElementById('model-select');
+    if(!sel)return;
+    if(gAvailableModels.length){
+      sel.innerHTML=gAvailableModels.map((m,idx)=>`<option value="${m.id}" ${idx===0?'selected':''}>${m.label}</option>`).join('');
+      gSelectedModel=gAvailableModels[0].id;
+      setTxt('fc-active-model-name',gAvailableModels[0].label);
+    }else{
+      sel.innerHTML='<option value="">Aucun modèle disponible</option>';
+    }
+  }catch(e){console.error('initModels error',e);}
 }
 
-function initInfoBtn() {
-  const btn = document.getElementById('info-btn');
-  const pop = document.getElementById('panel-popover');
-  btn.addEventListener('click', e => { e.stopPropagation(); pop.classList.toggle('show'); });
-  document.addEventListener('click', () => pop.classList.remove('show'));
+function onModelChange(){
+  const sel=document.getElementById('model-select');
+  if(!sel)return;
+  gSelectedModel=sel.value;
+  const found=gAvailableModels.find(m=>m.id===gSelectedModel);
+  if(found)setTxt('fc-active-model-name',found.label);
+  loadForecast();
+  loadChartData();
 }
 
-// ═══════════════════════════════════════════════════════
-//  LIVE DATA
-// ═══════════════════════════════════════════════════════
-
-async function refreshLive() {
-  try {
-    const s = await fetch(`/query?inst_id=${gInst.id}&type=current`).then(r => r.json());
-    if (s.state !== 'ok') { setOfflineUI(); return; }
-
-    const produced    = s.currently_produced_w      ?? null;
-    const fedIn       = s.currently_fed_in_w        ?? null;
-    const fromReseau  = s.currently_consumed_grid_w ?? null;
-    const selfUse     = s.currently_consumed_pv_w   ?? null;
-
-    gLastProduced = produced;
-    updateInstallationStatusPill();
-
-    updateIsoState('panel', produced > 0);
-    updateIsoState('house', selfUse > 0);
-    updateIsoState('pylon', fedIn > 0 || fromReseau > 0);
-
-    animFlowLine('fl-panel-house', selfUse > 0, '#4a90d9');
-    animFlowLine('fl-panel-pylon', fedIn > 0, '#4a90d9');
-    animFlowLine('fl-house-pylon', fedIn > 0 || fromReseau > 0, fromReseau > 0 ? '#8b5cf6' : '#4a90d9');
-
-    setFlowLabel('fv-solar', produced, produced > 0);
-    setFlowLabel('fv-load', selfUse, selfUse > 0);
-    setFlowLabel('fv-grid', fedIn > 0 ? fedIn : fromReseau, fedIn > 0 || fromReseau > 0);
-
-    setFlowKPI('kpi-realtime', produced, 'W', 'kpi-rt-unit');
-
-    setTxt('last-update',
-      'Mis à jour ' + new Date().toLocaleTimeString('fr-FR',
-        { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-
-  } catch (_) { setOfflineUI(); }
-}
-
-function updateInstallationStatusPill() {
-  if (!gInst) return;
-  const status = gInst.status || 'active';
-  if (status === 'inactive')    setPillStatus('offline', 'Inactive');
-  else if (status === 'maintenance') setPillStatus('delayed', 'En maintenance');
-  else                               setPillStatus('online',  'Active');
-}
-
-function setOfflineUI() {
-  updateInstallationStatusPill();
-  ['panel','house','pylon'].forEach(n => updateIsoState(n, false));
-  ['fl-panel-house','fl-panel-pylon','fl-house-pylon'].forEach(id => animFlowLine(id, false, '#c8d0dc'));
-  ['fv-solar','fv-load','fv-grid'].forEach(id => setFlowLabel(id, null, false));
-}
-
-function setPillStatus(state, label) {
-  const el = document.getElementById('status-pill');
-  if (!el) return;
-  el.className = 'live-pill ' + state;
-  setTxt('status-text', label);
-}
-
-// ═══════════════════════════════════════════════════════
-//  ISOMETRIC FLOW
-// ═══════════════════════════════════════════════════════
-
-function updateIsoState(name, active) {
-  const el = document.getElementById('iso-' + name);
-  if (!el) return;
-  el.classList.toggle('active', active);
-  el.style.opacity = active ? '1' : '0.55';
-}
-
-function animFlowLine(id, active, color) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (active) {
-    el.classList.add('active');
-    el.style.stroke = color;
-    el.style.opacity = '1';
-    el.style.strokeDasharray = '8 4';
-    el._flowTimer && clearInterval(el._flowTimer);
-    let offset = 0;
-    el._flowTimer = setInterval(() => { offset -= 1; el.style.strokeDashoffset = offset; }, 35);
-  } else {
-    el._flowTimer && clearInterval(el._flowTimer);
-    el.classList.remove('active');
-    el.style.stroke = '#c8d0dc';
-    el.style.opacity = '0.4';
-    el.style.strokeDasharray = 'none';
-    el.style.strokeDashoffset = '0';
-  }
-}
-
-function setFlowLabel(id, watt, active) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (!active || watt == null) { el.style.display = 'none'; return; }
-  el.style.display = '';
-  el.classList.toggle('active', active);
-  el.textContent = fmtW(watt);
-}
-
-function setFlowKPI(id, val, unit, unitId) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (val == null || (typeof val === 'number' && isNaN(val))) {
-    el.className = 'flow-kpi-number val-none';
-    el.textContent = '--';
-    if (unitId) setTxt(unitId, '');
-    return;
-  }
-  el.className = 'flow-kpi-number';
-  if (unit === 'W' && typeof val === 'number' && val >= 1000) {
-    el.textContent = (val / 1000).toFixed(2);
-    if (unitId) setTxt(unitId, 'kW');
-  } else {
-    el.textContent = typeof val === 'number' ? Math.round(val).toLocaleString() : val;
-    if (unitId) setTxt(unitId, unit);
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-//  ECHARTS
-// ═══════════════════════════════════════════════════════
-
-function initECharts() {
-  gChartInstance = echarts.init(document.getElementById('pv-chart'), null, { renderer: 'canvas' });
-  window.addEventListener('resize', () => gChartInstance.resize());
-}
-
-// ── Build ECharts option ────────────────────────────────
-
-function buildEChartsOption(xData, yData, yDataForecast, isPower) {
-  const hasData = yData.some(v => v != null && v > 0)
-               || yDataForecast.some(v => v != null && v > 0);
-
-  const yAxisLabel = isPower ? 'Puissance (W)' : 'Énergie (kWh)';
-
-  const makeS = (name, data, color, dashed) => ({
-    name,
-    type: isPower ? 'line' : 'bar',
-    data,
-    smooth: isPower ? 0.35 : false,
-    symbol: 'none',
-    lineStyle: { color, width: 1.5, ...(dashed ? { type: 'dashed' } : {}) },
-    areaStyle: isPower ? {
-      color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-        colorStops: [
-          { offset: 0, color: color.replace(')', ',.30)').replace('rgb', 'rgba') },
-          { offset: 1, color: color.replace(')', ',.02)').replace('rgb', 'rgba') },
-        ]}
-    } : undefined,
-    itemStyle: { color, borderRadius: isPower ? 0 : [3, 3, 0, 0] },
-    connectNulls: false,
-    barMaxWidth: 32,
-  });
-
-  const realS = makeS('Réel', yData, '#f4a261', false);
-  // Fix colors properly for area style
-  realS.areaStyle = isPower ? {
-    color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-      colorStops: [{ offset: 0, color: 'rgba(244,162,97,.35)' }, { offset: 1, color: 'rgba(244,162,97,.02)' }] }
-  } : undefined;
-
-  const foreS = makeS('Prévision', yDataForecast, '#8b5cf6', true);
-  foreS.areaStyle = isPower ? {
-    color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-      colorStops: [{ offset: 0, color: 'rgba(139,92,246,.25)' }, { offset: 1, color: 'rgba(139,92,246,.02)' }] }
-  } : undefined;
-
-  const series = gChartMode === 'realtime'  ? [realS]
-               : gChartMode === 'forecast'  ? [foreS]
-               :                             [foreS, realS];
-
-  return {
-    animation: true,
-    animationDuration: 500,
-    backgroundColor: 'transparent',
-    grid: { top: 36, right: 28, bottom: 48, left: 60 },
-    legend: series.length > 1
-      ? { data: series.map(s => s.name), top: 4, right: 28, textStyle: { fontSize: 11 } }
-      : { show: false },
-    tooltip: {
-      trigger: 'axis',
-      backgroundColor: '#fff',
-      borderColor: '#e5e7eb',
-      borderWidth: 1,
-      textStyle: { color: '#111827', fontSize: 12 },
-      axisPointer: { type: 'line', lineStyle: { color: '#f47c20', width: 1, type: 'dashed' } },
-      formatter(params) {
-        let html = `<div style="font-size:11px;color:#6b7280;margin-bottom:4px">${params[0].name}</div>`;
-        params.forEach(p => {
-          const v = p.value;
-          const disp = v == null ? 'N/A'
-            : isPower
-              ? (v >= 1000 ? (v / 1000).toFixed(2) + ' kW' : Math.round(v) + ' W')
-              : v.toFixed(2) + ' kWh';
-          html += `<div><span style="color:${p.color}">● </span><b>${p.seriesName}:</b> ${disp}</div>`;
-        });
-        return html;
-      },
-    },
-    xAxis: {
-      type: 'category',
-      data: xData,
-      boundaryGap: !isPower,
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: {
-        color: '#9ca3af', fontSize: 10,
-        interval: xData.length > 30 ? Math.floor(xData.length / 15) : 'auto',
-        rotate: xData.length > 20 ? 30 : 0,
-      },
-      splitLine: { show: false },
-    },
-    yAxis: {
-      type: 'value',
-      name: yAxisLabel,
-      nameTextStyle: { color: '#9ca3af', fontSize: 10 },
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: {
-        color: '#9ca3af', fontSize: 10,
-        formatter: v => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v,
-      },
-      splitLine: { lineStyle: { color: '#f3f4f6' } },
-      min: 0,
-    },
-    series,
-    graphic: hasData ? [] : [{
-      type: 'text', left: 'center', top: 'middle',
-      style: { text: 'Aucune donnée pour cette période', fill: '#9ca3af', fontSize: 12 },
-    }],
-  };
-}
-
-function renderChart(xData, yData, yDataForecast, isPower) {
-  if (!gChartInstance) return;
-  const chartEl = document.getElementById('pv-chart');
-  const noData  = document.getElementById('chart-nodata');
-
-  if (!xData.length) {
-    chartEl.style.display = 'none';
-    noData.style.display  = 'flex';
-    setTxt('chart-nodata-text', 'Aucune donnée pour cette période');
-    return;
-  }
-
-  chartEl.style.display = '';
-  noData.style.display  = 'none';
-  gChartInstance.setOption(buildEChartsOption(xData, yData, yDataForecast, isPower), { notMerge: true });
-  gChartInstance.resize();
-}
-
-// ═══════════════════════════════════════════════════════
-//  DATA LOADING  —  each period maps to the right API
-// ═══════════════════════════════════════════════════════
-
-async function loadChartData() {
-  try {
-    let xData = [], yData = [], isPower = false;
-
-    if (gPeriod === 'day') {
-      // ── Jour: 1-minute real-time samples for the current day ──
-      const rows = await fetch(`/query?inst_id=${gInst.id}&type=real_time&h=24`).then(r => r.json());
-      // rows come back DESC by ID; reverse so oldest → newest (left → right)
-      const asc = [...rows].reverse();
-      xData   = asc.map(r => r[1]);                     // HH:MM label
-      yData   = asc.map(r => Math.max(0, parseFloat(r[2]) * 1000)); // kW → W
-      isPower = true;
-
-    } else if (gPeriod === 'week') {
-      // ── Semaine: daily energy bars for the 7 days of the selected week ──
-      const mon = weekMonday(gCurDate);
-      const allDays = [];
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(mon);
-        d.setDate(d.getDate() + i);
-        allDays.push(isoDate(d));
-      }
-      // Fetch the two months that might overlap
-      const months = [...new Set(allDays.map(d => d.slice(0, 7)))];
-      const byDate = {};
-      await Promise.all(months.map(async ym => {
-        const rows = await fetch(`/query?inst_id=${gInst.id}&type=days_in_month&date=${ym}`).then(r => r.json());
-        rows.forEach(r => { byDate[r.date] = r; });
-      }));
-      xData = allDays.map(d => d.slice(5));             // MM-DD
-      yData = allDays.map(d => {
-        const r = byDate[d];
-        if (!r) return null;
-        const v = (r.produced_self || 0) + (r.produced_feed_in || 0);
-        return v < 0 ? null : +v.toFixed(2);
+// ═══ DATA LOADING ═══
+async function loadChartData(silent=false){
+  try{let xData=[],yData=[],isPower=false;
+    if(gPeriod==='day'){
+      // Fetch real-time data and aggregate by hour
+      const rows=await fetch(`/query?inst_id=${gInst.id}&type=real_time&h=24`).then(r=>r.json());
+      const asc=[...rows].reverse();
+      
+      // Aggregate by hour - only include hours that have actual data
+      const hourMap={};
+      asc.forEach(r=>{
+        const hourKey=r[1].slice(0,2)+':00';
+        const val=Math.max(0,parseFloat(r[2])*1000);
+        // Take max value for each hour (peak power)
+        hourMap[hourKey]=Math.max(hourMap[hourKey]||0,val);
       });
-      isPower = false;
-
-    } else if (gPeriod === 'month') {
-      // ── Mois: daily energy bars for the selected month ──
-      const yr = gCurDate.getFullYear();
-      const mo = (gCurDate.getMonth() + 1).toString().padStart(2, '0');
-      const rows = await fetch(`/query?inst_id=${gInst.id}&type=days_in_month&date=${yr}-${mo}`).then(r => r.json());
-      xData = rows.map(r => r.date.slice(8));           // DD
-      yData = rows.map(r => {
-        const v = (r.produced_self || 0) + (r.produced_feed_in || 0);
-        return v < 0 ? null : +v.toFixed(2);
+      
+      // Get current hour to filter out future hours (except forecast)
+      const now=new Date();
+      const currentHour=now.getHours();
+      
+      // Only show hours up to current hour
+      xData=Object.keys(hourMap).sort().filter(hour=>{
+        const h=parseInt(hour.slice(0,2));
+        return h<=currentHour;
       });
-      isPower = false;
+      yData=xData.map(h=>hourMap[h]);
+      isPower=true;
+    }
+    else if(gPeriod==='week'){const mon=weekMonday(gCurDate);const allDays=[];for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(d.getDate()+i);allDays.push(isoDate(d));}const months=[...new Set(allDays.map(d=>d.slice(0,7)))];const byDate={};await Promise.all(months.map(async ym=>{const rows=await fetch(`/query?inst_id=${gInst.id}&type=days_in_month&date=${ym}`).then(r=>r.json());rows.forEach(r=>{byDate[r.date]=r;});}));xData=allDays.map(d=>d.slice(5));yData=allDays.map(d=>{const r=byDate[d];if(!r)return null;const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}
+    else if(gPeriod==='month'){const yr=gCurDate.getFullYear(),mo=(gCurDate.getMonth()+1).toString().padStart(2,'0');const rows=await fetch(`/query?inst_id=${gInst.id}&type=days_in_month&date=${yr}-${mo}`).then(r=>r.json());xData=rows.map(r=>r.date.slice(8));yData=rows.map(r=>{const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}
+    else if(gPeriod==='year'){const yr=gCurDate.getFullYear();const rows=await fetch(`/query?inst_id=${gInst.id}&type=months_in_year&date=${yr}`).then(r=>r.json());const MF=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];xData=rows.map(r=>{const m=parseInt(r.date.slice(5))-1;return MF[m]||r.date.slice(5);});yData=rows.map(r=>{const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}
+    else if(gPeriod==='lifetime'){const rows=await fetch(`/query?inst_id=${gInst.id}&type=years_in_all_time`).then(r=>r.json());xData=rows.map(r=>String(r.date));yData=rows.map(r=>{const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}
+    else if(gPeriod==='custom'){const fromVal=document.getElementById('custom-from').value,toVal=document.getElementById('custom-to').value,interval=document.getElementById('custom-interval').value;if(!fromVal||!toVal){renderChart([],[],[],false);return;}const fromDate=new Date(fromVal),toDate=new Date(toVal);
+      if(interval==='minute'||interval==='hour'){const diffH=Math.ceil((toDate-fromDate)/36e5)+24;const rows=await fetch(`/query?inst_id=${gInst.id}&type=real_time&h=${diffH}`).then(r=>r.json());const asc=[...rows].reverse();if(interval==='minute'){xData=asc.map(r=>r[1]);yData=asc.map(r=>Math.max(0,parseFloat(r[2])*1000));}else{const hm={};asc.forEach(r=>{const h=r[1].slice(0,2)+':00';hm[h]=Math.max(hm[h]||0,parseFloat(r[2])*1000);});xData=Object.keys(hm);yData=Object.values(hm);}isPower=true;}
+      else if(interval==='day'){const byDate={};let cur=new Date(fromDate.getFullYear(),fromDate.getMonth(),1);const end=new Date(toDate.getFullYear(),toDate.getMonth(),1);while(cur<=end){const ym=`${cur.getFullYear()}-${(cur.getMonth()+1).toString().padStart(2,'0')}`;const rows=await fetch(`/query?inst_id=${gInst.id}&type=days_in_month&date=${ym}`).then(r=>r.json());rows.forEach(r=>{byDate[r.date]=r;});cur.setMonth(cur.getMonth()+1);}const days=Object.keys(byDate).filter(d=>d>=fromVal&&d<=toVal).sort();xData=days.map(d=>d.slice(5));yData=days.map(d=>{const r=byDate[d];const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}
+      else if(interval==='month'){const byMonth={};for(let y=fromDate.getFullYear();y<=toDate.getFullYear();y++){const rows=await fetch(`/query?inst_id=${gInst.id}&type=months_in_year&date=${y}`).then(r=>r.json());rows.forEach(r=>{byMonth[r.date]=r;});}const months=Object.keys(byMonth).filter(d=>d>=fromVal.slice(0,7)&&d<=toVal.slice(0,7)).sort();xData=months;yData=months.map(m=>{const r=byMonth[m];const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}}
 
-    } else if (gPeriod === 'year') {
-      // ── Année: monthly energy bars for the selected year ──
-      const yr = gCurDate.getFullYear();
-      const rows = await fetch(`/query?inst_id=${gInst.id}&type=months_in_year&date=${yr}`).then(r => r.json());
-      const MONTHS_FR = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-      xData = rows.map(r => {
-        const m = parseInt(r.date.slice(5)) - 1;
-        return MONTHS_FR[m] || r.date.slice(5);
-      });
-      yData = rows.map(r => {
-        const v = (r.produced_self || 0) + (r.produced_feed_in || 0);
-        return v < 0 ? null : +v.toFixed(2);
-      });
-      isPower = false;
-
-    } else if (gPeriod === 'lifetime') {
-      // ── Historique: yearly energy bars (all time) ──
-      const rows = await fetch(`/query?inst_id=${gInst.id}&type=years_in_all_time`).then(r => r.json());
-      xData = rows.map(r => String(r.date));
-      yData = rows.map(r => {
-        const v = (r.produced_self || 0) + (r.produced_feed_in || 0);
-        return v < 0 ? null : +v.toFixed(2);
-      });
-      isPower = false;
-
-    } else if (gPeriod === 'custom') {
-      // ── Custom: user-chosen range + interval ──
-      const fromVal    = document.getElementById('custom-from').value;
-      const toVal      = document.getElementById('custom-to').value;
-      const interval   = document.getElementById('custom-interval').value;
-
-      if (!fromVal || !toVal) {
-        renderChart([], [], [], false);
-        return;
-      }
-
-      const fromDate = new Date(fromVal);
-      const toDate   = new Date(toVal);
-
-      if (interval === 'minute' || interval === 'hour') {
-        // Use real_time rows; h = total hours in range
-        const diffH = Math.ceil((toDate - fromDate) / 36e5) + 24;
-        const rows  = await fetch(`/query?inst_id=${gInst.id}&type=real_time&h=${diffH}`).then(r => r.json());
-        const asc   = [...rows].reverse();
-        // Filter to range (rows only have HH:MM, use all for now)
-        if (interval === 'minute') {
-          xData   = asc.map(r => r[1]);
-          yData   = asc.map(r => Math.max(0, parseFloat(r[2]) * 1000));
-        } else {
-          // Aggregate by hour
-          const hourMap = {};
-          asc.forEach(r => {
-            const h = r[1].slice(0, 2) + ':00';
-            hourMap[h] = Math.max(hourMap[h] || 0, parseFloat(r[2]) * 1000);
+    // Real ML model forecast overlay + 2 hours into the future
+    let yDataForecast=[];
+    if(gSelectedModel&&isPower&&gPeriod==='day'){
+      try{
+        const curDateStr=isoDate(gCurDate);
+        const fRes=await fetch(`/api/installations/${gInst.id}/forecast?model=${encodeURIComponent(gSelectedModel)}&date=${curDateStr}`).then(r=>r.json());
+        if(fRes.status==='ok'&&fRes.hourly&&fRes.hourly.length){
+          const hourMap={};
+          fRes.hourly.forEach(h=>{hourMap[h.hour]=h.predicted_w;});
+          
+          // Map existing data
+          yDataForecast=xData.map(x=>{
+            const hPrefix=String(x).slice(0,2)+':00';
+            return hourMap[hPrefix]!=null?hourMap[hPrefix]:null;
           });
-          xData = Object.keys(hourMap);
-          yData = Object.values(hourMap);
+          
+          // Add 2 hours into the future (next 2 hours forecast)
+          const now=new Date();
+          for(let i=1;i<=2;i++){
+            const futureHour=new Date(now);
+            futureHour.setHours(now.getHours()+i);
+            futureHour.setMinutes(0,0,0);
+            const futureHourStr=futureHour.toTimeString().slice(0,5);
+            const futureHourKey=futureHourStr.slice(0,2)+':00';
+            
+            if(hourMap[futureHourKey]!=null){
+              xData.push(futureHourStr);
+              yData.push(null); // No real data for future
+              yDataForecast.push(hourMap[futureHourKey]);
+            }
+          }
         }
-        isPower = true;
+      }catch(fe){console.warn('ML forecast fetch error',fe);}
+    }
+    if(!yDataForecast.length){
+      yDataForecast=yData.map(()=>null);
+    }
+    renderChart(xData,yData,yDataForecast,isPower,silent);
+  }catch(err){
+    if(!silent){console.error('loadChartData error',err);document.getElementById('pv-chart').style.display='none';document.getElementById('chart-nodata').style.display='flex';setTxt('chart-nodata-text','Erreur de chargement des données');}
+  }
+}
 
-      } else if (interval === 'day') {
-        // Iterate over each month in range, collect daily rows
-        const byDate = {};
-        let cur = new Date(fromDate.getFullYear(), fromDate.getMonth(), 1);
-        const end = new Date(toDate.getFullYear(), toDate.getMonth(), 1);
-        while (cur <= end) {
-          const ym   = `${cur.getFullYear()}-${(cur.getMonth()+1).toString().padStart(2,'0')}`;
-          const rows = await fetch(`/query?inst_id=${gInst.id}&type=days_in_month&date=${ym}`).then(r => r.json());
-          rows.forEach(r => { byDate[r.date] = r; });
-          cur.setMonth(cur.getMonth() + 1);
-        }
-        const days = Object.keys(byDate).filter(d => d >= fromVal && d <= toVal).sort();
-        xData = days.map(d => d.slice(5));
-        yData = days.map(d => {
-          const r = byDate[d];
-          const v = (r.produced_self || 0) + (r.produced_feed_in || 0);
-          return v < 0 ? null : +v.toFixed(2);
-        });
-        isPower = false;
+// ═══ ENERGY SUMMARY ═══
+async function loadEnergySummary(){
+  try{const today=new Date(),yr=today.getFullYear(),mo=(today.getMonth()+1).toString().padStart(2,'0');
+    const[curData,monthData]=await Promise.all([fetch(`/query?inst_id=${gInst.id}&type=current`).then(r=>r.json()),fetch(`/query?inst_id=${gInst.id}&type=days_in_month&date=${yr}-${mo}`).then(r=>r.json())]);
+    if(curData.state==='ok')setPillValue('pill-production','pill-production-unit',curData.today_produced_kwh);
+    const monthSum=monthData.reduce((s,r)=>{const v=(r.produced_self||0)+(r.produced_feed_in||0);return s+(v>0?v:0);},0);
+    setPillValue('pill-energy','pill-energy-unit',monthSum>0?monthSum:null);
+    if(monthSum>0){if(monthSum>=1000)setTxt('kf-monthly',(monthSum/1000).toFixed(2)+' MWh');else setTxt('kf-monthly',monthSum.toFixed(1)+' kWh');}
+  }catch(_){}
+}
+function setPillValue(valId,unitId,val){const el=document.getElementById(valId);if(!el)return;el.textContent=(val!=null&&val>0)?(+val).toFixed(1):'--';}
 
-      } else if (interval === 'month') {
-        // Iterate over each year in range
-        const byMonth = {};
-        for (let y = fromDate.getFullYear(); y <= toDate.getFullYear(); y++) {
-          const rows = await fetch(`/query?inst_id=${gInst.id}&type=months_in_year&date=${y}`).then(r => r.json());
-          rows.forEach(r => { byMonth[r.date] = r; });
+// ═══ FORECAST (ML MODEL) ═══
+async function loadForecast(){
+  try{
+    if(!gInst||!gSelectedModel)return;
+    const res=await fetch(`/api/installations/${gInst.id}/forecast?model=${encodeURIComponent(gSelectedModel)}`).then(r=>r.json());
+    if(res.status!=='ok')return;
+    gCachedForecast=res;
+    if(res.tomorrow_kwh!=null)document.getElementById('fc-tomorrow').textContent=res.tomorrow_kwh.toFixed(1);
+    setTxt('fc-tomorrow-sub',res.model_label||'Modèle IA');
+    document.getElementById('fc-peak').textContent=res.peak_hour_tomorrow||'13:00';
+    
+    // Show today's estimated total and next 2 hours predictions
+    const todayEst=res.daily&&res.daily[0]?res.daily[0].total_kwh:null;
+    document.getElementById('fc-today-est').textContent=todayEst!=null?todayEst.toFixed(1):'--';
+    
+    // Find next 2 hours predictions
+    if(res.hourly&&res.hourly.length){
+      const now=new Date();
+      const predictions=[];
+      
+      for(let i=1;i<=2;i++){
+        const futureHour=new Date(now);
+        futureHour.setHours(now.getHours()+i);
+        futureHour.setMinutes(0,0,0);
+        const futureHourStr=futureHour.toTimeString().slice(0,5);
+        
+        const futureHourData=res.hourly.find(h=>h.hour===futureHourStr);
+        if(futureHourData){
+          const futureHourW=Math.round(futureHourData.predicted_w);
+          predictions.push(`${futureHourStr}: ${futureHourW}W`);
         }
-        const months = Object.keys(byMonth)
-          .filter(d => d >= fromVal.slice(0, 7) && d <= toVal.slice(0, 7))
-          .sort();
-        xData = months;
-        yData = months.map(m => {
-          const r = byMonth[m];
-          const v = (r.produced_self || 0) + (r.produced_feed_in || 0);
-          return v < 0 ? null : +v.toFixed(2);
-        });
-        isPower = false;
       }
+      
+      if(predictions.length>0){
+        setTxt('fc-today-sub',`Prochaines 2h: ${predictions.join(', ')}`);
+      }else if(res.daily&&res.daily[0]){
+        setTxt('fc-today-sub',`Pic: ${Math.round(res.daily[0].peak_w)} W`);
+      }
+    }else if(res.daily&&res.daily[0]){
+      setTxt('fc-today-sub',`Pic: ${Math.round(res.daily[0].peak_w)} W`);
     }
-
-    // Forecast: simple ±10% scaled version of real data for demonstration
-    const yDataForecast = yData.map(v =>
-      v != null ? +(v * (1.05 + 0.10 * Math.random())).toFixed(2) : null
-    );
-
-    renderChart(xData, yData, yDataForecast, isPower);
-
-  } catch (err) {
-    console.error('loadChartData error', err);
-    document.getElementById('pv-chart').style.display = 'none';
-    document.getElementById('chart-nodata').style.display = 'flex';
-    setTxt('chart-nodata-text', 'Erreur de chargement des données');
-  }
+  }catch(e){console.error('Forecast load failed',e);}
 }
 
-// ═══════════════════════════════════════════════════════
-//  ENERGY SUMMARY PILLS
-// ═══════════════════════════════════════════════════════
+// ═══ PERIOD NAVIGATION ═══
+function setPeriod(p,btn){gPeriod=p;gCurDate=new Date();document.querySelectorAll('.ppill').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const stdNav=document.getElementById('date-nav-std'),customNav=document.getElementById('date-nav-custom');if(p==='custom'){stdNav.style.display='none';customNav.style.display='flex';}else{stdNav.style.display='flex';customNav.style.display='none';}updateDateLabel();loadChartData();loadEnergySummary();}
+function navDate(dir){if(gPeriod==='day')gCurDate.setDate(gCurDate.getDate()+dir);else if(gPeriod==='week')gCurDate.setDate(gCurDate.getDate()+dir*7);else if(gPeriod==='month')gCurDate.setMonth(gCurDate.getMonth()+dir);else if(gPeriod==='year')gCurDate.setFullYear(gCurDate.getFullYear()+dir);else if(gPeriod==='lifetime')return;updateDateLabel();loadChartData();}
+function updateDateLabel(){const d=gCurDate,lbl=document.getElementById('nav-date-label');if(!lbl)return;if(gPeriod==='day')lbl.textContent=d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});else if(gPeriod==='week'){const mon=weekMonday(d);const sun=new Date(mon);sun.setDate(sun.getDate()+6);lbl.textContent=mon.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})+' – '+sun.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});}else if(gPeriod==='month')lbl.textContent=d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});else if(gPeriod==='year')lbl.textContent=d.getFullYear();else if(gPeriod==='lifetime')lbl.textContent='Tout l\'historique';}
+function initCustomPicker(){const t=isoDate(new Date()),m=isoDate(new Date(Date.now()-30*864e5));document.getElementById('custom-from').value=m;document.getElementById('custom-to').value=t;}
 
-async function loadEnergySummary() {
-  try {
-    const today = new Date();
-    const yr    = today.getFullYear();
-    const mo    = (today.getMonth()+1).toString().padStart(2,'0');
+// ═══ TOOLBAR ═══
+function hardRefresh(){refreshLive();loadChartData();loadEnergySummary();loadForecast();}
+function downloadChart(){if(!gChartInstance)return;const a=document.createElement('a');a.download=`lambdacast_${gInst?.name||INST_ID}_${gPeriod}.png`;a.href=gChartInstance.getDataURL({type:'png',pixelRatio:2,backgroundColor:'#fff'});a.click();}
 
-    const [curData, monthData] = await Promise.all([
-      fetch(`/query?inst_id=${gInst.id}&type=current`).then(r => r.json()),
-      fetch(`/query?inst_id=${gInst.id}&type=days_in_month&date=${yr}-${mo}`).then(r => r.json()),
-    ]);
-
-    if (curData.state === 'ok') {
-      setPillValue('pill-production', 'pill-production-unit', curData.today_produced_kwh);
-    }
-
-    const monthSum = monthData.reduce((s, r) => {
-      const v = (r.produced_self || 0) + (r.produced_feed_in || 0);
-      return s + (v > 0 ? v : 0);
-    }, 0);
-    setPillValue('pill-energy', 'pill-energy-unit', monthSum > 0 ? monthSum : null);
-
-  } catch (_) {}
-}
-
-function setPillValue(valId, unitId, val) {
-  const el = document.getElementById(valId);
-  if (!el) return;
-  el.textContent = (val != null && val > 0) ? (+val).toFixed(1) : '--';
-}
-
-// ═══════════════════════════════════════════════════════
-//  PERIOD NAVIGATION
-// ═══════════════════════════════════════════════════════
-
-function setPeriod(p, btn) {
-  gPeriod  = p;
-  gCurDate = new Date();
-  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-
-  const stdNav    = document.getElementById('date-nav-std');
-  const customNav = document.getElementById('date-nav-custom');
-  if (p === 'custom') {
-    stdNav.style.display    = 'none';
-    customNav.style.display = 'flex';
-  } else {
-    stdNav.style.display    = 'flex';
-    customNav.style.display = 'none';
-  }
-
-  updateDateLabel();
-  loadChartData();
-  loadEnergySummary();
-}
-
-function navDate(dir) {
-  if      (gPeriod === 'day')      gCurDate.setDate(gCurDate.getDate() + dir);
-  else if (gPeriod === 'week')     gCurDate.setDate(gCurDate.getDate() + dir * 7);
-  else if (gPeriod === 'month')    gCurDate.setMonth(gCurDate.getMonth() + dir);
-  else if (gPeriod === 'year')     gCurDate.setFullYear(gCurDate.getFullYear() + dir);
-  else if (gPeriod === 'lifetime') return;
-  updateDateLabel();
-  loadChartData();
-}
-
-function updateDateLabel() {
-  const d   = gCurDate;
-  const lbl = document.getElementById('nav-date-label');
-  if (!lbl) return;
-  if (gPeriod === 'day') {
-    lbl.textContent = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-  } else if (gPeriod === 'week') {
-    const mon = weekMonday(d);
-    const sun = new Date(mon); sun.setDate(sun.getDate() + 6);
-    lbl.textContent =
-      mon.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
-      + ' – '
-      + sun.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-  } else if (gPeriod === 'month') {
-    lbl.textContent = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-  } else if (gPeriod === 'year') {
-    lbl.textContent = d.getFullYear();
-  } else if (gPeriod === 'lifetime') {
-    lbl.textContent = 'Tout l\'historique';
-  }
-}
-
-function initCustomPicker() {
-  const today = isoDate(new Date());
-  const monthAgo = isoDate(new Date(Date.now() - 30 * 864e5));
-  document.getElementById('custom-from').value = monthAgo;
-  document.getElementById('custom-to').value   = today;
-}
-
-// ═══════════════════════════════════════════════════════
-//  TOOLBAR
-// ═══════════════════════════════════════════════════════
-
-function hardRefresh() {
-  refreshLive();
-  loadChartData();
-  loadEnergySummary();
-}
-
-function downloadChart() {
-  if (!gChartInstance) return;
-  const a = document.createElement('a');
-  a.download = `sunalyzer_${gInst?.name || INST_ID}_${gPeriod}.png`;
-  a.href = gChartInstance.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#fff' });
-  a.click();
-}
-
-// ═══════════════════════════════════════════════════════
-//  UTILITIES
-// ═══════════════════════════════════════════════════════
-
-function isoDate(d) {
-  return d.getFullYear()
-    + '-' + (d.getMonth()+1).toString().padStart(2,'0')
-    + '-' + d.getDate().toString().padStart(2,'0');
-}
-
-function weekMonday(d) {
-  const day = new Date(d);
-  const dow = day.getDay();                          // 0=Sun
-  day.setDate(day.getDate() - (dow === 0 ? 6 : dow - 1));
-  return day;
-}
-
-function setTxt(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val == null ? '—' : val;
-}
-
-function setHref(id, href) {
-  const el = document.getElementById(id);
-  if (el) el.href = href;
-}
-
-function ppRow(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val || '—';
-}
-
-function fmtW(w) {
-  if (w == null) return '—';
-  const abs = Math.abs(w);
-  const sign = w < 0 ? '−' : '';
-  return abs >= 1000 ? sign + (abs / 1000).toFixed(2) + ' kW' : sign + Math.round(abs) + ' W';
-}
-
-function fmtKwh(v) {
-  return v == null ? '—' : v.toFixed(2) + ' kWh';
-}
+// ═══ UTILITIES ═══
+function isoDate(d){return d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');}
+function weekMonday(d){const day=new Date(d);const dow=day.getDay();day.setDate(day.getDate()-(dow===0?6:dow-1));return day;}
+function setTxt(id,val){const el=document.getElementById(id);if(el)el.textContent=val==null?'—':val;}
+function setHref(id,href){const el=document.getElementById(id);if(el)el.href=href;}
+function ppRow(id,val){const el=document.getElementById(id);if(el)el.textContent=val||'—';}
+function fmtW(w){if(w==null)return'—';const abs=Math.abs(w);const sign=w<0?'−':'';return abs>=1000?sign+(abs/1000).toFixed(2)+' kW':sign+Math.round(abs)+' W';}
 </script>
 </body>
 </html>

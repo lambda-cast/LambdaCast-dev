@@ -7,6 +7,7 @@ RUN pip install -r requirements.txt && rm requirements.txt
 # Copy all required data to the container
 COPY backend backend
 COPY site site
+COPY models models
 
 # Make sure the main startup script is available
 COPY supervisord.conf .

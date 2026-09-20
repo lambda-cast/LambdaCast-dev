@@ -1,8 +1,11 @@
+name: lambdacastt
+
 services:
 
-  # ─── Main Sunalyzer (Flask server + grabber) ────────────────────────────────
-  sunalyzer:
-    container_name: sunalyzer
+  # ─── Main LambdaCast (Flask server + grabber) ──────────────────────────────
+  lambdacast:
+    container_name: lambdacastt
+    image: lambdacastt:latest
     build:
       context: .
       dockerfile: dockerfile
@@ -13,6 +16,7 @@ services:
       - ./data:/data
       - ./backend:/backend
       - ./site:/site
+      - ./models:/models    # ML models for forecasting (persisted across restarts)
     environment:
       - SUNALYZER_ADMIN_PASSWORD=ABIDpes2003!
       - SUNALYZER_SECRET_KEY=ABIDpes2003!
@@ -34,7 +38,8 @@ services:
   #      docker compose --profile tools run --rm seed
   #
   isolarcloud-bridge:
-    container_name: isolarcloud-bridge
+    container_name: lambdacastt-bridge
+    image: lambdacastt-bridge:latest
     build:
       context: .
       dockerfile: dockerfile.bridge
@@ -56,7 +61,8 @@ services:
   #   docker compose --profile tools run --rm seed
   #
   seed:
-    container_name: sunalyzer-seed
+    container_name: lambdacastt-seed
+    image: lambdacastt-seed:latest
     build:
       context: .
       dockerfile: dockerfile

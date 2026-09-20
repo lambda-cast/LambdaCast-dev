@@ -76,6 +76,10 @@ const PlatformAPI = (() => {
     pvgis:        (id)       => request("GET",    `/api/installations/${id}/pvgis`),
     pvgisRefresh: (id)       => request("POST",   `/api/installations/${id}/pvgis/refresh`),
     forecastInput:(id)       => request("GET",    `/api/installations/${id}/forecast-input`),
+    deviceRegistry:  ()         => request("GET",    "/api/installations/device-registry"),
+    getDevice:       (id)       => request("GET",    `/api/installations/${id}/device`),
+    setDevice:       (id, data) => request("POST",   `/api/installations/${id}/device`, data),
+    deleteDevice:    (id)       => request("DELETE", `/api/installations/${id}/device`),
   };
 
   // ── Admin ─────────────────────────────────────────────────────────────
@@ -222,7 +226,7 @@ const PlatformAPI = (() => {
     return `
       <a class="sz-brand" href="${homeUrl}">
         <div class="sz-brand-icon"><i class="fas fa-sun"></i></div>
-        <span class="sz-brand-name">Sun<span>alyzer</span></span>
+        <span class="sz-brand-name">Lambda<span>Cast</span></span>
       </a>
       <div class="sz-search">
         <i class="sz-search-icon fas fa-magnifying-glass"></i>

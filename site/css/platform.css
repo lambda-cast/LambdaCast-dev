@@ -9,51 +9,51 @@
 
 /* ── Design tokens ────────────────────────────────────────────────── */
 :root {
-  /* Brand */
-  --c-brand:        #f47c20;     /* solar orange */
-  --c-brand-light:  #fff5eb;     /* pale tint for backgrounds */
-  --c-brand-hover:  #e06b10;
-  --c-brand-muted:  rgba(244,124,32,.12);
+  /* Brand — blue */
+  --c-brand:        #2563EB;
+  --c-brand-light:  #EFF6FF;
+  --c-brand-hover:  #1D4ED8;
+  --c-brand-muted:  rgba(37,99,235,.10);
 
   /* Surface */
-  --c-bg:           #f2f4f7;     /* page background */
-  --c-surface:      #ffffff;     /* cards / panels */
-  --c-surface-alt:  #f8f9fb;     /* alt row / field bg */
-  --c-border:       #e5e7eb;     /* subtle border */
-  --c-border-strong:#d1d5db;
+  --c-bg:           #FFFFFF;
+  --c-surface:      #FFFFFF;
+  --c-surface-alt:  #FAFBFD;
+  --c-border:       #EAECEF;
+  --c-border-strong:#D1D5DB;
 
   /* Text */
   --c-text-primary:  #111827;
-  --c-text-secondary:#6b7280;
-  --c-text-muted:    #9ca3af;
-  --c-text-inverse:  #ffffff;
+  --c-text-secondary:#6B7280;
+  --c-text-muted:    #9CA3AF;
+  --c-text-inverse:  #FFFFFF;
 
-  /* Sidebar */
-  --c-sidebar-bg:    #1a1d23;    /* dark charcoal */
-  --c-sidebar-hover: rgba(255,255,255,.06);
-  --c-sidebar-active-bg:  rgba(244,124,32,.15);
-  --c-sidebar-active-txt: #f47c20;
-  --c-sidebar-txt:   rgba(255,255,255,.65);
-  --c-sidebar-icon:  rgba(255,255,255,.45);
-  --c-sidebar-width: 200px;
+  /* Sidebar — light */
+  --c-sidebar-bg:    #FFFFFF;
+  --c-sidebar-hover: rgba(37,99,235,.04);
+  --c-sidebar-active-bg:  rgba(37,99,235,.08);
+  --c-sidebar-active-txt: #2563EB;
+  --c-sidebar-txt:   #6B7280;
+  --c-sidebar-icon:  #9CA3AF;
+  --c-sidebar-width: 220px;
 
   /* Header */
-  --c-header-h: 52px;
+  --c-header-h: 56px;
 
   /* Status */
-  --c-ok:      #16a34a;
-  --c-ok-bg:   #f0fdf4;
-  --c-warn:    #d97706;
-  --c-warn-bg: #fffbeb;
-  --c-err:     #dc2626;
-  --c-err-bg:  #fef2f2;
-  --c-off:     #9ca3af;
-  --c-off-bg:  #f9fafb;
+  --c-ok:      #22C55E;
+  --c-ok-bg:   #F0FDF4;
+  --c-warn:    #F59E0B;
+  --c-warn-bg: #FFFBEB;
+  --c-err:     #DC2626;
+  --c-err-bg:  #FEF2F2;
+  --c-off:     #9CA3AF;
+  --c-off-bg:  #F9FAFB;
 
   /* Chart accent */
-  --c-chart-1: #f47c20;
-  --c-chart-2: #3b82f6;
-  --c-chart-3: #16a34a;
+  --c-chart-1: #2563EB;
+  --c-chart-2: #22C55E;
+  --c-chart-3: #8B5CF6;
 
   /* Spacing */
   --space-xs:  4px;
@@ -63,14 +63,14 @@
   --space-xl:  32px;
 
   /* Radius */
-  --r-sm:  4px;
-  --r-md:  8px;
-  --r-lg:  12px;
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  14px;
 
   /* Shadow */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,.12);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.02);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.10);
 }
 
 /* ── Base reset ───────────────────────────────────────────────────── */
@@ -259,6 +259,7 @@ body.platform-page {
   width: var(--c-sidebar-width);
   height: calc(100vh - var(--c-header-h));
   background: var(--c-sidebar-bg);
+  border-right: 1px solid var(--c-border);
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
@@ -281,7 +282,7 @@ body.platform-page {
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: rgba(255,255,255,.25);
+  color: var(--c-text-muted);
   padding: 14px 8px 4px;
   pointer-events: none;
 }
@@ -305,7 +306,7 @@ body.platform-page {
 
 .sz-nav-link:hover {
   background: var(--c-sidebar-hover);
-  color: rgba(255,255,255,.9);
+  color: var(--c-text-primary);
 }
 
 .sz-nav-link.active {
@@ -329,11 +330,11 @@ body.platform-page {
 
 .sz-sidebar-footer {
   padding: 12px 8px;
-  border-top: 1px solid rgba(255,255,255,.06);
+  border-top: 1px solid var(--c-border);
 }
 
 .sz-sidebar-footer .sz-nav-link {
-  color: rgba(255,255,255,.4);
+  color: var(--c-text-muted);
   font-size: 12px;
 }
 

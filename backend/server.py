@@ -137,9 +137,17 @@ def get_json_data_current(db_path):
     # Today
     day_string = str(date.today())
     rows_today = db.execute(f"SELECT * FROM days WHERE date='{day_string}'")
-    produced_today = rows_today[0][2] - rows_today[0][1]
-    consumed_today = rows_today[0][4] - rows_today[0][3]
-    fed_in_today = rows_today[0][6] - rows_today[0][5]
+    if rows_today and len(rows_today) > 0:
+        p_b, p_a = rows_today[0][2], rows_today[0][1]
+        c_b, c_a = rows_today[0][4], rows_today[0][3]
+        f_b, f_a = rows_today[0][6], rows_today[0][5]
+        produced_today = max(0.0, p_b - p_a) if (p_b > 0 and p_b >= p_a) else 0.0
+        consumed_today = max(0.0, c_b - c_a) if (c_b > 0 and c_b >= c_a) else 0.0
+        fed_in_today = max(0.0, f_b - f_a) if (f_b > 0 and f_b >= f_a) else 0.0
+    else:
+        produced_today = 0.0
+        consumed_today = 0.0
+        fed_in_today = 0.0
 
     # Compute todays autarky
     consumed_self_today = produced_today - fed_in_today

@@ -5,7 +5,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Sunalyzer — Installation</title>
+  <title>LambdaCast — Installation</title>
   <link href="/lib/bootstrap.min.css" rel="stylesheet"/>
   <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet"/>
   <link href="/lib/leaflet.min.css" rel="stylesheet"/>
@@ -255,6 +255,28 @@
         </div>
       </div>
 
+      <!-- Device Configuration -->
+      <div class="sz-card mb-4" id="device-config-card">
+        <div class="sz-card-body">
+          <div class="form-section-header mb-1">Device Configuration</div>
+          <p class="text-muted small mb-3">
+            Configure the inverter integration so the grabber can collect live data.
+            Leave as "None" if you will set this up later.
+          </p>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="sz-label fw-semibold" for="device_type">Device Type</label>
+              <select id="device_type" class="sz-select" onchange="onDeviceTypeChange()">
+                <option value="">— None (no data collection) —</option>
+              </select>
+            </div>
+          </div>
+          <!-- Dynamic param fields injected here -->
+          <div id="device-params-container" class="row g-3 mt-1" style="display:none"></div>
+          <div id="device-config-status" class="mt-2" style="display:none"></div>
+        </div>
+      </div>
+
       <!-- Actions -->
       <div class="sz-card mb-5">
         <div class="sz-card-body d-flex gap-3 justify-content-end">
@@ -464,9 +486,11 @@ function populateForm(inst) {
       try {
         if (isEdit) {
           await PlatformAPI.installations.update(editId, data);
+          await saveDeviceConfig(editId);
           window.location.href = `/platform/installations/${editId}/monitor`;
         } else {
           const res = await PlatformAPI.installations.create(data);
+          await saveDeviceConfig(res.id);
           window.location.href = `/platform/installations/${res.id}/monitor`;
         }
       } catch (err) {
@@ -479,6 +503,106 @@ function populateForm(inst) {
         icon.classList.remove("d-none");
       }
     });
+
+    // ── Device configuration ─────────────────────────────────────────
+    let gDeviceRegistry = {};
+
+    async function loadDeviceRegistry() {
+      try {
+        gDeviceRegistry = await PlatformAPI.installations.deviceRegistry();
+        const sel = document.getElementById('device_type');
+        Object.entries(gDeviceRegistry).forEach(([key, def]) => {
+          const opt = document.createElement('option');
+          opt.value = key;
+          opt.textContent = def.label;
+          sel.appendChild(opt);
+        });
+      } catch(e) { console.warn('Could not load device registry', e); }
+    }
+
+    window.onDeviceTypeChange = function() {
+      const type = document.getElementById('device_type').value;
+      const container = document.getElementById('device-params-container');
+      container.innerHTML = '';
+      if (!type || !gDeviceRegistry[type]) {
+        container.style.display = 'none';
+        return;
+      }
+      const params = gDeviceRegistry[type].params;
+      if (!Object.keys(params).length) {
+        container.style.display = 'none';
+        return;
+      }
+      container.style.display = '';
+      Object.entries(params).forEach(([key, schema]) => {
+        const col = document.createElement('div');
+        col.className = 'col-md-4';
+        const req = schema.required ? '<span class="text-danger">*</span>' : '';
+        const inputType = typeof schema.default === 'boolean' ? 'checkbox' : 'text';
+        if (inputType === 'checkbox') {
+          col.innerHTML = `
+            <label class="sz-label fw-semibold">${schema.label} ${req}</label>
+            <div class="form-check mt-1">
+              <input class="form-check-input" type="checkbox" id="dp_${key}"
+                     ${schema.default ? 'checked' : ''}>
+              <label class="form-check-label" for="dp_${key}">Enabled</label>
+            </div>`;
+        } else {
+          col.innerHTML = `
+            <label class="sz-label fw-semibold" for="dp_${key}">${schema.label} ${req}</label>
+            <input type="text" id="dp_${key}" class="sz-input"
+                   value="${schema.default ?? ''}" placeholder="${schema.default ?? ''}"/>`;
+        }
+        container.appendChild(col);
+      });
+    };
+
+    function collectDeviceParams() {
+      const type = document.getElementById('device_type').value;
+      if (!type || !gDeviceRegistry[type]) return null;
+      const params = {};
+      Object.entries(gDeviceRegistry[type].params).forEach(([key, schema]) => {
+        const el = document.getElementById('dp_' + key);
+        if (!el) return;
+        if (el.type === 'checkbox') params[key] = el.checked;
+        else if (el.value.trim()) params[key] = el.value.trim();
+      });
+      return { device_type: type, device_params: params };
+    }
+
+    async function saveDeviceConfig(installationId) {
+      const cfg = collectDeviceParams();
+      if (!cfg || !cfg.device_type) return; // no device selected — OK
+      try {
+        await PlatformAPI.installations.setDevice(installationId, cfg);
+        console.log('Device config saved for installation', installationId);
+      } catch(e) {
+        console.warn('Device config save failed (non-fatal):', e);
+        // Non-fatal — the installation was created, device config can be set later
+      }
+    }
+
+    // If editing, pre-fill device type/params
+    async function loadExistingDeviceConfig(id) {
+      try {
+        const dc = await PlatformAPI.installations.getDevice(id);
+        if (dc.device_type) {
+          document.getElementById('device_type').value = dc.device_type;
+          onDeviceTypeChange();
+          // Fill param values
+          Object.entries(dc.device_params || {}).forEach(([k, v]) => {
+            const el = document.getElementById('dp_' + k);
+            if (!el) return;
+            if (el.type === 'checkbox') el.checked = !!v;
+            else el.value = v;
+          });
+        }
+      } catch(_) {}
+    }
+
+    await loadDeviceRegistry();
+    if (isEdit) await loadExistingDeviceConfig(editId);
+    // ─────────────────────────────────────────────────────────────────
 
   } finally {
     PlatformAPI.hideSpinner();

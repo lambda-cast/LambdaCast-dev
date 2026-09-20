@@ -405,20 +405,74 @@ def main():
     set_time_zone(config.config_data.get("time_zone"))
 
     # Dynamically load the devices
+    # Source 1: platform.db (installations with device_type set)
+    # Source 2: config.yml devices section (legacy / override)
+    # config.yml takes precedence when the same inst_id appears in both.
     devices = {}
+    try:
+        import json as _json
+        import sys
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from platform_db import PlatformDatabase
+
+        pdb = PlatformDatabase()
+        db_installations = pdb.fetchall(
+            "SELECT id, name, device_type, device_params "
+            "FROM installations WHERE device_type IS NOT NULL AND device_type != ''"
+        )
+        for row in db_installations:
+            inst_id    = str(row["id"])
+            dev_type   = row["device_type"]
+            dev_params = _json.loads(row["device_params"]) if row.get("device_params") else {}
+            dev_params["type"] = dev_type
+            logging.info(
+                f"Grabber: [platform.db] Loading '{dev_type}' "
+                f"for installation {inst_id} ({row['name']})"
+            )
+            try:
+                devices[inst_id] = load_device_plugin(dev_type, dev_params)
+            except Exception:
+                logging.exception(
+                    f"Grabber: failed to load device '{dev_type}' "
+                    f"for installation {inst_id} — skipping"
+                )
+    except Exception:
+        logging.exception("Grabber: failed to read device configs from platform.db")
+
+    # config.yml devices section (adds or overrides)
     try:
         if 'devices' in config.config_data:
             for inst_id, dev_cfg in config.config_data['devices'].items():
+                inst_id = str(inst_id)
                 device_name = dev_cfg['type']
-                logging.info(f"Grabber: Loading device adapter '{device_name}' for installation {inst_id}")
-                devices[inst_id] = load_device_plugin(device_name, dev_cfg)
-        else:
-            # Fallback for old config
+                if inst_id in devices:
+                    logging.info(
+                        f"Grabber: [config.yml] Overriding installation {inst_id} "
+                        f"with '{device_name}'"
+                    )
+                else:
+                    logging.info(
+                        f"Grabber: [config.yml] Loading '{device_name}' "
+                        f"for installation {inst_id}"
+                    )
+                try:
+                    devices[inst_id] = load_device_plugin(device_name, dev_cfg)
+                except Exception:
+                    logging.exception(
+                        f"Grabber: failed to load device '{device_name}' "
+                        f"for installation {inst_id} from config.yml"
+                    )
+        elif not devices and 'device' in config.config_data:
+            # Fallback: old single-device config
             device_name = config.config_data['device']['type']
-            logging.info(f"Grabber: Loading device adapter '{device_name}' for installation default")
+            logging.info(f"Grabber: [config.yml legacy] Loading '{device_name}'")
             devices['default'] = load_device_plugin(device_name, config.config_data['device'])
     except Exception:
-        logging.exception("creating the device adapters failed")
+        logging.exception("Grabber: failed to load devices from config.yml")
+
+    if not devices:
+        logging.error("Grabber: no devices configured — nothing to poll. "
+                      "Add installations via the web UI or config.yml.")
         exit()
 
     # Prepare the data bases
