@@ -613,7 +613,53 @@ async function loadChartData(silent=false){
     else if(gPeriod==='year'){const yr=gCurDate.getFullYear();const rows=await fetch(`/query?inst_id=${gInst.id}&type=months_in_year&date=${yr}`).then(r=>r.json());const MF=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];xData=rows.map(r=>{const m=parseInt(r.date.slice(5))-1;return MF[m]||r.date.slice(5);});yData=rows.map(r=>{const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}
     else if(gPeriod==='lifetime'){const rows=await fetch(`/query?inst_id=${gInst.id}&type=years_in_all_time`).then(r=>r.json());xData=rows.map(r=>String(r.date));yData=rows.map(r=>{const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}
     else if(gPeriod==='custom'){const fromVal=document.getElementById('custom-from').value,toVal=document.getElementById('custom-to').value,interval=document.getElementById('custom-interval').value;if(!fromVal||!toVal){renderChart([],[],[],false);return;}const fromDate=new Date(fromVal),toDate=new Date(toVal);
-      if(interval==='minute'||interval==='hour'){const diffH=Math.ceil((toDate-fromDate)/36e5)+24;const rows=await fetch(`/query?inst_id=${gInst.id}&type=real_time&h=${diffH}`).then(r=>r.json());const asc=[...rows].reverse();if(interval==='minute'){xData=asc.map(r=>r[1]);yData=asc.map(r=>Math.max(0,parseFloat(r[2])*1000));}else{const hm={};asc.forEach(r=>{const h=r[1].slice(0,2)+':00';hm[h]=Math.max(hm[h]||0,parseFloat(r[2])*1000);});xData=Object.keys(hm);yData=Object.values(hm);}isPower=true;}
+      if(interval==='minute'||interval==='hour'){
+        const diffH=Math.ceil((toDate-fromDate)/36e5)+24;
+        const rows=await fetch(`/query?inst_id=${gInst.id}&type=real_time&h=${diffH}`).then(r=>r.json());
+        const asc=[...rows].reverse();
+        
+        if(interval==='minute'){
+          // For minute interval, only show data up to current time if viewing today
+          const now=new Date();
+          const todayStr=isoDate(now);
+          const currentTimeStr=now.toTimeString().slice(0,5);
+          
+          if(toVal===todayStr){
+            // Viewing today - filter future times
+            const filtered=asc.filter(r=>r[1]<=currentTimeStr);
+            xData=filtered.map(r=>r[1]);
+            yData=filtered.map(r=>Math.max(0,parseFloat(r[2])*1000));
+          }else{
+            // Viewing past - show all data
+            xData=asc.map(r=>r[1]);
+            yData=asc.map(r=>Math.max(0,parseFloat(r[2])*1000));
+          }
+        }else{
+          // For hourly interval, aggregate and filter future hours
+          const hm={};
+          asc.forEach(r=>{
+            const h=r[1].slice(0,2)+':00';
+            hm[h]=Math.max(hm[h]||0,parseFloat(r[2])*1000);
+          });
+          
+          const now=new Date();
+          const currentHour=now.getHours();
+          const todayStr=isoDate(now);
+          
+          // Filter to only show hours that have data or are in the selected range
+          xData=Object.keys(hm).sort().filter(hour=>{
+            const h=parseInt(hour.slice(0,2));
+            // If custom range is today, filter future hours
+            if(toVal===todayStr){
+              return h<=currentHour;
+            }
+            // Otherwise show all hours in the range
+            return true;
+          });
+          yData=xData.map(h=>hm[h]);
+        }
+        isPower=true;
+      }
       else if(interval==='day'){const byDate={};let cur=new Date(fromDate.getFullYear(),fromDate.getMonth(),1);const end=new Date(toDate.getFullYear(),toDate.getMonth(),1);while(cur<=end){const ym=`${cur.getFullYear()}-${(cur.getMonth()+1).toString().padStart(2,'0')}`;const rows=await fetch(`/query?inst_id=${gInst.id}&type=days_in_month&date=${ym}`).then(r=>r.json());rows.forEach(r=>{byDate[r.date]=r;});cur.setMonth(cur.getMonth()+1);}const days=Object.keys(byDate).filter(d=>d>=fromVal&&d<=toVal).sort();xData=days.map(d=>d.slice(5));yData=days.map(d=>{const r=byDate[d];const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}
       else if(interval==='month'){const byMonth={};for(let y=fromDate.getFullYear();y<=toDate.getFullYear();y++){const rows=await fetch(`/query?inst_id=${gInst.id}&type=months_in_year&date=${y}`).then(r=>r.json());rows.forEach(r=>{byMonth[r.date]=r;});}const months=Object.keys(byMonth).filter(d=>d>=fromVal.slice(0,7)&&d<=toVal.slice(0,7)).sort();xData=months;yData=months.map(m=>{const r=byMonth[m];const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}}
 

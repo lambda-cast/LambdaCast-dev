@@ -610,7 +610,8 @@ def get_installation_forecast(installation_id: int):
 
     import forecast_service as fs
     try:
-        data = fs.get_forecast(model_name=model_name, lat=lat, lon=lon, target_date=target_date)
+        capacity_kwp = inst.get("installed_capacity_kwp")
+        data = fs.get_forecast(model_name=model_name, lat=lat, lon=lon, target_date=target_date, capacity_kwp=capacity_kwp)
         return jsonify(data)
     except Exception as e:
         logging.exception("Forecast generation error")

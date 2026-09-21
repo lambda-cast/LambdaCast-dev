@@ -232,9 +232,12 @@ def predict_model(model_entry, df):
         return np.where(df["Solar_Radiation_Wm2"] <= 5.0, 0.0, np.maximum(0.0, raw_preds))
 
 
-def get_forecast(model_name=None, lat=34.73, lon=10.72, target_date=None):
+def get_forecast(model_name=None, lat=34.73, lon=10.72, target_date=None, capacity_kwp=None):
     """
     Produce forecast results for API consumption.
+    
+    capacity_kwp: installed capacity of the target installation (kWp).
+                  Used to scale model predictions to the correct magnitude.
     """
     models = discover_models()
     if not models:
@@ -246,6 +249,34 @@ def get_forecast(model_name=None, lat=34.73, lon=10.72, target_date=None):
     model_entry = load_model(model_name)
     df = fetch_weather_dataframe(lat, lon, days=3)
     preds = predict_model(model_entry, df)
+
+    # ── Capacity scaling ──────────────────────────────────────────────────────
+    # Models may have been trained on a different installation than the target.
+    # We estimate the training installation's peak power from the model's own
+    # predictions under ideal conditions (Solar_Radiation≈900 W/m², no rain).
+    # Then we rescale so that the target installation's predictions are
+    # proportional to its actual installed capacity.
+    if capacity_kwp and capacity_kwp > 0:
+        # Estimate what the model considers "peak" output
+        peak_mask = df["Solar_Radiation_Wm2"] >= 800
+        if peak_mask.any():
+            model_peak_w = float(np.percentile(preds[peak_mask], 90))
+        else:
+            model_peak_w = float(preds.max()) if preds.max() > 0 else 1.0
+
+        # Assume a standard 0.75 performance ratio when estimating training capacity
+        PERFORMANCE_RATIO = 0.75
+        training_capacity_kwp = model_peak_w / (1000 * PERFORMANCE_RATIO)  # W → kWp
+
+        if training_capacity_kwp > 0 and abs(training_capacity_kwp - capacity_kwp) > 0.05:
+            scale = capacity_kwp / training_capacity_kwp
+            preds = preds * scale
+            logging.info(
+                f"ForecastService: scaled '{model_name}' predictions by {scale:.3f} "
+                f"(model peak {model_peak_w:.0f}W → training ~{training_capacity_kwp:.2f}kWp, "
+                f"target {capacity_kwp:.2f}kWp)"
+            )
+    # ─────────────────────────────────────────────────────────────────────────
     df["predicted_w"] = preds
     df["date_str"] = df["time"].dt.strftime("%Y-%m-%d")
     df["hour_str"] = df["time"].dt.strftime("%H:%M")
