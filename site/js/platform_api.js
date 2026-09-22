@@ -225,7 +225,7 @@ const PlatformAPI = (() => {
     const homeUrl  = isAdmin ? "/admin" : "/platform";
     return `
       <a class="sz-brand" href="${homeUrl}">
-        <div class="sz-brand-icon"><i class="fas fa-sun"></i></div>
+        <div class="sz-brand-icon"><img src="/img/site-logo.png" alt="LambdaCast logo" style="height:32px;width:auto;display:block;"></div>
         <span class="sz-brand-name">Lambda<span>Cast</span></span>
       </a>
       <div class="sz-search">
