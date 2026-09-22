@@ -116,13 +116,9 @@ body.platform-page {
 .sz-header .sz-brand-icon {
   width: 28px;
   height: 28px;
-  background: var(--c-brand);
-  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-size: 13px;
 }
 
 .sz-header .sz-brand-name {
@@ -467,7 +463,6 @@ body.platform-page {
 
 .sz-kpi-accent {
   width: 32px; height: 32px;
-  border-radius: var(--r-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -475,11 +470,11 @@ body.platform-page {
   flex-shrink: 0;
 }
 
-.sz-kpi-accent.orange { background: var(--c-brand-light); color: var(--c-brand); }
-.sz-kpi-accent.green  { background: var(--c-ok-bg);       color: var(--c-ok);   }
-.sz-kpi-accent.blue   { background: #eff6ff;               color: #3b82f6;       }
-.sz-kpi-accent.gray   { background: var(--c-off-bg);       color: var(--c-off);  }
-.sz-kpi-accent.amber  { background: var(--c-warn-bg);      color: var(--c-warn); }
+.sz-kpi-accent.orange { color: var(--c-brand); }
+.sz-kpi-accent.green  { color: var(--c-ok);   }
+.sz-kpi-accent.blue   { color: #3b82f6;       }
+.sz-kpi-accent.gray   { color: var(--c-off);  }
+.sz-kpi-accent.amber  { color: var(--c-warn); }
 
 /* ── Status badges ────────────────────────────────────────────────── */
 .sz-badge {
@@ -880,12 +875,9 @@ body.platform-page {
 
 .sz-auth-logo-icon {
   width: 36px; height: 36px;
-  background: var(--c-brand);
-  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
   font-size: 16px;
 }
 
@@ -1071,17 +1063,16 @@ body.platform-page {
 
 .card-icon {
   width: 32px; height: 32px;
-  border-radius: var(--r-md);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
 }
 
-.card-icon.bg-solar  { background: var(--c-brand-light); color: var(--c-brand); }
-.card-icon.bg-green  { background: var(--c-ok-bg);       color: var(--c-ok);   }
-.card-icon.bg-blue   { background: #eff6ff;               color: #3b82f6;       }
-.card-icon.bg-purple { background: #f5f3ff;               color: #7c3aed;       }
+.card-icon.bg-solar  { color: var(--c-brand); }
+.card-icon.bg-green  { color: var(--c-ok);   }
+.card-icon.bg-blue   { color: #3b82f6;       }
+.card-icon.bg-purple { color: #7c3aed;       }
 
 /* Legacy status dot */
 .status-dot {

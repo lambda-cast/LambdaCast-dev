@@ -2,148 +2,162 @@
 
 ![Version](https://img.shields.io/badge/version-0.33.0-blue)
 ![License](https://img.shields.io/badge/license-see%20LICENSE-green)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![Docker](https://img.shields.io/badge/docker-ready-2496ED)
 
-**LambdaCast** is a self-hosted, vendor-independent solar PV monitoring and forecasting platform. It collects real-time data from your inverters, stores it locally, and serves a modern web dashboard — plus ML-powered hourly and daily production forecasts driven by live weather data.
+**LambdaCast** est une plateforme nationale intelligente de prévision de la production photovoltaïque en toiture, développée dans le cadre de la **Track 1 — Plateforme Nationale Intelligente de Prévision de la Production Solaire en Toiture**.
+
+Face à la croissance rapide des installations photovoltaïques décentralisées en Tunisie, cette plateforme exploite des données météorologiques, des informations sur les parcs solaires installés et des modèles d'intelligence artificielle avancés pour prévoir la production PV à différentes échelles spatiales et temporelles — du district au niveau national — et fournir au Dispatching National une vision fiable de la production attendue.
 
 ![Screenshot](doc/screenshot.png)
 
 ---
 
-## Table of Contents
+## Table des matières
 
-- [Features](#features)
-- [Supported Devices](#supported-devices)
-- [Architecture Overview](#architecture-overview)
-- [Getting Started](#getting-started)
-  - [Docker Compose (recommended)](#docker-compose-recommended)
-  - [Local Development](#local-development)
+- [Contexte](#contexte)
+- [Fonctionnalités](#fonctionnalités)
+- [Appareils supportés](#appareils-supportés)
+- [Architecture](#architecture)
+- [Démarrage rapide](#démarrage-rapide)
+  - [Docker Compose (recommandé)](#docker-compose-recommandé)
+  - [Développement local](#développement-local)
 - [Configuration](#configuration)
-- [Environment Files](#environment-files)
-- [iSolarCloud Setup](#isolarcloud-setup)
-- [ML Forecasting](#ml-forecasting)
-- [API Reference](#api-reference)
-- [Running Tests](#running-tests)
-- [Contributing](#contributing)
-- [Maintainers](#maintainers)
+- [Fichiers d'environnement](#fichiers-denvironnement)
+- [Configuration iSolarCloud](#configuration-isolarcloud)
+- [Prévision IA](#prévision-ia)
+- [Référence API](#référence-api)
+- [Tests](#tests)
+- [Contribuer](#contribuer)
 
 ---
 
-## Features
+## Contexte
 
-- **Real-time monitoring** — live power produced, consumed, grid draw, feed-in, and autarky
-- **Historical data** — day/month/year resolution with 1-minute high-resolution storage (~15 MB/year)
-- **ML-powered forecasting** — hourly and daily PV output forecasts using XGBoost and ARX models, fed by live Open-Meteo weather data (no API key needed)
-- **PVGIS integration** — theoretical yield estimates from the EU Commission PVGIS API v5.2, with automatic caching
-- **Multi-user platform** — each user manages their own installations; admins see the full fleet
-- **Interactive maps** — GeoJSON-based fleet maps for both users and admins
-- **Admin panel** — user management, organization management, fleet statistics, and installation reassignment
-- **Earnings tracking** — configurable grid price and feed-in tariff for savings calculations
-- **100% self-hosted** — no cloud dependency; all data stays on your hardware
+Le développement des installations photovoltaïques en toiture connaît une croissance soutenue en Tunisie, aussi bien dans les secteurs résidentiel, tertiaire qu'industriel. Réparties sur l'ensemble du territoire national et raccordées aux réseaux basse et moyenne tension, ces installations constituent une source de production décentralisée dont l'impact sur l'exploitation du système électrique devient significatif.
+
+Cette production, variable par nature et directement dépendante des conditions météorologiques, influence la courbe de charge observée par le réseau et modifie les besoins en réserves, en flexibilité et en programmation des moyens de production.
+
+LambdaCast répond à ce besoin en fournissant à la **STEG** et au **Dispatching National** :
+
+- des prévisions à court terme (intra-journalières et de J à J+3)
+- à plusieurs niveaux géographiques (district, gouvernorat, national)
+- avec évaluation de l'incertitude associée
+- et des tableaux de bord interactifs pour l'aide à la décision
 
 ---
 
-## Supported Devices
+## Fonctionnalités
 
-| Device | Protocol | Notes |
+- **Surveillance en temps réel** — puissance produite, consommée, injectée sur le réseau, soutirage et taux d'autarcie
+- **Données historiques** — résolution jour/mois/année avec archivage haute résolution à la minute
+- **Prévision PV par IA** — prévisions horaires et journalières via modèles XGBoost et ARX, alimentés par les données météo live d'Open-Meteo (sans clé API)
+- **Plateforme multi-utilisateurs** — chaque utilisateur gère ses propres installations ; les administrateurs voient l'ensemble du parc
+- **Cartes interactives** — vues cartographiques GeoJSON par utilisateur et au niveau de la flotte
+- **Panneau d'administration** — gestion des utilisateurs, des organisations, statistiques du parc, réaffectation des installations
+- **Suivi économique** — calcul des économies et revenus selon les tarifs d'achat et de revente configurables
+- **100 % auto-hébergé** — aucune dépendance cloud ; toutes les données restent sur votre infrastructure
+
+---
+
+## Appareils supportés
+
+| Appareil | Protocole | Remarques |
 |---|---|---|
-| **Fronius** (Symo / Gen24) | HTTP REST (Solar API v1) | Local network polling |
-| **Sunsynk / Deye** hybrid | Solarman V5 (TCP) or Modbus RTU | WiFi dongle or USB-RS485 adapter |
-| **iSolarCloud** (Sungrow) | OAuth2 → REST | Requires the bundled FastAPI bridge service |
-| **Dummy** | — | Generates synthetic data for testing |
+| **Fronius** (Symo / Gen24) | HTTP REST (Solar API v1) | Interrogation sur le réseau local |
+| **Sunsynk / Deye** hybride | Solarman V5 (TCP) ou Modbus RTU | Dongle WiFi ou adaptateur USB-RS485 |
+| **iSolarCloud** (Sungrow) | OAuth2 → REST | Nécessite le service bridge FastAPI inclus |
+| **Dummy** | — | Génère des données synthétiques pour les tests |
 
-Contributions adding new device integrations are welcome — see [Contributing](#contributing).
-
----
-
-## Architecture Overview
-
-```
-┌─────────────────────────────────────────┐
-│           Docker Host                   │
-│                                         │
-│  ┌──────────────────────────────────┐   │
-│  │  lambdacast  (port 8020→5000)    │   │
-│  │  ┌───────────┐ ┌──────────────┐  │   │
-│  │  │ Flask API │ │  Grabber     │  │   │
-│  │  │ + Waitress│ │  (Supervisor)│  │   │
-│  │  └───────────┘ └──────────────┘  │   │
-│  │  SQLite: platform.db             │   │
-│  │  SQLite: db_<id>.sqlite (×N)     │   │
-│  │  ML models: models/              │   │
-│  └──────────────────────────────────┘   │
-│                                         │
-│  ┌──────────────────────────────────┐   │
-│  │  isolarcloud-bridge (port 8000)  │   │
-│  │  FastAPI OAuth2 bridge           │   │
-│  └──────────────────────────────────┘   │
-└─────────────────────────────────────────┘
-```
-
-- **Flask + Waitress** serves both the REST API and the static frontend
-- **Supervisor** manages the web server and data grabber as concurrent processes
-- **platform.db** stores users, organizations, and installation metadata
-- **db_\<id\>.sqlite** per-installation telemetry databases (bootstrapped automatically)
-- **ML models** are loaded lazily and scale predictions to each installation's configured capacity
+Les contributions pour l'ajout de nouveaux onduleurs sont les bienvenues — voir [Contribuer](#contribuer).
 
 ---
 
-## Getting Started
+## Architecture
 
-### Docker Compose (recommended)
+```
+┌──────────────────────────────────────────────────┐
+│                   Hôte Docker                    │
+│                                                  │
+│  ┌────────────────────────────────────────────┐  │
+│  │   lambdacast  (port 8020 → 5000)           │  │
+│  │   ┌─────────────┐  ┌─────────────────────┐ │  │
+│  │   │  Flask API  │  │  Grabber            │ │  │
+│  │   │  + Waitress │  │  (Supervisor)       │ │  │
+│  │   └─────────────┘  └─────────────────────┘ │  │
+│  │   SQLite : platform.db                     │  │
+│  │   SQLite : db_<id>.sqlite (×N)             │  │
+│  │   Modèles ML : models/                     │  │
+│  └────────────────────────────────────────────┘  │
+│                                                  │
+│  ┌────────────────────────────────────────────┐  │
+│  │   isolarcloud-bridge  (port 8000)          │  │
+│  │   Bridge OAuth2 FastAPI                    │  │
+│  └────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────┘
+```
 
-**Prerequisites:** Docker Engine and Docker Compose.
+- **Flask + Waitress** expose l'API REST et sert les fichiers statiques du frontend
+- **Supervisor** gère le serveur web et le grabber de données comme deux processus concurrents
+- **platform.db** stocke les utilisateurs, organisations et métadonnées des installations
+- **db_\<id\>.sqlite** base de données de télémétrie par installation, initialisée automatiquement
+- **Modèles ML** chargés à la demande et mis à l'échelle selon la capacité installée de chaque site
 
-1. Clone the repository:
+---
+
+## Démarrage rapide
+
+### Docker Compose (recommandé)
+
+**Prérequis :** Docker Engine et Docker Compose.
+
+1. Cloner le dépôt :
 
    ```bash
    git clone https://github.com/your-org/LambdaCast.git
    cd LambdaCast
    ```
 
-2. Set up your environment files:
+2. Préparer les fichiers d'environnement :
 
    ```bash
    cp .env.example .env
    cp .env.isolarcloud.example .env.isolarcloud
-   # Edit both files with your credentials
+   # Éditer les deux fichiers avec vos valeurs
    ```
 
-3. Create your configuration file (if not already present):
+3. Vérifier la configuration dans `data/config.yml` (appareils, prix, fuseau horaire).
 
-   ```bash
-   # Edit data/config.yml to match your device setup
-   ```
-
-4. Start the stack:
+4. Lancer la stack :
 
    ```bash
    docker compose up -d
    ```
 
-5. Open your browser at `http://localhost:8020` and log in with the admin credentials from your `.env`.
+5. Ouvrir `http://localhost:8020` dans un navigateur et se connecter avec les identifiants admin définis dans `.env`.
 
-> The `data/` folder is mounted as a Docker volume. Back it up regularly — it contains your databases, config, and logs.
+> Le dossier `data/` est monté comme volume Docker. Sauvegardez-le régulièrement — il contient vos bases de données, votre configuration et vos logs.
 
 ---
 
-### Local Development
+### Développement local
 
 ```bash
-# Install dependencies
+# Installer les dépendances
 pip install -r requirements.txt
 
-# Run the server
+# Lancer le serveur
 cd backend
 python server.py
 ```
 
-The server reads `data/config.yml` and starts on `http://localhost:5000`.
+Le serveur lit `data/config.yml` et démarre sur `http://localhost:5000`.
 
 ---
 
 ## Configuration
 
-LambdaCast is configured via `data/config.yml`. A minimal example:
+LambdaCast se configure via `data/config.yml`. Exemple minimal :
 
 ```yaml
 logging: normal          # normal | verbose
@@ -151,212 +165,206 @@ logging: normal          # normal | verbose
 time_zone: "Africa/Tunis"
 
 devices:
-  1:                     # installation_id → device mapping
+  1:                     # installation_id → type d'appareil
     type: Fronius
     host_name: 192.168.1.100
     has_meter: true
 
 prices:
-  price_per_grid_kwh: 0.30
-  revenue_per_fed_in_kwh: 0.10
+  price_per_grid_kwh: 0.341       # Prix d'achat réseau (TND/kWh)
+  revenue_per_fed_in_kwh: 0.115   # Tarif d'injection (TND/kWh)
 
 server:
   ip: 0.0.0.0
   port: 5000
 
 grabber:
-  interval_s: 5          # how often to poll the inverter (seconds)
+  interval_s: 5          # Intervalle d'interrogation de l'onduleur (secondes)
 ```
 
-### Fronius device config
+### Configuration Fronius
 
 ```yaml
 devices:
   1:
     type: Fronius
-    host_name: 192.168.1.100   # IP or hostname of your inverter
-    has_meter: true             # Is a Fronius Smart Meter present?
+    host_name: 192.168.1.100   # IP ou nom d'hôte de l'onduleur
+    has_meter: true             # Compteur Fronius Smart Meter présent ?
 ```
 
-### Sunsynk / Deye device config
+### Configuration Sunsynk / Deye
 
 ```yaml
 devices:
   1:
     type: Sunsynk
-    connection: solarman        # solarman (WiFi dongle) or modbus_rtu (RS485)
+    connection: solarman        # solarman (dongle WiFi) ou modbus_rtu (RS485)
     host_name: 192.168.1.101
     logger_serial: "1234567890"
 ```
 
-For `modbus_rtu`, replace `host_name`/`logger_serial` with `serial_port`, `baudrate`, `parity`, etc. See the full register map and wiring notes in [backend/devices/Sunsynk.py](backend/devices/Sunsynk.py).
+Pour `modbus_rtu`, remplacer `host_name`/`logger_serial` par `serial_port`, `baudrate`, `parity`, etc. Voir la carte des registres et les notes de câblage dans [backend/devices/Sunsynk.py](backend/devices/Sunsynk.py).
 
 ---
 
-## Environment Files
+## Fichiers d'environnement
 
-LambdaCast uses two environment files for secrets. Example templates are provided — copy them and fill in your values:
+LambdaCast utilise deux fichiers d'environnement pour les secrets. Des templates sont fournis — les copier et compléter avant le premier lancement :
 
 ```bash
 cp .env.example .env
 cp .env.isolarcloud.example .env.isolarcloud
 ```
 
-Both files are git-ignored so secrets never end up in version control.
+Ces fichiers sont dans `.gitignore` et ne seront jamais commités.
 
-### `.env` — main application
+### `.env` — application principale
 
-| Variable | Default | Description |
+| Variable | Défaut | Description |
 |---|---|---|
-| `SUNALYZER_ADMIN_USER` | `admin` | Initial admin username |
-| `SUNALYZER_ADMIN_EMAIL` | `admin@lambdacast.local` | Initial admin email |
-| `SUNALYZER_ADMIN_PASSWORD` | `changeme123` | Initial admin password — **change this** |
-| `SUNALYZER_SECRET_KEY` | `lambdacast-change-me-in-production` | JWT signing key — **change this** |
-| `TOKEN_LIFETIME_S` | `86400` | JWT token lifetime in seconds (default 24 h) |
+| `SUNALYZER_ADMIN_USER` | `admin` | Nom d'utilisateur admin initial |
+| `SUNALYZER_ADMIN_EMAIL` | `admin@lambdacast.local` | Email admin initial |
+| `SUNALYZER_ADMIN_PASSWORD` | `changeme123` | Mot de passe admin — **à changer** |
+| `SUNALYZER_SECRET_KEY` | `lambdacast-change-me-in-production` | Clé de signature JWT — **à changer** |
+| `TOKEN_LIFETIME_S` | `86400` | Durée de vie du token JWT en secondes (24 h par défaut) |
 
-> Generate a secure secret key with: `python -c "import secrets; print(secrets.token_hex(32))"`
+> Générer une clé sécurisée : `python -c "import secrets; print(secrets.token_hex(32))"`
 
-### `.env.isolarcloud` — iSolarCloud bridge
+### `.env.isolarcloud` — bridge iSolarCloud
 
-Get your credentials from the [iSolarCloud developer portal](https://developer.isolarcloud.com) by creating an application there.
+Les identifiants sont obtenus depuis le [portail développeur iSolarCloud](https://developer.isolarcloud.com) en créant une application.
 
 | Variable | Description |
 |---|---|
-| `ISOLARCLOUD_APP_KEY` | OAuth application key from the developer portal |
-| `ISOLARCLOUD_SECRET_KEY` | OAuth secret key from the developer portal |
-| `ISOLARCLOUD_APP_ID` | Application ID from the developer portal |
-| `BRIDGE_REDIRECT_URI` | OAuth callback URL — must match your portal registration (e.g. `http://192.168.1.50:8000/callback`) |
-| `TOKEN_FILE` | Token persistence path inside the container (default: `/data/isolarcloud_token.json`) |
-| `ISOLARCLOUD_PLANT_ID` | Your plant ID — find it via `GET /api/plants` after first OAuth login |
+| `ISOLARCLOUD_APP_KEY` | Clé d'application OAuth du portail développeur |
+| `ISOLARCLOUD_SECRET_KEY` | Clé secrète OAuth du portail développeur |
+| `ISOLARCLOUD_APP_ID` | Identifiant d'application du portail développeur |
+| `BRIDGE_REDIRECT_URI` | URL de callback OAuth — doit correspondre à l'enregistrement dans le portail (ex. `http://192.168.1.50:8000/callback`) |
+| `TOKEN_FILE` | Chemin de persistance du token dans le conteneur (défaut : `/data/isolarcloud_token.json`) |
+| `ISOLARCLOUD_PLANT_ID` | Identifiant de la centrale — disponible via `GET /api/plants` après la première connexion OAuth |
 
-Reference both files from `docker-compose.yml`:
+Référencer les deux fichiers dans `docker-compose.yml` :
 
 ```yaml
 services:
   lambdacast:
     env_file: .env
-    ...
   isolarcloud-bridge:
     env_file: .env.isolarcloud
-    ...
 ```
 
 ---
 
-## iSolarCloud Setup
+## Configuration iSolarCloud
 
-The iSolarCloud (Sungrow) integration uses an OAuth2 bridge that runs as a separate Docker service.
+L'intégration iSolarCloud (Sungrow) utilise un bridge OAuth2 qui tourne comme service Docker séparé.
 
-1. Fill in `.env.isolarcloud` with your developer portal credentials (see [Environment Files](#environment-files))
-2. Start the stack: `docker compose up -d`
-3. Watch the bridge logs and copy the OAuth authorization URL:
+1. Renseigner `.env.isolarcloud` avec les identifiants du portail développeur
+2. Lancer la stack : `docker compose up -d`
+3. Surveiller les logs du bridge et copier l'URL d'autorisation OAuth :
    ```bash
    docker compose logs -f isolarcloud-bridge
    ```
-4. Open the URL in a browser, log in to iSolarCloud, and authorize. The token is saved to `data/isolarcloud_token.json` and reused on subsequent restarts — no browser action needed after the first time.
-5. Seed the initial installation:
+4. Ouvrir l'URL dans un navigateur, se connecter à iSolarCloud et autoriser l'accès. Le token est sauvegardé dans `data/isolarcloud_token.json` et réutilisé automatiquement aux redémarrages suivants.
+5. Initialiser l'installation :
    ```bash
    docker compose --profile tools run --rm seed
    ```
 
 ---
 
-## ML Forecasting
+## Prévision IA
 
-LambdaCast ships two trained models in `models/`:
+LambdaCast intègre deux modèles entraînés dans `models/` :
 
-| Model | File | Algorithm |
+| Modèle | Fichier | Algorithme |
 |---|---|---|
-| ARX | `arx_model.pkl` | AutoRegressive with exogenous variables (30 lags) |
-| XGBoost | `xgb_PV1_Power_W_1.joblib` | XGBoost Regressor |
+| ARX | `arx_model.pkl` | AutoRégressif avec variables exogènes (30 retards) |
+| XGBoost | `xgb_PV1_Power_W_1.joblib` | Régresseur XGBoost |
 
-Both models consume 9 weather features fetched live from [Open-Meteo](https://open-meteo.com) (free, no API key required):  
-`Solar Radiation`, `Temperature`, `Dew Point`, `Wind Speed`, `Wind Direction`, `Humidity`, `Rain`, `PM2.5`, `PM10`
+Les deux modèles consomment 9 variables météorologiques récupérées en direct depuis [Open-Meteo](https://open-meteo.com) (gratuit, sans clé API) :
+`Rayonnement solaire`, `Température`, `Point de rosée`, `Vitesse du vent`, `Direction du vent`, `Humidité`, `Pluie`, `PM2.5`, `PM10`
 
-Predictions are automatically **capacity-scaled** at runtime: the model's trained peak output is estimated and scaled proportionally to each installation's configured `installed_capacity_kwp`.
+Les prédictions sont **mises à l'échelle automatiquement** à l'exécution : le pic estimé du modèle est recalculé proportionnellement à la capacité installée (`installed_capacity_kwp`) de chaque installation cible.
 
-**Forecast API example:**
+**Exemple d'appel API prévision :**
 
 ```
 GET /api/installations/1/forecast?model=xgb_PV1_Power_W_1&date=2026-09-22
 ```
 
-Returns hourly predictions, daily totals, and peak hour for the selected date.
+Retourne les prévisions horaires, les totaux journaliers et l'heure de pic pour la date sélectionnée.
 
-The training notebook is at `models/6_ARX.ipynb`. Drop additional `.joblib` or `.pkl` files into `models/` and they will be auto-discovered via `GET /api/installations/forecast/models`.
+Le notebook d'entraînement est disponible dans `models/6_ARX.ipynb`. Tout fichier `.joblib` ou `.pkl` déposé dans `models/` est découvert automatiquement via `GET /api/installations/forecast/models`.
 
 ---
 
-## API Reference
+## Référence API
 
-All routes require a JWT token sent as a `Bearer` header or an `access_token` HttpOnly cookie (set automatically on login).
+Toutes les routes nécessitent un token JWT transmis en header `Bearer` ou via le cookie HttpOnly `access_token` (positionné automatiquement à la connexion).
 
-### Auth
+### Authentification
 
-| Method | Route | Description |
+| Méthode | Route | Description |
 |---|---|---|
-| `POST` | `/api/auth/register` | Create a new user account |
-| `POST` | `/api/auth/login` | Login — returns JWT and sets auth cookie |
-| `POST` | `/api/auth/logout` | Logout — clears auth cookie |
-| `GET` | `/api/auth/me` | Get current user profile |
+| `POST` | `/api/auth/register` | Créer un compte utilisateur |
+| `POST` | `/api/auth/login` | Connexion — retourne le JWT et pose le cookie |
+| `POST` | `/api/auth/logout` | Déconnexion — efface le cookie |
+| `GET` | `/api/auth/me` | Profil de l'utilisateur courant |
 
 ### Installations
 
-| Method | Route | Description |
+| Méthode | Route | Description |
 |---|---|---|
-| `GET` | `/api/installations` | List own installations |
-| `POST` | `/api/installations` | Create an installation |
-| `PATCH` | `/api/installations/<id>` | Update an installation |
-| `DELETE` | `/api/installations/<id>` | Delete an installation |
-| `GET` | `/api/installations/<id>/pvgis` | PVGIS yield estimate (cached) |
-| `POST` | `/api/installations/<id>/pvgis/refresh` | Force PVGIS cache refresh |
-| `GET` | `/api/installations/<id>/forecast` | Run an ML forecast (`?model=&date=`) |
-| `GET` | `/api/installations/forecast/models` | List available ML models |
-| `GET` | `/api/installations/map` | GeoJSON map of own installations |
-| `POST` | `/api/installations/<id>/device` | Configure inverter device |
+| `GET` | `/api/installations` | Lister ses installations |
+| `POST` | `/api/installations` | Créer une installation |
+| `PATCH` | `/api/installations/<id>` | Modifier une installation |
+| `DELETE` | `/api/installations/<id>` | Supprimer une installation |
+| `GET` | `/api/installations/<id>/pvgis` | Estimation PVGIS (mise en cache) |
+| `POST` | `/api/installations/<id>/pvgis/refresh` | Forcer le recalcul PVGIS |
+| `GET` | `/api/installations/<id>/forecast` | Lancer une prévision ML (`?model=&date=`) |
+| `GET` | `/api/installations/forecast/models` | Lister les modèles ML disponibles |
+| `GET` | `/api/installations/map` | Carte GeoJSON des installations |
+| `POST` | `/api/installations/<id>/device` | Configurer l'onduleur |
 
-### Admin
+### Administration
 
-| Method | Route | Description |
+| Méthode | Route | Description |
 |---|---|---|
-| `GET` | `/api/admin/users` | List all users |
-| `POST` | `/api/admin/users` | Create a user |
-| `PATCH` | `/api/admin/users/<id>` | Update role / status |
-| `POST` | `/api/admin/users/<id>/reset-password` | Reset a user's password |
-| `GET` | `/api/admin/installations` | Fleet-wide installation list |
-| `PATCH` | `/api/admin/installations/<id>/assign` | Reassign installation to another user |
-| `GET` | `/api/admin/installations/map` | GeoJSON fleet map |
-| `GET` | `/api/admin/solar-statistics` | Aggregated fleet statistics |
-| `GET` | `/api/admin/organizations` | List organizations |
-| `POST` | `/api/admin/organizations` | Create an organization |
+| `GET` | `/api/admin/users` | Lister tous les utilisateurs |
+| `POST` | `/api/admin/users` | Créer un utilisateur |
+| `PATCH` | `/api/admin/users/<id>` | Modifier rôle / statut |
+| `POST` | `/api/admin/users/<id>/reset-password` | Réinitialiser un mot de passe |
+| `GET` | `/api/admin/installations` | Vue globale du parc |
+| `PATCH` | `/api/admin/installations/<id>/assign` | Réaffecter une installation |
+| `GET` | `/api/admin/installations/map` | Carte GeoJSON du parc complet |
+| `GET` | `/api/admin/solar-statistics` | Statistiques agrégées du parc |
+| `GET` | `/api/admin/organizations` | Lister les organisations |
+| `POST` | `/api/admin/organizations` | Créer une organisation |
 
 ---
 
-## Running Tests
+## Tests
 
 ```bash
 pytest
 ```
 
-Tests live in `pytest/` and cover auth, installation CRUD, the grabber, device drivers (Dummy, Sunsynk), PVGIS (with HTTP mocking), and the platform database layer.
+Les tests se trouvent dans `pytest/` et couvrent : l'authentification, le CRUD des installations, le grabber de données, les pilotes d'appareils (Dummy, Sunsynk), le service PVGIS (avec mock HTTP) et la couche base de données.
 
 ---
 
-## Contributing
+## Contribuer
 
-Bug reports and pull requests are welcome. To add support for a new inverter:
+Les rapports de bugs et les pull requests sont les bienvenus. Pour ajouter le support d'un nouvel onduleur :
 
-1. Create a new file in `backend/devices/` following the pattern of `backend/devices/Fronius.py`
-2. Register the device type in `DEVICE_REGISTRY` inside `backend/routes/installation_routes.py`
-3. Add unit tests in `pytest/`
-4. Open a pull request with a description of the device and test hardware used
+1. Créer un fichier dans `backend/devices/` en suivant le modèle de `backend/devices/Fronius.py`
+2. Enregistrer le nouveau type dans `DEVICE_REGISTRY` dans `backend/routes/installation_routes.py`
+3. Ajouter des tests unitaires dans `pytest/`
+4. Ouvrir une pull request avec une description de l'appareil et du matériel de test utilisé
 
-For larger changes, open an issue first to discuss the approach.
+Pour les changements plus importants, ouvrir d'abord une issue pour discuter de l'approche.
 
 ---
 
-## Maintainers
-
-LambdaCast is maintained by the project team.
-
-See [LICENSE](LICENSE) for licensing terms.
+Voir [LICENSE](LICENSE) pour les conditions de licence.
