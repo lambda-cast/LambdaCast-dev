@@ -17,9 +17,8 @@ services:
       - ./backend:/backend
       - ./site:/site
       - ./models:/models    # ML models for forecasting (persisted across restarts)
-    environment:
-      - SUNALYZER_ADMIN_PASSWORD=ABIDpes2003!
-      - SUNALYZER_SECRET_KEY=ABIDpes2003!
+    env_file:
+      - .env                # SUNALYZER_ADMIN_USER/EMAIL/PASSWORD, SUNALYZER_SECRET_KEY, TOKEN_LIFETIME_S
     depends_on:
       - isolarcloud-bridge
 
@@ -29,7 +28,7 @@ services:
   #   1. docker compose logs -f isolarcloud-bridge
   #      → copy the OAuth URL that appears in the logs
   #   2. Open that URL in your browser, log into iSolarCloud, and authorize.
-  #      The callback will redirect to http://<BRIDGE_REDIRECT_HOST>:8001/callback
+  #      The callback will redirect to http://<your-host>:8000/callback
   #   3. Token is saved to ./data/isolarcloud_token.json — subsequent restarts
   #      restore it automatically, no browser action needed.
   #
@@ -49,13 +48,10 @@ services:
     volumes:
       - ./data:/data         # token file persisted at ./data/isolarcloud_token.json
       - ./local_testing:/app
-    environment:
-      # Set this to http://<your-machine-ip>:8000/callback
-      # Use localhost only if running the browser on the same machine as Docker.
-      - BRIDGE_REDIRECT_URI=http://localhost:8000/callback
-      - TOKEN_FILE=/data/isolarcloud_token.json
+    env_file:
+      - .env.isolarcloud     # ISOLARCLOUD_APP_KEY/SECRET_KEY/APP_ID, BRIDGE_REDIRECT_URI, TOKEN_FILE
 
-  # ─── One-shot seed: create Faculty of Sciences Sfax installation ─────────────
+  # ─── One-shot seed: create installation ──────────────────────────────────────
   #
   # Run once after the bridge is authenticated:
   #   docker compose --profile tools run --rm seed
@@ -68,9 +64,9 @@ services:
       dockerfile: dockerfile
     volumes:
       - ./data:/data
+    env_file:
+      - .env                 # SUNALYZER_ADMIN_PASSWORD, SUNALYZER_SECRET_KEY
     environment:
-      - SUNALYZER_ADMIN_PASSWORD=ABIDpes2003!
-      - SUNALYZER_SECRET_KEY=ABIDpes2003!
       - ISOLARCLOUD_BRIDGE_URL=http://isolarcloud-bridge:8000
     entrypoint: ["python", "backend/create_fss_installation.py"]
     profiles:

@@ -32,6 +32,10 @@ htmlcov/
 data/*.sqlite
 data/*.log
 
+# Environment variable files (may contain secrets)
+.env
+.env.isolarcloud
+
 # Editor / OS
 .vscode/
 .DS_Store

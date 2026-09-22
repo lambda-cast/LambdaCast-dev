@@ -18,16 +18,17 @@ from pysolarcloud.plants import Plants
 # ============================================================
 # iSolarCloud APPLICATION CREDENTIALS
 # ============================================================
+# Set these via environment variables (see .env.isolarcloud.example).
+# Never hard-code credentials in source files.
 
-APP_KEY    = "103B38551A4024599979710A849AB676"
-SECRET_KEY = "pdxu4xe4x2jkkf26q123039nva2x91gj"
-APP_ID     = "3914"
+APP_KEY    = os.environ.get("ISOLARCLOUD_APP_KEY",    "")
+SECRET_KEY = os.environ.get("ISOLARCLOUD_SECRET_KEY", "")
+APP_ID     = os.environ.get("ISOLARCLOUD_APP_ID",     "")
 
-# In Docker: override via environment variable
-# BRIDGE_REDIRECT_URI=http://<your-host>:8001/callback
+# In Docker: set BRIDGE_REDIRECT_URI=http://<your-host>:8000/callback
 REDIRECT_URI = os.environ.get(
     "BRIDGE_REDIRECT_URI",
-    "http://localhost:8001/callback"
+    "http://localhost:8000/callback"
 )
 
 SERVER = Server.International
