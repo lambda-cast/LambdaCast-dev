@@ -33,7 +33,7 @@ ENV/
 
 # Test files
 pytest/
-local_testing/
+# local_testing/ is intentionally NOT excluded — dockerfile.bridge needs local_testing/backend.py
 
 # Logs
 *.log

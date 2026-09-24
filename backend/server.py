@@ -15,6 +15,7 @@ from auth import hash_password
 from routes.auth_routes import auth_bp
 from routes.user_routes import admin_bp
 from routes.installation_routes import installations_bp
+from routes.forecast_routes import forecast_bp
 
 
 # Globals
@@ -29,6 +30,7 @@ Compress(app)
 app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(installations_bp)
+app.register_blueprint(forecast_bp)
 
 
 @app.route('/')
@@ -85,6 +87,12 @@ def get_admin_users():
 def get_admin_map_page():
     '''Serves the admin fleet map page.'''
     return send_from_directory("../site", "admin_map.html")
+
+
+@app.route('/admin/models')
+def get_admin_models_page():
+    '''Serves the admin forecast model management page.'''
+    return send_from_directory("../site", "admin_models.html")
 
 
 @app.route('/platform/map')

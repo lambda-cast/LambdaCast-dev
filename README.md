@@ -1,6 +1,6 @@
 # ☀️ LambdaCast
 
-![Version](https://img.shields.io/badge/version-0.33.0-blue)
+![Version](https://img.shields.io/badge/version-0.34.0-blue)
 ![License](https://img.shields.io/badge/license-see%20LICENSE-green)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Docker](https://img.shields.io/badge/docker-ready-2496ED)
@@ -26,6 +26,7 @@ Face à la croissance rapide des installations photovoltaïques décentralisées
 - [Fichiers d'environnement](#fichiers-denvironnement)
 - [Configuration iSolarCloud](#configuration-isolarcloud)
 - [Prévision IA](#prévision-ia)
+- [Gestion des modèles ML](#gestion-des-modèles-ml)
 - [Référence API](#référence-api)
 - [Tests](#tests)
 - [Contribuer](#contribuer)
@@ -52,6 +53,8 @@ LambdaCast répond à ce besoin en fournissant à la **STEG** et au **Dispatchin
 - **Surveillance en temps réel** — puissance produite, consommée, injectée sur le réseau, soutirage et taux d'autarcie
 - **Données historiques** — résolution jour/mois/année avec archivage haute résolution à la minute
 - **Prévision PV par IA** — prévisions horaires et journalières via modèles XGBoost et ARX, alimentés par les données météo live d'Open-Meteo (sans clé API)
+- **Gestion des modèles ML** — interface admin pour importer, lister et supprimer des modèles `.pkl` / `.joblib` sans redémarrage
+- **Tableau de bord admin rapide** — chargement en deux phases : KPIs et utilisateurs affichés immédiatement, prévisions et météo chargées en arrière-plan
 - **Plateforme multi-utilisateurs** — chaque utilisateur gère ses propres installations ; les administrateurs voient l'ensemble du parc
 - **Cartes interactives** — vues cartographiques GeoJSON par utilisateur et au niveau de la flotte
 - **Panneau d'administration** — gestion des utilisateurs, des organisations, statistiques du parc, réaffectation des installations
@@ -92,7 +95,7 @@ Les contributions pour l'ajout de nouveaux onduleurs sont les bienvenues — voi
 │                                                  │
 │  ┌────────────────────────────────────────────┐  │
 │  │   isolarcloud-bridge  (port 8000)          │  │
-│  │   Bridge OAuth2 FastAPI                    │  │
+│  │   Bridge OAuth2 FastAPI  (optionnel)       │  │
 │  └────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────┘
 ```
@@ -101,7 +104,8 @@ Les contributions pour l'ajout de nouveaux onduleurs sont les bienvenues — voi
 - **Supervisor** gère le serveur web et le grabber de données comme deux processus concurrents
 - **platform.db** stocke les utilisateurs, organisations et métadonnées des installations
 - **db_\<id\>.sqlite** base de données de télémétrie par installation, initialisée automatiquement
-- **Modèles ML** chargés à la demande et mis à l'échelle selon la capacité installée de chaque site
+- **Modèles ML** chargés à la demande, mis à l'échelle selon la capacité installée, gérables via l'interface admin
+- **isolarcloud-bridge** service optionnel — le conteneur principal démarre indépendamment même si le bridge n'est pas configuré
 
 ---
 
@@ -118,25 +122,30 @@ Les contributions pour l'ajout de nouveaux onduleurs sont les bienvenues — voi
    cd LambdaCast
    ```
 
-2. Préparer les fichiers d'environnement :
+2. Créer les fichiers d'environnement à partir des templates :
 
    ```bash
    cp .env.example .env
    cp .env.isolarcloud.example .env.isolarcloud
-   # Éditer les deux fichiers avec vos valeurs
    ```
+
+   Éditer `.env` avec vos valeurs (au minimum le mot de passe admin et la clé secrète JWT).  
+   Le fichier `.env.isolarcloud` peut rester avec ses valeurs par défaut si vous n'utilisez pas iSolarCloud.
 
 3. Vérifier la configuration dans `data/config.yml` (appareils, prix, fuseau horaire).
 
-4. Lancer la stack :
+4. Construire et lancer la stack :
 
    ```bash
+   docker compose build
    docker compose up -d
    ```
 
 5. Ouvrir `http://localhost:8020` dans un navigateur et se connecter avec les identifiants admin définis dans `.env`.
 
-> Le dossier `data/` est monté comme volume Docker. Sauvegardez-le régulièrement — il contient vos bases de données, votre configuration et vos logs.
+> **Note :** Le service `isolarcloud-bridge` est optionnel. Le conteneur principal (`lambdacast`) démarre indépendamment — vous n'avez pas besoin de credentials iSolarCloud pour utiliser les autres fonctionnalités.
+
+> Le dossier `data/` et `models/` sont montés comme volumes Docker. Sauvegardez-les régulièrement — ils contiennent vos bases de données, votre configuration, vos logs et vos modèles ML.
 
 ---
 
@@ -230,9 +239,9 @@ Ces fichiers sont dans `.gitignore` et ne seront jamais commités.
 
 > Générer une clé sécurisée : `python -c "import secrets; print(secrets.token_hex(32))"`
 
-### `.env.isolarcloud` — bridge iSolarCloud
+### `.env.isolarcloud` — bridge iSolarCloud (optionnel)
 
-Les identifiants sont obtenus depuis le [portail développeur iSolarCloud](https://developer.isolarcloud.com) en créant une application.
+Les identifiants sont obtenus depuis le [portail développeur iSolarCloud](https://developer.isolarcloud.com) en créant une application. Ce fichier est uniquement nécessaire si vous utilisez des onduleurs Sungrow via iSolarCloud.
 
 | Variable | Description |
 |---|---|
@@ -242,16 +251,6 @@ Les identifiants sont obtenus depuis le [portail développeur iSolarCloud](https
 | `BRIDGE_REDIRECT_URI` | URL de callback OAuth — doit correspondre à l'enregistrement dans le portail (ex. `http://192.168.1.50:8000/callback`) |
 | `TOKEN_FILE` | Chemin de persistance du token dans le conteneur (défaut : `/data/isolarcloud_token.json`) |
 | `ISOLARCLOUD_PLANT_ID` | Identifiant de la centrale — disponible via `GET /api/plants` après la première connexion OAuth |
-
-Référencer les deux fichiers dans `docker-compose.yml` :
-
-```yaml
-services:
-  lambdacast:
-    env_file: .env
-  isolarcloud-bridge:
-    env_file: .env.isolarcloud
-```
 
 ---
 
@@ -295,7 +294,50 @@ GET /api/installations/1/forecast?model=xgb_PV1_Power_W_1&date=2026-09-22
 
 Retourne les prévisions horaires, les totaux journaliers et l'heure de pic pour la date sélectionnée.
 
-Le notebook d'entraînement est disponible dans `models/6_ARX.ipynb`. Tout fichier `.joblib` ou `.pkl` déposé dans `models/` est découvert automatiquement via `GET /api/installations/forecast/models`.
+Le notebook d'entraînement est disponible dans `models/6_ARX.ipynb`.
+
+---
+
+## Gestion des modèles ML
+
+Les administrateurs peuvent gérer les modèles de prévision directement depuis l'interface web, sans redémarrage du serveur.
+
+### Interface admin
+
+Accéder à **Admin → Modèles de prévision** (`/admin/models`) pour :
+
+- **Importer** un nouveau modèle `.pkl` ou `.joblib` via le bouton « Importer un modèle »
+- **Visualiser** tous les modèles installés avec leur type, taille et date d'import
+- **Supprimer** un modèle (avec confirmation)
+
+Un modèle importé est **immédiatement disponible** dans le sélecteur de modèle du moniteur d'installation, sans redémarrage.
+
+### Conventions de nommage
+
+Le type de modèle est détecté automatiquement depuis le nom du fichier :
+
+| Préfixe | Type détecté |
+|---|---|
+| `xgb_*` | XGBoost |
+| `arx_*` | ARX / AutoReg |
+| Autre | Générique |
+
+### Formats acceptés
+
+| Format | Chargeur | Usage typique |
+|---|---|---|
+| `.pkl` | `pickle` | scikit-learn, statsmodels |
+| `.joblib` | `joblib` | scikit-learn, XGBoost |
+
+### API modèles (admin)
+
+| Méthode | Route | Description |
+|---|---|---|
+| `GET` | `/api/admin/forecast/models` | Lister les modèles installés |
+| `POST` | `/api/admin/forecast/models` | Importer un modèle (multipart, champs : `model_file`, `model_name` optionnel, `overwrite` optionnel) |
+| `DELETE` | `/api/admin/forecast/models/<id>` | Supprimer un modèle |
+
+Tout fichier `.joblib` ou `.pkl` placé manuellement dans le dossier `models/` est également découvert automatiquement.
 
 ---
 
@@ -341,6 +383,9 @@ Toutes les routes nécessitent un token JWT transmis en header `Bearer` ou via l
 | `GET` | `/api/admin/solar-statistics` | Statistiques agrégées du parc |
 | `GET` | `/api/admin/organizations` | Lister les organisations |
 | `POST` | `/api/admin/organizations` | Créer une organisation |
+| `GET` | `/api/admin/forecast/models` | Lister les modèles ML (admin) |
+| `POST` | `/api/admin/forecast/models` | Importer un modèle ML |
+| `DELETE` | `/api/admin/forecast/models/<id>` | Supprimer un modèle ML |
 
 ---
 

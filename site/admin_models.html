@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LambdaCast — Modèles de prévision</title>
+  <link href="/lib/bootstrap.min.css" rel="stylesheet" />
+  <link href="/lib/fontawesome/css/all.min.css" rel="stylesheet" />
+  <link href="/css/platform.css" rel="stylesheet" />
+</head>
+<body class="platform-page">
+
+<div class="spinner-overlay" role="status"><div class="sz-spinner"></div></div>
+
+<header class="sz-header" id="sz-header"></header>
+
+<nav class="sz-sidebar" aria-label="Main navigation">
+  <ul class="sz-nav" id="sz-sidebar-nav"></ul>
+  <div class="sz-sidebar-footer">
+    <ul class="sz-nav" style="padding:0">
+      <li class="sz-nav-item">
+        <button class="sz-nav-link" id="sz-logout-footer-btn"
+                style="width:100%;text-align:left;border:none;background:none;cursor:pointer">
+          <i class="sz-nav-icon fas fa-right-from-bracket"></i>Déconnexion
+        </button>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<main class="sz-main">
+
+  <!-- Page header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-0">Modèles de prévision</h4>
+      <p class="text-muted small mb-0">Gérez les modèles ML utilisés pour les prévisions solaires</p>
+    </div>
+    <button class="sz-btn sz-btn-primary" id="btn-upload-open">
+      <i class="fas fa-upload"></i>Importer un modèle
+    </button>
+  </div>
+
+  <div id="alert-error"  style="display:none" role="alert"></div>
+  <div id="alert-success" style="display:none" role="alert"></div>
+
+  <!-- KPI row -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-4 col-md-3">
+      <div class="sz-kpi">
+        <div class="sz-kpi-value" id="kpi-total">—</div>
+        <div class="sz-kpi-label">Modèles disponibles</div>
+      </div>
+    </div>
+    <div class="col-sm-4 col-md-3">
+      <div class="sz-kpi">
+        <div class="sz-kpi-value" id="kpi-xgb">—</div>
+        <div class="sz-kpi-label">XGBoost</div>
+      </div>
+    </div>
+    <div class="col-sm-4 col-md-3">
+      <div class="sz-kpi">
+        <div class="sz-kpi-value" id="kpi-arx">—</div>
+        <div class="sz-kpi-label">ARX / AutoReg</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Model list -->
+  <div class="sz-card">
+    <div class="sz-card-header d-flex justify-content-between align-items-center">
+      <span class="fw-semibold">Modèles installés</span>
+      <span class="text-muted small">Les modèles sont sélectionnables dans le moniteur d'installation</span>
+    </div>
+    <div class="sz-card-body p-0">
+      <div class="table-responsive">
+        <table class="sz-table">
+          <thead>
+            <tr>
+              <th>Nom du modèle</th>
+              <th>Type</th>
+              <th>Fichier</th>
+              <th>Taille</th>
+              <th>Importé le</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="models-tbody">
+            <tr><td colspan="6" class="text-center text-muted py-3">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info card -->
+  <div class="sz-card mt-4">
+    <div class="sz-card-header fw-semibold">
+      <i class="fas fa-circle-info me-2 text-primary"></i>Formats supportés
+    </div>
+    <div class="sz-card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <p class="mb-1 fw-semibold small">Fichiers acceptés</p>
+          <p class="text-muted small mb-0">
+            <code>.pkl</code> — modèles scikit-learn / statsmodels (pickle)<br>
+            <code>.joblib</code> — modèles scikit-learn / XGBoost (joblib)
+          </p>
+        </div>
+        <div class="col-md-6">
+          <p class="mb-1 fw-semibold small">Conventions de nommage</p>
+          <p class="text-muted small mb-0">
+            Le nom du fichier détermine le type détecté :<br>
+            <code>xgb_*</code> → XGBoost &nbsp;|&nbsp; <code>arx_*</code> → ARX<br>
+            Tout autre nom → Modèle générique
+          </p>
+        </div>
+        <div class="col-md-6">
+          <p class="mb-1 fw-semibold small">Fonctionnalités requises</p>
+          <p class="text-muted small mb-0">
+            Les modèles doivent accepter 9 variables météo :<br>
+            <code>Solar_Radiation_Wm2, Outdoor_Temp_C, Dew_Point_C,
+            Wind_Speed_ms, Wind_Dir_deg, Humidity_pct, Rain_mm,
+            PM25_ugm3, PM10_ugm3</code>
+          </p>
+        </div>
+        <div class="col-md-6">
+          <p class="mb-1 fw-semibold small">Taille maximale</p>
+          <p class="text-muted small mb-0">200 Mo par fichier</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ Upload Modal ═══ -->
+<div class="modal fade" id="uploadModal" tabindex="-1"
+     aria-labelledby="uploadModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="uploadModalLabel">
+          <i class="fas fa-upload me-2 text-primary"></i>Importer un modèle
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        <div id="upload-alert" style="display:none" class="sz-alert sz-alert-err mb-3"></div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold small" for="upload-file">
+            Fichier modèle <span class="text-danger">*</span>
+          </label>
+          <input type="file" id="upload-file" class="form-control"
+                 accept=".pkl,.joblib" aria-required="true" />
+          <div class="form-text">Formats acceptés : .pkl, .joblib (max 200 Mo)</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold small" for="upload-name">
+            Nom personnalisé <span class="text-muted fw-normal">(optionnel)</span>
+          </label>
+          <input type="text" id="upload-name" class="sz-input form-control"
+                 placeholder="ex. xgb_sfax_v2"
+                 pattern="[\w\-]+" title="Lettres, chiffres, tirets et underscores uniquement" />
+          <div class="form-text">
+            Laissez vide pour utiliser le nom du fichier.
+            Si un modèle du même nom existe déjà, cochez l'option ci-dessous.
+          </div>
+        </div>
+
+        <div class="form-check mb-1">
+          <input class="form-check-input" type="checkbox" id="upload-overwrite" />
+          <label class="form-check-label small" for="upload-overwrite">
+            Écraser si le modèle existe déjà
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light border"
+                data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="sz-btn sz-btn-primary" id="btn-upload-confirm">
+          <i class="fas fa-upload me-1"></i>Importer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Delete Confirm Modal ═══ -->
+<div class="modal fade" id="deleteModal" tabindex="-1"
+     aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-danger" id="deleteModalLabel">
+          <i class="fas fa-exclamation-triangle me-2"></i>Supprimer le modèle
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        Êtes-vous sûr de vouloir supprimer le modèle
+        <strong id="delete-model-name"></strong> ?<br><br>
+        Il ne sera plus disponible dans le moniteur d'installation.
+        Cette action est irréversible.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light border"
+                data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-danger" id="btn-delete-confirm">
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/lib/bootstrap.bundle.min.js"></script>
+<script src="/js/platform_api.js"></script>
+<script src="/js/shell.js"></script>
+<script>
+// ── State ────────────────────────────────────────────────────────────────
+let gModels       = [];
+let gDeleteId     = null;
+let uploadModal   = null;
+let deleteModal   = null;
+
+// ── Bootstrap ────────────────────────────────────────────────────────────
+(async () => {
+  PlatformAPI.showSpinner();
+  try {
+    const user = await PlatformAPI.requireAdmin();
+    if (!user) return;
+    initShell(user, '/admin/models');
+
+    uploadModal = new bootstrap.Modal(document.getElementById('uploadModal'));
+    deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+    // Clear modals on close
+    document.getElementById('uploadModal').addEventListener('hidden.bs.modal', resetUploadForm);
+
+    // Wire buttons
+    document.getElementById('btn-upload-open').addEventListener('click', () => {
+      resetUploadForm();
+      uploadModal.show();
+    });
+
+    document.getElementById('btn-upload-confirm').addEventListener('click', doUpload);
+
+    document.getElementById('btn-delete-confirm').addEventListener('click', doDelete);
+
+    await loadModels();
+  } catch (err) {
+    PlatformAPI.showError('Erreur de chargement : ' + (err.message || 'Erreur inconnue'));
+  } finally {
+    PlatformAPI.hideSpinner();
+  }
+})();
+
+// ── Load & render ────────────────────────────────────────────────────────
+async function loadModels() {
+  try {
+    const data = await PlatformAPI.admin.listModels();
+    gModels = data.models || [];
+    renderKpis(gModels);
+    renderTable(gModels);
+  } catch (err) {
+    PlatformAPI.showError('Impossible de charger les modèles : ' + (err.message || 'Erreur'));
+  }
+}
+
+function renderKpis(list) {
+  document.getElementById('kpi-total').textContent = list.length;
+  document.getElementById('kpi-xgb').textContent = list.filter(m => m.type === 'xgb').length;
+  document.getElementById('kpi-arx').textContent = list.filter(m => m.type === 'arx').length;
+}
+
+function renderTable(list) {
+  const tbody = document.getElementById('models-tbody');
+  if (!list.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center text-muted py-5">
+          <i class="fas fa-brain fa-2x mb-2 d-block opacity-25"></i>
+          Aucun modèle installé. Importez votre premier modèle.
+        </td>
+      </tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(m => `
+    <tr>
+      <td>
+        <div class="fw-semibold">${escHtml(m.label)}</div>
+        <div class="text-muted small font-monospace">${escHtml(m.id)}</div>
+      </td>
+      <td>${typeBadge(m.type)}</td>
+      <td class="text-muted small font-monospace">${escHtml(m.filename)}</td>
+      <td class="text-muted small">${m.size_kb != null ? m.size_kb + ' Ko' : '—'}</td>
+      <td class="text-muted small">${escHtml(m.uploaded_at || '—')}</td>
+      <td>
+        <button class="sz-btn sz-btn-danger sz-btn-sm"
+                data-model-id="${escHtml(m.id)}"
+                data-model-label="${escHtml(m.label)}"
+                onclick="confirmDelete(this.dataset.modelId, this.dataset.modelLabel)"
+                title="Supprimer" aria-label="Supprimer ${escHtml(m.label)}">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function typeBadge(type) {
+  if (type === 'xgb') return `<span class="badge" style="background:#10B981;color:#fff">XGBoost</span>`;
+  if (type === 'arx') return `<span class="badge" style="background:#8B5CF6;color:#fff">ARX</span>`;
+  return `<span class="badge bg-secondary">Générique</span>`;
+}
+
+// ── Upload ───────────────────────────────────────────────────────────────
+function resetUploadForm() {
+  document.getElementById('upload-file').value = '';
+  document.getElementById('upload-name').value = '';
+  document.getElementById('upload-overwrite').checked = false;
+  const alertEl = document.getElementById('upload-alert');
+  alertEl.style.display = 'none';
+  alertEl.textContent = '';
+}
+
+async function doUpload() {
+  const fileInput  = document.getElementById('upload-file');
+  const nameInput  = document.getElementById('upload-name').value.trim();
+  const overwrite  = document.getElementById('upload-overwrite').checked;
+  const alertEl    = document.getElementById('upload-alert');
+
+  alertEl.style.display = 'none';
+
+  if (!fileInput.files || !fileInput.files[0]) {
+    alertEl.textContent = 'Veuillez sélectionner un fichier.';
+    alertEl.style.display = '';
+    return;
+  }
+
+  const file = fileInput.files[0];
+  const ext  = file.name.split('.').pop().toLowerCase();
+  if (ext !== 'pkl' && ext !== 'joblib') {
+    alertEl.textContent = 'Format non supporté. Utilisez .pkl ou .joblib.';
+    alertEl.style.display = '';
+    return;
+  }
+
+  const btn = document.getElementById('btn-upload-confirm');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Importation…';
+
+  try {
+    const result = await PlatformAPI.admin.uploadModel(file, nameInput, overwrite);
+    uploadModal.hide();
+    PlatformAPI.showSuccess(`Modèle "${result.label}" importé avec succès.`);
+    await loadModels();
+  } catch (err) {
+    const msg = err.data?.error || err.message || 'Échec de l\'importation.';
+    alertEl.innerHTML = `<i class="fas fa-circle-exclamation me-1"></i>${escHtml(msg)}`;
+    alertEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-upload me-1"></i>Importer';
+  }
+}
+
+// ── Delete ───────────────────────────────────────────────────────────────
+function confirmDelete(modelId, label) {
+  gDeleteId = modelId;
+  document.getElementById('delete-model-name').textContent = label;
+  deleteModal.show();
+}
+
+async function doDelete() {
+  if (!gDeleteId) return;
+  deleteModal.hide();
+  PlatformAPI.showSpinner();
+  try {
+    await PlatformAPI.admin.deleteModel(gDeleteId);
+    gDeleteId = null;
+    PlatformAPI.showSuccess('Modèle supprimé avec succès.');
+    await loadModels();
+  } catch (err) {
+    PlatformAPI.showError(err.data?.error || 'Échec de la suppression.');
+  } finally {
+    PlatformAPI.hideSpinner();
+  }
+}
+
+// ── Utils ────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>

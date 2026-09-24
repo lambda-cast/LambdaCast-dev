@@ -107,6 +107,27 @@ const PlatformAPI = (() => {
       ).toString() : "";
       return request("GET", "/api/admin/installations/map" + qs);
     },
+    // Forecast model management
+    listModels: () => request("GET", "/api/admin/forecast/models"),
+    deleteModel: (modelId) => request("DELETE", `/api/admin/forecast/models/${encodeURIComponent(modelId)}`),
+    uploadModel: async (file, modelName, overwrite = false) => {
+      const form = new FormData();
+      form.append("model_file", file);
+      if (modelName) form.append("model_name", modelName);
+      if (overwrite) form.append("overwrite", "true");
+      const stored = localStorage.getItem("sunalyzer_token");
+      const headers = {};
+      if (stored) headers["Authorization"] = "Bearer " + stored;
+      const res = await fetch("/api/admin/forecast/models", {
+        method: "POST",
+        credentials: "include",
+        headers,
+        body: form,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw Object.assign(new Error(data.error || res.statusText), { status: res.status, data });
+      return data;
+    },
   };
 
   // ── UI Utilities ──────────────────────────────────────────────────────
@@ -202,6 +223,7 @@ const PlatformAPI = (() => {
         ${sep("Utilisateurs")}
         ${link("/admin/users", "users", "Utilisateurs")}
         ${sep("Système")}
+        ${link("/admin/models", "brain", "Modèles de prévision")}
         ${link("/platform/installations/new", "plus", "Ajouter une installation")}
       `;
     }

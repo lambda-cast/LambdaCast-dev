@@ -238,10 +238,10 @@ document.getElementById("today-date").textContent = new Date().toLocaleDateStrin
     if (!user) return;
     initShell(user, "/admin");
 
-    // Also wire the sidebar logout
     document.querySelectorAll("#sz-logout-btn").forEach(el =>
       el.addEventListener("click", () => PlatformAPI.auth.logout()));
 
+    // ── Phase 1: load fast DB data + render immediately ──────────────────────
     const [stats, users, orgs, insts] = await Promise.all([
       PlatformAPI.admin.solarStatistics(),
       PlatformAPI.admin.listUsers(),
@@ -258,216 +258,9 @@ document.getElementById("today-date").textContent = new Date().toLocaleDateStrin
     document.getElementById("kpi-users").textContent    = stats.total_active_users;
     document.getElementById("kpi-orgs").textContent     = orgs.length;
 
-    // Coordinates mapping for Tunisian governorates
-    const GOV_COORDS = {
-      "Sousse": { lat: 35.83, lon: 10.63 },
-      "Sfax": { lat: 34.73, lon: 10.72 },
-      "Bizerte": { lat: 37.27, lon: 9.87 },
-      "Tunis": { lat: 36.81, lon: 10.18 },
-      "Ariana": { lat: 36.86, lon: 10.19 },
-      "Ben Arous": { lat: 36.75, lon: 10.22 },
-      "Manouba": { lat: 36.81, lon: 10.10 },
-      "Nabeul": { lat: 36.45, lon: 10.73 },
-      "Zaghouan": { lat: 36.40, lon: 10.14 },
-      "Béja": { lat: 36.73, lon: 9.18 },
-      "Jendouba": { lat: 36.50, lon: 8.78 },
-      "Le Kef": { lat: 36.17, lon: 8.70 },
-      "Siliana": { lat: 36.08, lon: 9.37 },
-      "Kairouan": { lat: 35.68, lon: 10.10 },
-      "Kasserine": { lat: 35.17, lon: 8.83 },
-      "Sidi Bouzid": { lat: 35.04, lon: 9.48 },
-      "Monastir": { lat: 35.78, lon: 10.83 },
-      "Mahdia": { lat: 35.50, lon: 11.06 },
-      "Gabès": { lat: 33.88, lon: 10.10 },
-      "Médenine": { lat: 33.35, lon: 10.50 },
-      "Tataouine": { lat: 32.93, lon: 10.45 },
-      "Gafsa": { lat: 34.43, lon: 8.78 },
-      "Tozeur": { lat: 33.92, lon: 8.13 },
-      "Kébili": { lat: 33.70, lon: 8.97 }
-    };
-
-    async function getGovWeather(govName) {
-      const match = insts.find(i => i.governorate && i.governorate.toLowerCase() === govName.toLowerCase() && i.latitude && i.longitude);
-      const lat = match ? match.latitude : (GOV_COORDS[govName] ? GOV_COORDS[govName].lat : 36.8);
-      const lon = match ? match.longitude : (GOV_COORDS[govName] ? GOV_COORDS[govName].lon : 10.2);
-      try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunshine_duration,temperature_2m_max,weathercode&forecast_days=4&timezone=auto`);
-        return await res.json();
-      } catch (e) {
-        return null;
-      }
-    }
-
-    // Fetch live telemetry for connected installations
-    let liveTotalW = 0;
-    let liveCount = 0;
-    await Promise.all(insts.map(async i => {
-      try {
-        const r = await fetch(`/query?inst_id=${i.id}&type=current`).then(res => res.json());
-        if (r && r.state === "ok" && r.currently_produced_w != null) {
-          liveTotalW += Math.max(0, r.currently_produced_w);
-          liveCount++;
-        }
-      } catch (_) {}
-    }));
-    if (liveCount > 0 && liveTotalW > 0) {
-      const elBadge = document.getElementById("live-telemetry-badge");
-      const elPower = document.getElementById("kpi-live-power");
-      if (elBadge && elPower) {
-        elBadge.style.display = "inline-flex";
-        elPower.textContent = liveTotalW >= 1000 ? (liveTotalW / 1000).toFixed(2) + " kW" : Math.round(liveTotalW) + " W";
-      }
-    }
-
-    // Governorate & ML Model-based Solar Forecast (Optimized)
-    const govs = stats.by_governorate || [];
-    let nationalDay0 = 0, nationalDay1 = 0, nationalDay2 = 0, nationalDay3 = 0;
-    
-    // Cache for model IDs to avoid repeated lookups
-    const modelCache = {};
-
-    const govRowsHtml = await Promise.all(govs.map(async g => {
-      const govName = g.governorate || "Inconnu";
-      const wData = await getGovWeather(govName);
-      
-      let sunHours0 = 5.2, temp0 = null, code0 = null;
-      
-      if (wData && wData.daily) {
-        if (wData.daily.sunshine_duration && wData.daily.sunshine_duration[0] != null) {
-          sunHours0 = wData.daily.sunshine_duration[0] / 3600;
-        }
-        if (wData.daily.temperature_2m_max && wData.daily.temperature_2m_max[0] != null) {
-          temp0 = Math.round(wData.daily.temperature_2m_max[0]);
-        }
-        if (wData.daily.weathercode && wData.daily.weathercode[0] != null) {
-          code0 = wData.daily.weathercode[0];
-        }
-      }
-      
-      // Get ML model predictions for all installations in this governorate
-      const govInsts = insts.filter(inst => (inst.governorate || inst.state) === govName);
-      let estDay0 = 0, estDay1 = 0, estDay2 = 0, estDay3 = 0;
-      
-      // Process installations in parallel but limit concurrent requests
-      const results = await Promise.all(govInsts.map(async inst => {
-        try {
-          // Get or fetch model ID (cached)
-          let modelId = modelCache[inst.id];
-          if (!modelId) {
-            const modelRes = await fetch(`/api/installations/${inst.id}/forecast/models`);
-            const modelsData = await modelRes.json();
-            modelId = modelsData.models && modelsData.models.length > 0 ? modelsData.models[0].id : null;
-            modelCache[inst.id] = modelId;
-          }
-          
-          if (!modelId) {
-            // No model available - use simple formula
-            const kwp = inst.installed_capacity_kwp || 0;
-            const fallback = kwp * sunHours0 * 0.75;
-            return { day0: fallback, day1: fallback, day2: fallback, day3: fallback };
-          }
-          
-          // Fetch forecast for today only (includes tomorrow prediction)
-          const today = new Date();
-          const dateStr = today.toISOString().split('T')[0];
-          
-          const forecastRes = await fetch(`/api/installations/${inst.id}/forecast?model=${encodeURIComponent(modelId)}&date=${dateStr}`);
-          const forecastData = await forecastRes.json();
-          
-          if (forecastData.status === 'ok') {
-            // Get today's prediction from daily array
-            const todayPred = forecastData.daily && forecastData.daily[0] ? forecastData.daily[0].total_kwh : 0;
-            // Get tomorrow from tomorrow_kwh field
-            const tomorrowPred = forecastData.tomorrow_kwh || 0;
-            
-            // For days 2 and 3, use simple scaling based on today's ratio
-            const kwp = inst.installed_capacity_kwp || 0;
-            const simpleEstimate = kwp * sunHours0 * 0.75;
-            const ratio = simpleEstimate > 0 ? todayPred / simpleEstimate : 0.75;
-            
-            return {
-              day0: todayPred,
-              day1: tomorrowPred,
-              day2: kwp * sunHours0 * ratio,  // Scale day 2
-              day3: kwp * sunHours0 * ratio   // Scale day 3
-            };
-          }
-          
-          // Fallback if API fails
-          const kwp = inst.installed_capacity_kwp || 0;
-          const fallback = kwp * sunHours0 * 0.75;
-          return { day0: fallback, day1: fallback, day2: fallback, day3: fallback };
-          
-        } catch (e) {
-          console.warn(`Forecast error for installation ${inst.id}:`, e.message);
-          // Fallback to simple formula
-          const kwp = inst.installed_capacity_kwp || 0;
-          const fallback = kwp * sunHours0 * 0.75;
-          return { day0: fallback, day1: fallback, day2: fallback, day3: fallback };
-        }
-      }));
-      
-      // Aggregate results
-      results.forEach(r => {
-        estDay0 += r.day0;
-        estDay1 += r.day1;
-        estDay2 += r.day2;
-        estDay3 += r.day3;
-      });
-      
-      nationalDay0 += estDay0;
-      nationalDay1 += estDay1;
-      nationalDay2 += estDay2;
-      nationalDay3 += estDay3;
-      
-      const kwp = g.total_kwp || 0;
-      let weatherBadge = `<span class="sz-meta">${sunHours0.toFixed(1)}h sol.</span>`;
-      if (temp0 != null) {
-        let icon = "fa-sun";
-        let iconColor = "#F59E0B";
-        if (code0 === 0) { icon = "fa-sun"; iconColor = "#F59E0B"; }
-        else if (code0 <= 2) { icon = "fa-cloud-sun"; iconColor = "#F59E0B"; }
-        else if (code0 === 3) { icon = "fa-cloud"; iconColor = "#9CA3AF"; }
-        else if (code0 >= 51) { icon = "fa-cloud-rain"; iconColor = "#2563EB"; }
-        weatherBadge = `<span style="font-size:12px;display:inline-flex;align-items:center;gap:5px"><i class="fas ${icon}" style="color:${iconColor}"></i> <strong>${temp0}°C</strong> <span class="sz-meta">(${sunHours0.toFixed(1)}h)</span></span>`;
-      }
-      
-      return `
-        <tr>
-          <td class="fw-name">${esc(govName)}</td>
-          <td style="text-align:right"><span class="sz-badge inactive">${g.cnt}</span></td>
-          <td style="text-align:right" class="sz-meta">${kwp.toFixed(1)} kWp</td>
-          <td style="text-align:right">${weatherBadge}</td>
-          <td style="text-align:right;font-weight:600;color:var(--c-text-primary)">${Math.round(estDay0).toLocaleString("fr-FR")} kWh</td>
-        </tr>`;
-    }));
-
-    document.getElementById("gov-tbody").innerHTML = govRowsHtml.length
-      ? govRowsHtml.join("")
-      : `<tr><td colspan="5" class="sz-meta" style="text-align:center;padding:16px">Aucune donnée par gouvernorat</td></tr>`;
-
-    // Update National Estimated Production KPI
-    document.getElementById("kpi-est-production").textContent = Math.round(nationalDay0).toLocaleString("fr-FR");
-
-    // 4-day forecast labels and values
-    const now = new Date();
-    const d1 = new Date(now); d1.setDate(d1.getDate() + 1);
-    const d2 = new Date(now); d2.setDate(d2.getDate() + 2);
-    const d3 = new Date(now); d3.setDate(d3.getDate() + 3);
-    const optDay = { weekday: "short", day: "numeric", month: "short" };
-    document.getElementById("fc-day-1-label").textContent = `Demain (${d1.toLocaleDateString("fr-FR", optDay)}) :`;
-    document.getElementById("fc-day-2-label").textContent = `J+2 (${d2.toLocaleDateString("fr-FR", optDay)}) :`;
-    document.getElementById("fc-day-3-label").textContent = `J+3 (${d3.toLocaleDateString("fr-FR", optDay)}) :`;
-
-    document.getElementById("fc-day-0").textContent = Math.round(nationalDay0).toLocaleString("fr-FR") + " kWh";
-    document.getElementById("fc-day-1").textContent = Math.round(nationalDay1).toLocaleString("fr-FR") + " kWh";
-    document.getElementById("fc-day-2").textContent = Math.round(nationalDay2).toLocaleString("fr-FR") + " kWh";
-    document.getElementById("fc-day-3").textContent = Math.round(nationalDay3).toLocaleString("fr-FR") + " kWh";
-
-    // Users
+    // Users table (no external calls needed)
     const instByUser = {};
     insts.forEach(i => { instByUser[i.owner_user_id] = (instByUser[i.owner_user_id]||0)+1; });
-
     document.getElementById("users-tbody").innerHTML = users.map(u => `
       <tr>
         <td class="fw-name">${esc(u.username)}<br>
@@ -485,12 +278,207 @@ document.getElementById("today-date").textContent = new Date().toLocaleDateStrin
         </td>
       </tr>`).join("");
 
+    // Render governorate table immediately with skeleton forecast values
+    const GOV_COORDS = {
+      "Sousse":{"lat":35.83,"lon":10.63},"Sfax":{"lat":34.73,"lon":10.72},
+      "Bizerte":{"lat":37.27,"lon":9.87},"Tunis":{"lat":36.81,"lon":10.18},
+      "Ariana":{"lat":36.86,"lon":10.19},"Ben Arous":{"lat":36.75,"lon":10.22},
+      "Manouba":{"lat":36.81,"lon":10.10},"Nabeul":{"lat":36.45,"lon":10.73},
+      "Zaghouan":{"lat":36.40,"lon":10.14},"Béja":{"lat":36.73,"lon":9.18},
+      "Jendouba":{"lat":36.50,"lon":8.78},"Le Kef":{"lat":36.17,"lon":8.70},
+      "Siliana":{"lat":36.08,"lon":9.37},"Kairouan":{"lat":35.68,"lon":10.10},
+      "Kasserine":{"lat":35.17,"lon":8.83},"Sidi Bouzid":{"lat":35.04,"lon":9.48},
+      "Monastir":{"lat":35.78,"lon":10.83},"Mahdia":{"lat":35.50,"lon":11.06},
+      "Gabès":{"lat":33.88,"lon":10.10},"Médenine":{"lat":33.35,"lon":10.50},
+      "Tataouine":{"lat":32.93,"lon":10.45},"Gafsa":{"lat":34.43,"lon":8.78},
+      "Tozeur":{"lat":33.92,"lon":8.13},"Kébili":{"lat":33.70,"lon":8.97}
+    };
+
+    const govs = stats.by_governorate || [];
+    const today = new Date().toISOString().split('T')[0];
+
+    // Set 4-day labels now (no external calls needed)
+    const now2 = new Date();
+    const d1 = new Date(now2); d1.setDate(d1.getDate()+1);
+    const d2 = new Date(now2); d2.setDate(d2.getDate()+2);
+    const d3 = new Date(now2); d3.setDate(d3.getDate()+3);
+    const optDay = { weekday:"short", day:"numeric", month:"short" };
+    document.getElementById("fc-day-1-label").textContent = `Demain (${d1.toLocaleDateString("fr-FR",optDay)}) :`;
+    document.getElementById("fc-day-2-label").textContent = `J+2 (${d2.toLocaleDateString("fr-FR",optDay)}) :`;
+    document.getElementById("fc-day-3-label").textContent = `J+3 (${d3.toLocaleDateString("fr-FR",optDay)}) :`;
+
+    // Render placeholder rows immediately so page feels fast
+    document.getElementById("gov-tbody").innerHTML = govs.length
+      ? govs.map(g => `
+        <tr id="gov-row-${esc(g.governorate)}">
+          <td class="fw-name">${esc(g.governorate||"Inconnu")}</td>
+          <td style="text-align:right"><span class="sz-badge inactive">${g.cnt}</span></td>
+          <td style="text-align:right" class="sz-meta">${(g.total_kwp||0).toFixed(1)} kWp</td>
+          <td style="text-align:right" id="gov-weather-${esc(g.governorate)}"><span class="sz-meta">…</span></td>
+          <td style="text-align:right;font-weight:600;color:var(--c-text-primary)" id="gov-est-${esc(g.governorate)}">
+            <span class="sz-meta">…</span>
+          </td>
+        </tr>`).join("")
+      : `<tr><td colspan="5" class="sz-meta" style="text-align:center;padding:16px">Aucune donnée par gouvernorat</td></tr>`;
+
   } catch (err) {
-    PlatformAPI.showError("Échec du chargement du tableau de bord : " + (err.data?.error || err.message));
+    PlatformAPI.showError("Échec du chargement : " + (err.data?.error || err.message));
   } finally {
+    // ── Spinner off — page is visible and interactive ────────────────────────
     PlatformAPI.hideSpinner();
   }
+
+  // ── Phase 2: load slow external data async (after spinner is gone) ────────
+  _loadSlowData();
 })();
+
+async function _loadSlowData() {
+  try {
+    const [stats, insts, modelsResp] = await Promise.all([
+      PlatformAPI.admin.solarStatistics(),
+      PlatformAPI.admin.listInstallations(),
+      // Fetch available models once — same list for all installations
+      fetch('/api/installations/forecast/models').then(r => r.json()).catch(() => ({ models: [] })),
+    ]);
+
+    const govs      = stats.by_governorate || [];
+    const today     = new Date().toISOString().split('T')[0];
+    const modelId   = modelsResp.models && modelsResp.models.length > 0
+                        ? modelsResp.models[0].id : null;
+
+    const GOV_COORDS = {
+      "Sousse":{"lat":35.83,"lon":10.63},"Sfax":{"lat":34.73,"lon":10.72},
+      "Bizerte":{"lat":37.27,"lon":9.87},"Tunis":{"lat":36.81,"lon":10.18},
+      "Ariana":{"lat":36.86,"lon":10.19},"Ben Arous":{"lat":36.75,"lon":10.22},
+      "Manouba":{"lat":36.81,"lon":10.10},"Nabeul":{"lat":36.45,"lon":10.73},
+      "Zaghouan":{"lat":36.40,"lon":10.14},"Béja":{"lat":36.73,"lon":9.18},
+      "Jendouba":{"lat":36.50,"lon":8.78},"Le Kef":{"lat":36.17,"lon":8.70},
+      "Siliana":{"lat":36.08,"lon":9.37},"Kairouan":{"lat":35.68,"lon":10.10},
+      "Kasserine":{"lat":35.17,"lon":8.83},"Sidi Bouzid":{"lat":35.04,"lon":9.48},
+      "Monastir":{"lat":35.78,"lon":10.83},"Mahdia":{"lat":35.50,"lon":11.06},
+      "Gabès":{"lat":33.88,"lon":10.10},"Médenine":{"lat":33.35,"lon":10.50},
+      "Tataouine":{"lat":32.93,"lon":10.45},"Gafsa":{"lat":34.43,"lon":8.78},
+      "Tozeur":{"lat":33.92,"lon":8.13},"Kébili":{"lat":33.70,"lon":8.97}
+    };
+
+    // Live telemetry (fire-and-forget, non-blocking)
+    Promise.all(insts.map(async i => {
+      try {
+        const r = await fetch(`/query?inst_id=${i.id}&type=current`).then(res => res.json());
+        return (r && r.state === "ok") ? Math.max(0, r.currently_produced_w || 0) : 0;
+      } catch { return 0; }
+    })).then(watts => {
+      const total = watts.reduce((a, b) => a + b, 0);
+      if (total > 0) {
+        const el = document.getElementById("live-telemetry-badge");
+        const ep = document.getElementById("kpi-live-power");
+        if (el && ep) {
+          el.style.display = "inline-flex";
+          ep.textContent = total >= 1000
+            ? (total / 1000).toFixed(2) + " kW"
+            : Math.round(total) + " W";
+        }
+      }
+    });
+
+    // Process each governorate: 1 weather call + 1 forecast call per installation
+    // All governorates run in parallel; installations within each run in parallel
+    let nationalDay0 = 0, nationalDay1 = 0, nationalDay2 = 0, nationalDay3 = 0;
+
+    await Promise.all(govs.map(async g => {
+      const govName = g.governorate || "Inconnu";
+      const govInsts = insts.filter(i => i.governorate === govName);
+
+      // One weather call per governorate (not per installation)
+      const sample = govInsts.find(i => i.latitude && i.longitude);
+      const lat = sample ? sample.latitude  : (GOV_COORDS[govName]?.lat ?? 36.8);
+      const lon = sample ? sample.longitude : (GOV_COORDS[govName]?.lon ?? 10.2);
+
+      const [wData, forecastResults] = await Promise.all([
+        // Weather for the governorate
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunshine_duration,temperature_2m_max,weathercode&forecast_days=4&timezone=auto`)
+          .then(r => r.json()).catch(() => null),
+
+        // Forecast for each installation in parallel (only if a model exists)
+        modelId
+          ? Promise.all(govInsts.map(async inst => {
+              try {
+                const url = `/api/installations/${inst.id}/forecast?model=${encodeURIComponent(modelId)}&date=${today}`;
+                const fd = await fetch(url).then(r => r.json());
+                if (fd.status === 'ok') {
+                  return {
+                    day0: fd.daily?.[0]?.total_kwh ?? 0,
+                    day1: fd.tomorrow_kwh ?? 0,
+                    // days 2-3: use today's ratio scaled by capacity
+                    day2: fd.daily?.[2]?.total_kwh ?? fd.tomorrow_kwh ?? 0,
+                    day3: fd.daily?.[3]?.total_kwh ?? fd.tomorrow_kwh ?? 0,
+                  };
+                }
+              } catch (_) {}
+              // Fallback: capacity × sunshine × PR
+              const kwp = inst.installed_capacity_kwp || 0;
+              const sh  = wData?.daily?.sunshine_duration?.[0] != null
+                            ? wData.daily.sunshine_duration[0] / 3600 : 5.2;
+              const est = kwp * sh * 0.75;
+              return { day0: est, day1: est, day2: est, day3: est };
+            }))
+          : Promise.resolve(govInsts.map(inst => {
+              const kwp = inst.installed_capacity_kwp || 0;
+              const sh  = wData?.daily?.sunshine_duration?.[0] != null
+                            ? wData.daily.sunshine_duration[0] / 3600 : 5.2;
+              const est = kwp * sh * 0.75;
+              return { day0: est, day1: est, day2: est, day3: est };
+            })),
+      ]);
+
+      // Aggregate
+      let estDay0 = 0, estDay1 = 0, estDay2 = 0, estDay3 = 0;
+      forecastResults.forEach(r => {
+        estDay0 += r.day0; estDay1 += r.day1; estDay2 += r.day2; estDay3 += r.day3;
+      });
+      nationalDay0 += estDay0; nationalDay1 += estDay1;
+      nationalDay2 += estDay2; nationalDay3 += estDay3;
+
+      // Build weather badge
+      const sunHours0 = wData?.daily?.sunshine_duration?.[0] != null
+                          ? wData.daily.sunshine_duration[0] / 3600 : null;
+      const temp0     = wData?.daily?.temperature_2m_max?.[0] != null
+                          ? Math.round(wData.daily.temperature_2m_max[0]) : null;
+      const code0     = wData?.daily?.weathercode?.[0] ?? null;
+
+      let icon = "fa-sun", iconColor = "#F59E0B";
+      if      (code0 === 0)  { icon = "fa-sun";        iconColor = "#F59E0B"; }
+      else if (code0 <= 2)   { icon = "fa-cloud-sun";  iconColor = "#F59E0B"; }
+      else if (code0 === 3)  { icon = "fa-cloud";      iconColor = "#9CA3AF"; }
+      else if (code0 >= 51)  { icon = "fa-cloud-rain"; iconColor = "#2563EB"; }
+
+      const weatherBadge = temp0 != null
+        ? `<span style="font-size:12px;display:inline-flex;align-items:center;gap:5px">
+             <i class="fas ${icon}" style="color:${iconColor}"></i>
+             <strong>${temp0}°C</strong>
+             ${sunHours0 != null ? `<span class="sz-meta">(${sunHours0.toFixed(1)}h)</span>` : ""}
+           </span>`
+        : `<span class="sz-meta">${sunHours0 != null ? sunHours0.toFixed(1)+"h sol." : "—"}</span>`;
+
+      // Update the already-visible row in place
+      const elW = document.getElementById(`gov-weather-${govName}`);
+      const elE = document.getElementById(`gov-est-${govName}`);
+      if (elW) elW.innerHTML = weatherBadge;
+      if (elE) elE.textContent = Math.round(estDay0).toLocaleString("fr-FR") + " kWh";
+    }));
+
+    // National totals
+    document.getElementById("kpi-est-production").textContent =
+      Math.round(nationalDay0).toLocaleString("fr-FR");
+    document.getElementById("fc-day-0").textContent = Math.round(nationalDay0).toLocaleString("fr-FR") + " kWh";
+    document.getElementById("fc-day-1").textContent = Math.round(nationalDay1).toLocaleString("fr-FR") + " kWh";
+    document.getElementById("fc-day-2").textContent = Math.round(nationalDay2).toLocaleString("fr-FR") + " kWh";
+    document.getElementById("fc-day-3").textContent = Math.round(nationalDay3).toLocaleString("fr-FR") + " kWh";
+
+  } catch (err) {
+    console.warn("Dashboard slow-load error:", err.message);
+  }
+}
 
 async function toggleRole(userId, cur) {
   const newRole = cur === "ADMIN" ? "USER" : "ADMIN";
