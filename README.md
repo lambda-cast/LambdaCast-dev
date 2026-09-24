@@ -9,7 +9,8 @@
 
 Face à la croissance rapide des installations photovoltaïques décentralisées en Tunisie, cette plateforme exploite des données météorologiques, des informations sur les parcs solaires installés et des modèles d'intelligence artificielle avancés pour prévoir la production PV à différentes échelles spatiales et temporelles — du district au niveau national — et fournir au Dispatching National une vision fiable de la production attendue.
 
-![Screenshot](doc/screenshot.png)
+![Screenshot](doc/image1.png)
+![Screenshot](doc/image.png)
 
 ---
 
