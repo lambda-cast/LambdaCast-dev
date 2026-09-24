@@ -1,4 +1,4 @@
-# ![LambdaCast](site/img/site-logo.png)
+<img src="site/img/site-logo.png" alt="LambdaCast" width="125"/>
 
 ![Version](https://img.shields.io/badge/version-0.34.0-blue)
 ![License](https://img.shields.io/badge/license-see%20LICENSE-green)
