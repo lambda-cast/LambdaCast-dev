@@ -49,7 +49,13 @@
     <div class="col-sm-4 col-md-3">
       <div class="sz-kpi">
         <div class="sz-kpi-value" id="kpi-total">—</div>
-        <div class="sz-kpi-label">Modèles disponibles</div>
+        <div class="sz-kpi-label">Modèles au total</div>
+      </div>
+    </div>
+    <div class="col-sm-4 col-md-3">
+      <div class="sz-kpi">
+        <div class="sz-kpi-value" id="kpi-active">—</div>
+        <div class="sz-kpi-label">Modèles actifs</div>
       </div>
     </div>
     <div class="col-sm-4 col-md-3">
@@ -79,6 +85,7 @@
             <tr>
               <th>Nom du modèle</th>
               <th>Type</th>
+              <th>Statut</th>
               <th>Fichier</th>
               <th>Taille</th>
               <th>Importé le</th>
@@ -118,10 +125,9 @@
         <div class="col-md-6">
           <p class="mb-1 fw-semibold small">Fonctionnalités requises</p>
           <p class="text-muted small mb-0">
-            Les modèles doivent accepter 9 variables météo :<br>
-            <code>Solar_Radiation_Wm2, Outdoor_Temp_C, Dew_Point_C,
-            Wind_Speed_ms, Wind_Dir_deg, Humidity_pct, Rain_mm,
-            PM25_ugm3, PM10_ugm3</code>
+            Les modèles doivent accepter 5 variables d'entrée :<br>
+            <code>Solar_Radiation_Wm2, Outdoor_Temp_C, Wind_Speed_ms,
+            Humidity_pct, AQI_US</code>
           </p>
         </div>
         <div class="col-md-6">
@@ -249,7 +255,6 @@ let deleteModal   = null;
     });
 
     document.getElementById('btn-upload-confirm').addEventListener('click', doUpload);
-
     document.getElementById('btn-delete-confirm').addEventListener('click', doDelete);
 
     await loadModels();
@@ -273,9 +278,10 @@ async function loadModels() {
 }
 
 function renderKpis(list) {
-  document.getElementById('kpi-total').textContent = list.length;
-  document.getElementById('kpi-xgb').textContent = list.filter(m => m.type === 'xgb').length;
-  document.getElementById('kpi-arx').textContent = list.filter(m => m.type === 'arx').length;
+  document.getElementById('kpi-total').textContent  = list.length;
+  document.getElementById('kpi-active').textContent = list.filter(m => m.enabled !== false).length;
+  document.getElementById('kpi-xgb').textContent    = list.filter(m => m.type === 'xgb').length;
+  document.getElementById('kpi-arx').textContent    = list.filter(m => m.type === 'arx').length;
 }
 
 function renderTable(list) {
@@ -283,7 +289,7 @@ function renderTable(list) {
   if (!list.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" class="text-center text-muted py-5">
+        <td colspan="7" class="text-center text-muted py-5">
           <i class="fas fa-brain fa-2x mb-2 d-block opacity-25"></i>
           Aucun modèle installé. Importez votre premier modèle.
         </td>
@@ -291,17 +297,31 @@ function renderTable(list) {
     return;
   }
 
-  tbody.innerHTML = list.map(m => `
-    <tr>
+  tbody.innerHTML = list.map(m => {
+    const enabled = m.enabled !== false;
+    const rowStyle = enabled ? '' : 'opacity:0.5';
+    const toggleIcon  = enabled ? 'fa-toggle-on'  : 'fa-toggle-off';
+    const toggleTitle = enabled ? 'Désactiver'     : 'Activer';
+    const toggleClass = enabled ? 'sz-btn-warning' : 'sz-btn-success';
+    return `
+    <tr style="${rowStyle}">
       <td>
         <div class="fw-semibold">${escHtml(m.label)}</div>
         <div class="text-muted small font-monospace">${escHtml(m.id)}</div>
       </td>
       <td>${typeBadge(m.type)}</td>
+      <td>${statusBadge(enabled)}</td>
       <td class="text-muted small font-monospace">${escHtml(m.filename)}</td>
       <td class="text-muted small">${m.size_kb != null ? m.size_kb + ' Ko' : '—'}</td>
       <td class="text-muted small">${escHtml(m.uploaded_at || '—')}</td>
-      <td>
+      <td style="white-space:nowrap">
+        <button class="sz-btn ${toggleClass} sz-btn-sm me-1"
+                data-model-id="${escHtml(m.id)}"
+                data-enabled="${enabled}"
+                onclick="toggleModel(this.dataset.modelId, this.dataset.enabled === 'true')"
+                title="${toggleTitle}" aria-label="${toggleTitle} ${escHtml(m.label)}">
+          <i class="fas ${toggleIcon}"></i>
+        </button>
         <button class="sz-btn sz-btn-danger sz-btn-sm"
                 data-model-id="${escHtml(m.id)}"
                 data-model-label="${escHtml(m.label)}"
@@ -310,14 +330,36 @@ function renderTable(list) {
           <i class="fas fa-trash"></i>
         </button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 }
 
 function typeBadge(type) {
   if (type === 'xgb') return `<span class="badge" style="background:#10B981;color:#fff">XGBoost</span>`;
   if (type === 'arx') return `<span class="badge" style="background:#8B5CF6;color:#fff">ARX</span>`;
   return `<span class="badge bg-secondary">Générique</span>`;
+}
+
+function statusBadge(enabled) {
+  return enabled
+    ? `<span class="badge" style="background:#10B981;color:#fff"><i class="fas fa-circle-check me-1"></i>Actif</span>`
+    : `<span class="badge" style="background:#6B7280;color:#fff"><i class="fas fa-circle-xmark me-1"></i>Désactivé</span>`;
+}
+
+// ── Toggle enable/disable ─────────────────────────────────────────────────
+async function toggleModel(modelId, currentlyEnabled) {
+  try {
+    if (currentlyEnabled) {
+      await PlatformAPI.admin.disableModel(modelId);
+      PlatformAPI.showSuccess(`Modèle désactivé.`);
+    } else {
+      await PlatformAPI.admin.enableModel(modelId);
+      PlatformAPI.showSuccess(`Modèle activé.`);
+    }
+    await loadModels();
+  } catch (err) {
+    PlatformAPI.showError(err.data?.error || 'Échec du changement de statut.');
+  }
 }
 
 // ── Upload ───────────────────────────────────────────────────────────────

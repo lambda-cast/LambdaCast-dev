@@ -79,21 +79,21 @@ const MapUtils = (() => {
   }
 
   /**
-   * Build a coloured circle marker for an installation feature.
+   * Build a coloured location-pin marker for an installation feature.
    * @param {object} feature  GeoJSON feature
    * @param {L.LatLng} latlng
    */
   function buildMarker(feature, latlng) {
     const status = feature.properties.status || 'unknown';
     const color  = STATUS_COLORS[status] || STATUS_COLORS.unknown;
-    return L.circleMarker(latlng, {
-      radius:      8,
-      fillColor:   color,
-      color:       '#fff',
-      weight:      2,
-      opacity:     1,
-      fillOpacity: 0.85,
+    const icon = L.divIcon({
+      className: '',
+      html: `<i class="fas fa-location-dot" style="color:${color};font-size:24px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.30))"></i>`,
+      iconSize:   [24, 24],
+      iconAnchor: [12, 24],
+      popupAnchor:[0, -26],
     });
+    return L.marker(latlng, { icon });
   }
 
   /**
@@ -108,9 +108,7 @@ const MapUtils = (() => {
     const status = props.status || 'active';
     const prod   = currentProductionW != null
       ? `${Math.round(currentProductionW)} W` : '—';
-    const statusDot = `<span style="display:inline-block;width:10px;height:10px;
-      border-radius:50%;background:${STATUS_COLORS[status] || '#3498db'};
-      margin-right:4px;vertical-align:middle;"></span>`;
+    const statusDot = `<i class="fas fa-location-dot" style="color:${STATUS_COLORS[status] || '#3498db'};margin-right:4px"></i>`;
 
     return `
       <div style="min-width:180px;font-size:13px">

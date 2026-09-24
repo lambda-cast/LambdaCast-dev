@@ -63,14 +63,15 @@
 }
 .kpi-card { background: #fff; border: 1px solid var(--c-border); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 10px; transition: box-shadow .2s, border-color .2s; }
 .kpi-card:hover { box-shadow: var(--shadow-md); border-color: #D1D5DB; }
-.kpi-card-header { display: flex; align-items: center; justify-content: space-between; }
-.kpi-card-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
-.kpi-card-icon.blue   { background: #EFF6FF; color: #2563EB; }
-.kpi-card-icon.yellow { background: #FEF3C7; color: #F59E0B; }
-.kpi-card-icon.green  { background: #F0FDF4; color: #22C55E; }
-.kpi-card-icon.purple { background: #F5F3FF; color: #8B5CF6; }
+.kpi-card-header { display: flex; align-items: center; gap: 10px; }
+.kpi-card-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.kpi-card-icon.blue   { color: #2563EB; }
+.kpi-card-icon.yellow { color: #F59E0B; }
+.kpi-card-icon.green  { color: #22C55E; }
+.kpi-card-icon.purple { color: #8B5CF6; }
+.kpi-card-title { font-size: 13px; font-weight: 700; color: var(--c-text-primary); }
 .kpi-card-body { display: flex; flex-direction: column; gap: 2px; }
-.kpi-card-label { font-size: 12px; font-weight: 500; color: var(--c-text-muted); }
+.kpi-card-label { display: none; }
 .kpi-card-value { font-size: 28px; font-weight: 700; color: var(--c-text-primary); line-height: 1.1; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: 4px; }
 .kpi-card-unit { font-size: 14px; font-weight: 500; color: var(--c-text-secondary); }
 .kpi-card-sub { font-size: 11px; color: var(--c-text-muted); margin-top: 2px; }
@@ -235,10 +236,10 @@
 
   <!-- ═══ SECTION 2: KPI CARDS ROW ═══ -->
   <div class="mon-kpi-row">
-    <div class="kpi-card"><div class="kpi-card-header"><div class="kpi-card-icon blue"><i class="fas fa-bolt"></i></div></div><div class="kpi-card-body"><span class="kpi-card-label">Production actuelle</span><div class="kpi-card-value"><span id="kpi-realtime">--</span><span class="kpi-card-unit" id="kpi-rt-unit">kW</span></div><span class="kpi-card-sub">Puissance instantanée</span></div></div>
-    <div class="kpi-card"><div class="kpi-card-header"><div class="kpi-card-icon yellow"><i class="fas fa-sun"></i></div></div><div class="kpi-card-body"><span class="kpi-card-label">Énergie du jour</span><div class="kpi-card-value"><span id="kpi-today-energy">--</span><span class="kpi-card-unit" id="kpi-today-unit">kWh</span></div><span class="kpi-card-sub">Aujourd'hui</span></div></div>
-    <div class="kpi-card"><div class="kpi-card-header"><div class="kpi-card-icon purple"><i class="fas fa-chart-line"></i></div></div><div class="kpi-card-body"><span class="kpi-card-label">Énergie totale</span><div class="kpi-card-value"><span id="kpi-total-energy">--</span><span class="kpi-card-unit" id="kpi-total-unit">MWh</span></div><span class="kpi-card-sub">Production à vie</span></div></div>
-    <div class="kpi-card"><div class="kpi-card-header"><div class="kpi-card-icon green"><i class="fas fa-gauge-high"></i></div></div><div class="kpi-card-body"><span class="kpi-card-label">Puissance installée</span><div class="kpi-card-value"><span id="kpi-capacity">--</span><span class="kpi-card-unit">kWp</span></div><span class="kpi-card-sub">Capacité nominale</span></div></div>
+    <div class="kpi-card"><div class="kpi-card-header"><div class="kpi-card-icon blue"><i class="fas fa-bolt"></i></div><span class="kpi-card-title">Production actuelle</span></div><div class="kpi-card-body"><span class="kpi-card-label">Production actuelle</span><div class="kpi-card-value"><span id="kpi-realtime">--</span><span class="kpi-card-unit" id="kpi-rt-unit">kW</span></div><span class="kpi-card-sub">Puissance instantanée</span></div></div>
+    <div class="kpi-card"><div class="kpi-card-header"><div class="kpi-card-icon yellow"><i class="fas fa-sun"></i></div><span class="kpi-card-title">Énergie du jour</span></div><div class="kpi-card-body"><span class="kpi-card-label">Énergie du jour</span><div class="kpi-card-value"><span id="kpi-today-energy">--</span><span class="kpi-card-unit" id="kpi-today-unit">kWh</span></div><span class="kpi-card-sub">Aujourd'hui</span></div></div>
+    <div class="kpi-card"><div class="kpi-card-header"><div class="kpi-card-icon purple"><i class="fas fa-wind"></i></div><span class="kpi-card-title">Qualité de l'air</span></div><div class="kpi-card-body"><span class="kpi-card-label">Qualité de l'air</span><div class="kpi-card-value"><span id="kpi-aqi">--</span><span class="kpi-card-unit">AQI</span></div><span class="kpi-card-sub" id="kpi-aqi-sub">Indice US (IQAir)</span></div></div>
+    <div class="kpi-card"><div class="kpi-card-header"><div class="kpi-card-icon green"><i class="fas fa-gauge-high"></i></div><span class="kpi-card-title">Puissance installée</span></div><div class="kpi-card-body"><span class="kpi-card-label">Puissance installée</span><div class="kpi-card-value"><span id="kpi-capacity">--</span><span class="kpi-card-unit">kWp</span></div><span class="kpi-card-sub">Capacité nominale</span></div></div>
   </div>
 
   <!-- ═══ SECTION 4: FLOW + CHART SIDE BY SIDE ═══ -->
@@ -323,7 +324,7 @@
           <span style="font-size:12px;color:var(--c-text-muted)">→</span>
           <input type="date" id="custom-to" class="date-nav-date" style="min-width:130px;cursor:pointer"/>
           <select id="custom-interval" class="date-nav-date" style="min-width:90px;cursor:pointer">
-            <option value="minute">Par minute</option><option value="hour" selected>Par heure</option><option value="day">Par jour</option><option value="month">Par mois</option>
+            <option value="minute">Par minute</option><option value="hour">Par heure</option><option value="day" selected>Par jour</option><option value="month">Par mois</option>
           </select>
           <button class="date-nav-btn" onclick="loadChartData()" title="Appliquer" style="width:auto;padding:0 12px;font-size:11px"><i class="fas fa-check"></i></button>
         </div>
@@ -414,7 +415,7 @@ function _startChartAutoRefresh() {
     try{gInst=await PlatformAPI.installations.get(INST_ID);}catch{PlatformAPI.showError('Installation introuvable ou accès refusé.');return;}
     populateHeader();populateSpec();initInfoBtn();initECharts();initCustomPicker();updateDateLabel();
     await initModels();
-    await Promise.all([refreshLive(),loadChartData(),loadEnergySummary(),loadWeather(),loadForecast()]);
+    await Promise.all([refreshLive(),loadChartData(),loadEnergySummary(),loadWeather(),loadAQI(),loadForecast()]);
     gLiveInterval=setInterval(refreshLive,5000);
     _startChartAutoRefresh();
   }catch(err){PlatformAPI.showError('Erreur: '+(err.message||'Inconnue'));}
@@ -444,6 +445,32 @@ async function loadWeather(){
       document.getElementById('weather-desc').textContent=desc;
     }
   }catch(e){console.error('Weather load failed',e);}
+}
+
+// ═══ AQI (IQAir) ═══
+async function loadAQI(){
+  if(!gInst)return;
+  try{
+    const resp=await fetch(`/api/installations/${INST_ID}/aqi`);
+    if(!resp.ok)return; // endpoint not yet available — silent fail
+    const data=await resp.json();
+    const aqi=data.aqi_us;
+    if(aqi==null)return;
+    document.getElementById('kpi-aqi').textContent=aqi;
+    // Color-code the card icon by AQI category (EPA)
+    const card=document.getElementById('kpi-aqi').closest('.kpi-card');
+    const iconEl=card?.querySelector('.kpi-card-icon');
+    let color,label;
+    if(aqi<=50){color='#22C55E';label='Bon';}
+    else if(aqi<=100){color='#F59E0B';label='Modéré';}
+    else if(aqi<=150){color='#F97316';label='Mauvais (groupes sensibles)';}
+    else if(aqi<=200){color='#EF4444';label='Mauvais';}
+    else if(aqi<=300){color='#8B5CF6';label='Très mauvais';}
+    else{color='#7F1D1D';label='Dangereux';}
+    if(iconEl){iconEl.style.background='none';iconEl.style.color=color;iconEl.querySelector('i').className='fas fa-wind';}
+    const sub=document.getElementById('kpi-aqi-sub');
+    if(sub)sub.textContent=label+(data.source==='fallback'?' (estimé)':'');
+  }catch(e){console.warn('AQI load skipped:',e.message);}
 }
 
 // ═══ HEADER / SPEC ═══
@@ -612,56 +639,135 @@ async function loadChartData(silent=false){
     else if(gPeriod==='month'){const yr=gCurDate.getFullYear(),mo=(gCurDate.getMonth()+1).toString().padStart(2,'0');const rows=await fetch(`/query?inst_id=${gInst.id}&type=days_in_month&date=${yr}-${mo}`).then(r=>r.json());xData=rows.map(r=>r.date.slice(8));yData=rows.map(r=>{const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}
     else if(gPeriod==='year'){const yr=gCurDate.getFullYear();const rows=await fetch(`/query?inst_id=${gInst.id}&type=months_in_year&date=${yr}`).then(r=>r.json());const MF=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];xData=rows.map(r=>{const m=parseInt(r.date.slice(5))-1;return MF[m]||r.date.slice(5);});yData=rows.map(r=>{const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}
     else if(gPeriod==='lifetime'){const rows=await fetch(`/query?inst_id=${gInst.id}&type=years_in_all_time`).then(r=>r.json());xData=rows.map(r=>String(r.date));yData=rows.map(r=>{const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}
-    else if(gPeriod==='custom'){const fromVal=document.getElementById('custom-from').value,toVal=document.getElementById('custom-to').value,interval=document.getElementById('custom-interval').value;if(!fromVal||!toVal){renderChart([],[],[],false);return;}const fromDate=new Date(fromVal),toDate=new Date(toVal);
+    else if(gPeriod==='custom'){
+      const fromVal=document.getElementById('custom-from').value;
+      const toVal=document.getElementById('custom-to').value;
+      const interval=document.getElementById('custom-interval').value;
+      if(!fromVal||!toVal){renderChart([],[],[],false);return;}
+      const fromDate=new Date(fromVal);
+      const toDate=new Date(toVal);
+      if(fromDate>toDate){renderChart([],[],[],false);return;}
+
+      const todayStr=isoDate(new Date());
+      const isMultiDay=fromVal!==toVal;
+
       if(interval==='minute'||interval==='hour'){
-        const diffH=Math.ceil((toDate-fromDate)/36e5)+24;
-        const rows=await fetch(`/query?inst_id=${gInst.id}&type=real_time&h=${diffH}`).then(r=>r.json());
-        const asc=[...rows].reverse();
-        
+        // Fetch high-resolution data for each day in range from high_res table.
+        // Each day's historical response includes a `high_res` array of
+        // [time, produced_kw, consumed_kw, fed_in_kw] minute-level entries.
+        const days=[];
+        const cur=new Date(fromVal);
+        const end=new Date(toVal);
+        while(cur<=end){days.push(isoDate(cur));cur.setDate(cur.getDate()+1);}
+
+        // Fetch all days in parallel
+        const dayResults=await Promise.all(days.map(async d=>{
+          try{
+            const r=await fetch(`/query?inst_id=${gInst.id}&type=historical&table=days&date=${d}`).then(r=>r.json());
+            return{date:d,data:r};
+          }catch(_){return{date:d,data:null};}
+        }));
+
+        const todayStr=isoDate(new Date());
+        const nowH=new Date().getHours();
+
         if(interval==='minute'){
-          // For minute interval, only show data up to current time if viewing today
-          const now=new Date();
-          const todayStr=isoDate(now);
-          const currentTimeStr=now.toTimeString().slice(0,5);
-          
-          if(toVal===todayStr){
-            // Viewing today - filter future times
-            const filtered=asc.filter(r=>r[1]<=currentTimeStr);
-            xData=filtered.map(r=>r[1]);
-            yData=filtered.map(r=>Math.max(0,parseFloat(r[2])*1000));
-          }else{
-            // Viewing past - show all data
-            xData=asc.map(r=>r[1]);
-            yData=asc.map(r=>Math.max(0,parseFloat(r[2])*1000));
+          // Minute-level: use high_res for past days, real_time for today
+          for(const{date,data} of dayResults){
+            if(date===todayStr){
+              // Today: pull from real_time
+              const rows=await fetch(`/query?inst_id=${gInst.id}&type=real_time&h=24`).then(r=>r.json());
+              [...rows].reverse().forEach(r=>{
+                xData.push(days.length>1?`${date.slice(5)} ${r[1]}`:r[1]);
+                yData.push(Math.max(0,parseFloat(r[2])*1000));
+              });
+            }else if(data&&data.high_res&&data.high_res.length){
+              let parsed;
+              try{parsed=typeof data.high_res==='string'?JSON.parse(data.high_res):data.high_res;}catch(_){parsed=[];}
+              parsed.forEach(p=>{
+                xData.push(days.length>1?`${date.slice(5)} ${p[0]}`:p[0]);
+                yData.push(Math.max(0,parseFloat(p[1])*1000));
+              });
+            }
           }
         }else{
-          // For hourly interval, aggregate and filter future hours
-          const hm={};
-          asc.forEach(r=>{
-            const h=r[1].slice(0,2)+':00';
-            hm[h]=Math.max(hm[h]||0,parseFloat(r[2])*1000);
-          });
-          
-          const now=new Date();
-          const currentHour=now.getHours();
-          const todayStr=isoDate(now);
-          
-          // Filter to only show hours that have data or are in the selected range
-          xData=Object.keys(hm).sort().filter(hour=>{
-            const h=parseInt(hour.slice(0,2));
-            // If custom range is today, filter future hours
-            if(toVal===todayStr){
-              return h<=currentHour;
+          // Hourly: aggregate high_res by hour bucket per day
+          for(const{date,data} of dayResults){
+            const isToday=date===todayStr;
+            if(isToday){
+              // Today: use real_time
+              const rows=await fetch(`/query?inst_id=${gInst.id}&type=real_time&h=24`).then(r=>r.json());
+              const hm={};
+              [...rows].reverse().forEach(r=>{
+                const h=r[1].slice(0,2)+':00';
+                if(isToday&&parseInt(h)>nowH)return;
+                hm[h]=Math.max(hm[h]||0,parseFloat(r[2])*1000);
+              });
+              Object.keys(hm).sort().forEach(h=>{
+                xData.push(days.length>1?`${date.slice(5)} ${h}`:h);
+                yData.push(hm[h]);
+              });
+            }else if(data&&data.high_res&&data.high_res.length){
+              let parsed;
+              try{parsed=typeof data.high_res==='string'?JSON.parse(data.high_res):data.high_res;}catch(_){parsed=[];}
+              const hm={};
+              parsed.forEach(p=>{
+                const h=p[0].slice(0,2)+':00';
+                hm[h]=Math.max(hm[h]||0,parseFloat(p[1])*1000);
+              });
+              Object.keys(hm).sort().forEach(h=>{
+                xData.push(days.length>1?`${date.slice(5)} ${h}`:h);
+                yData.push(hm[h]);
+              });
             }
-            // Otherwise show all hours in the range
-            return true;
-          });
-          yData=xData.map(h=>hm[h]);
+          }
         }
         isPower=true;
       }
-      else if(interval==='day'){const byDate={};let cur=new Date(fromDate.getFullYear(),fromDate.getMonth(),1);const end=new Date(toDate.getFullYear(),toDate.getMonth(),1);while(cur<=end){const ym=`${cur.getFullYear()}-${(cur.getMonth()+1).toString().padStart(2,'0')}`;const rows=await fetch(`/query?inst_id=${gInst.id}&type=days_in_month&date=${ym}`).then(r=>r.json());rows.forEach(r=>{byDate[r.date]=r;});cur.setMonth(cur.getMonth()+1);}const days=Object.keys(byDate).filter(d=>d>=fromVal&&d<=toVal).sort();xData=days.map(d=>d.slice(5));yData=days.map(d=>{const r=byDate[d];const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}
-      else if(interval==='month'){const byMonth={};for(let y=fromDate.getFullYear();y<=toDate.getFullYear();y++){const rows=await fetch(`/query?inst_id=${gInst.id}&type=months_in_year&date=${y}`).then(r=>r.json());rows.forEach(r=>{byMonth[r.date]=r;});}const months=Object.keys(byMonth).filter(d=>d>=fromVal.slice(0,7)&&d<=toVal.slice(0,7)).sort();xData=months;yData=months.map(m=>{const r=byMonth[m];const v=(r.produced_self||0)+(r.produced_feed_in||0);return v<0?null:+v.toFixed(2);});isPower=false;}}
+      else if(interval==='day'){
+        // Walk month by month and collect all days in [fromVal, toVal]
+        const byDate={};
+        let cur=new Date(fromDate.getFullYear(),fromDate.getMonth(),1);
+        const end=new Date(toDate.getFullYear(),toDate.getMonth(),1);
+        while(cur<=end){
+          const ym=`${cur.getFullYear()}-${(cur.getMonth()+1).toString().padStart(2,'0')}`;
+          try{
+            const rows=await fetch(`/query?inst_id=${gInst.id}&type=days_in_month&date=${ym}`).then(r=>r.json());
+            if(Array.isArray(rows)) rows.forEach(r=>{byDate[r.date]=r;});
+          }catch(_){}
+          cur.setMonth(cur.getMonth()+1);
+        }
+        const days=Object.keys(byDate).filter(d=>d>=fromVal&&d<=toVal).sort();
+        // Label: show MM-DD, or full date if spanning multiple years
+        const multiYear=fromDate.getFullYear()!==toDate.getFullYear();
+        xData=days.map(d=>multiYear?d:d.slice(5));
+        yData=days.map(d=>{
+          const r=byDate[d];
+          if(!r)return null;
+          const v=(r.produced_self||0)+(r.produced_feed_in||0);
+          return v<0?null:+v.toFixed(2);
+        });
+        isPower=false;
+      }
+      else if(interval==='month'){
+        const byMonth={};
+        for(let y=fromDate.getFullYear();y<=toDate.getFullYear();y++){
+          try{
+            const rows=await fetch(`/query?inst_id=${gInst.id}&type=months_in_year&date=${y}`).then(r=>r.json());
+            if(Array.isArray(rows)) rows.forEach(r=>{byMonth[r.date]=r;});
+          }catch(_){}
+        }
+        const months=Object.keys(byMonth).filter(d=>d>=fromVal.slice(0,7)&&d<=toVal.slice(0,7)).sort();
+        xData=months;
+        yData=months.map(m=>{
+          const r=byMonth[m];
+          if(!r)return null;
+          const v=(r.produced_self||0)+(r.produced_feed_in||0);
+          return v<0?null:+v.toFixed(2);
+        });
+        isPower=false;
+      }
+    }
 
     // Real ML model forecast overlay + 2 hours into the future
     let yDataForecast=[];
@@ -766,10 +872,10 @@ async function loadForecast(){
 function setPeriod(p,btn){gPeriod=p;gCurDate=new Date();document.querySelectorAll('.ppill').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const stdNav=document.getElementById('date-nav-std'),customNav=document.getElementById('date-nav-custom');if(p==='custom'){stdNav.style.display='none';customNav.style.display='flex';}else{stdNav.style.display='flex';customNav.style.display='none';}updateDateLabel();loadChartData();loadEnergySummary();}
 function navDate(dir){if(gPeriod==='day')gCurDate.setDate(gCurDate.getDate()+dir);else if(gPeriod==='week')gCurDate.setDate(gCurDate.getDate()+dir*7);else if(gPeriod==='month')gCurDate.setMonth(gCurDate.getMonth()+dir);else if(gPeriod==='year')gCurDate.setFullYear(gCurDate.getFullYear()+dir);else if(gPeriod==='lifetime')return;updateDateLabel();loadChartData();}
 function updateDateLabel(){const d=gCurDate,lbl=document.getElementById('nav-date-label');if(!lbl)return;if(gPeriod==='day')lbl.textContent=d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});else if(gPeriod==='week'){const mon=weekMonday(d);const sun=new Date(mon);sun.setDate(sun.getDate()+6);lbl.textContent=mon.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})+' – '+sun.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});}else if(gPeriod==='month')lbl.textContent=d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});else if(gPeriod==='year')lbl.textContent=d.getFullYear();else if(gPeriod==='lifetime')lbl.textContent='Tout l\'historique';}
-function initCustomPicker(){const t=isoDate(new Date()),m=isoDate(new Date(Date.now()-30*864e5));document.getElementById('custom-from').value=m;document.getElementById('custom-to').value=t;}
+function initCustomPicker(){const t=isoDate(new Date()),m=isoDate(new Date(Date.now()-7*864e5));document.getElementById('custom-from').value=m;document.getElementById('custom-to').value=t;}
 
 // ═══ TOOLBAR ═══
-function hardRefresh(){refreshLive();loadChartData();loadEnergySummary();loadForecast();}
+function hardRefresh(){refreshLive();loadChartData();loadEnergySummary();loadAQI();loadForecast();}
 function downloadChart(){if(!gChartInstance)return;const a=document.createElement('a');a.download=`lambdacast_${gInst?.name||INST_ID}_${gPeriod}.png`;a.href=gChartInstance.getDataURL({type:'png',pixelRatio:2,backgroundColor:'#fff'});a.click();}
 
 // ═══ UTILITIES ═══

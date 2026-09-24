@@ -616,3 +616,28 @@ def get_installation_forecast(installation_id: int):
     except Exception as e:
         logging.exception("Forecast generation error")
         return jsonify({"error": str(e)}), 500
+
+
+@installations_bp.route("/<int:installation_id>/aqi", methods=["GET"])
+@require_auth
+def get_installation_aqi(installation_id: int):
+    """
+    GET /api/installations/<id>/aqi
+    Returns the current US AQI for the installation's location via IQAir.
+    Response: { "aqi_us": int, "source": "iqair"|"fallback" }
+    """
+    inst, db = _get_installation_or_404(installation_id, g.current_user)
+    if not inst:
+        return jsonify({"error": "Installation not found"}), 404
+
+    lat = inst.get("latitude") or 34.73
+    lon = inst.get("longitude") or 10.72
+
+    from iqair_service import IQAirService, pm25_to_aqi_us
+    svc = IQAirService()
+    aqi = svc.get_aqi_us(lat, lon)
+    if aqi is not None:
+        return jsonify({"aqi_us": aqi, "source": "iqair"})
+    # Fallback — return estimated value so the UI always gets a number
+    estimated = pm25_to_aqi_us(15.0)
+    return jsonify({"aqi_us": estimated, "source": "fallback"})

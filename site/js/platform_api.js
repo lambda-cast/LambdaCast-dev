@@ -110,6 +110,8 @@ const PlatformAPI = (() => {
     // Forecast model management
     listModels: () => request("GET", "/api/admin/forecast/models"),
     deleteModel: (modelId) => request("DELETE", `/api/admin/forecast/models/${encodeURIComponent(modelId)}`),
+    enableModel:  (modelId) => request("PATCH", `/api/admin/forecast/models/${encodeURIComponent(modelId)}/enable`),
+    disableModel: (modelId) => request("PATCH", `/api/admin/forecast/models/${encodeURIComponent(modelId)}/disable`),
     uploadModel: async (file, modelName, overwrite = false) => {
       const form = new FormData();
       form.append("model_file", file);

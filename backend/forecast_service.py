@@ -2,15 +2,19 @@
 forecast_service.py
 ===================
 Backend service that dynamically loads ML models from the models/ directory
-and generates PV power forecasts using real weather data from Open-Meteo.
+and generates PV power forecasts using real weather data from Open-Meteo
+and air quality data from IQAir.
 
 Supported models in models/:
   - arx_model.pkl (AutoReg with 30 lags & exogenous weather features)
   - xgb_PV1_Power_W_1.joblib (XGBoost Regressor)
 
-Features required by both models:
-  ['Solar_Radiation_Wm2', 'Outdoor_Temp_C', 'Dew_Point_C', 'Wind_Speed_ms',
-   'Wind_Dir_deg', 'Humidity_pct', 'Rain_mm', 'PM25_ugm3', 'PM10_ugm3']
+Features used by all models:
+  ['Solar_Radiation_Wm2', 'Outdoor_Temp_C', 'Wind_Speed_ms',
+   'Humidity_pct', 'AQI_US']
+
+AQI_US is fetched from the IQAir AirVisual API (IQAIR_API_KEY env var).
+Falls back to a PM2.5-derived AQI estimate when the key is absent.
 """
 
 import os
@@ -23,6 +27,8 @@ from datetime import datetime, timedelta, date
 
 import numpy as np
 import pandas as pd
+
+from iqair_service import IQAirService
 
 # Lazy joblib import
 _joblib = None
@@ -42,47 +48,57 @@ _loaded_models = {}
 WEATHER_FEATURES = [
     "Solar_Radiation_Wm2",
     "Outdoor_Temp_C",
-    "Dew_Point_C",
     "Wind_Speed_ms",
-    "Wind_Dir_deg",
     "Humidity_pct",
-    "Rain_mm",
-    "PM25_ugm3",
-    "PM10_ugm3",
+    "AQI_US",
 ]
 
 ARX_EXOG_COLS = [
-    "Wind_Dir_deg",
     "Wind_Speed_ms",
     "Humidity_pct",
     "Outdoor_Temp_C",
     "Solar_Radiation_Wm2",
-    "PM10_ugm3",
-    "PM25_ugm3",
-    "Rain_mm",
-    "dew_point_2m (°C)",
+    "AQI_US",
 ]
 
 
+def _load_disabled_models() -> set:
+    """Read the disabled_models.json sidecar produced by forecast_routes."""
+    disabled_path = os.path.join(os.path.abspath(MODELS_DIR), "disabled_models.json")
+    try:
+        if os.path.isfile(disabled_path):
+            with open(disabled_path, "r", encoding="utf-8") as fh:
+                return set(json.load(fh).get("disabled", []))
+    except Exception as exc:
+        logging.warning(f"ForecastService: could not read disabled_models.json: {exc}")
+    return set()
+
+
 def discover_models():
-    """Discover all trained models in models/ folder."""
+    """Discover all enabled trained models in models/ folder."""
     models_dir = os.path.abspath(MODELS_DIR)
     if not os.path.isdir(models_dir):
         return []
 
+    disabled = _load_disabled_models()
     found = []
     for ext in ("*.joblib", "*.pkl"):
         for path in sorted(glob.glob(os.path.join(models_dir, ext))):
             basename = os.path.basename(path)
             model_id = os.path.splitext(basename)[0]
+
+            # Skip disabled models
+            if model_id in disabled:
+                continue
+
             if "xgb" in model_id.lower():
-                label = f"XGBoost ({model_id})"
+                label = model_id
                 m_type = "xgb"
-            elif "arx" in model_id.lower():
-                label = f"ARX ({model_id})"
+            elif "arx" in model_id.lower() or "armax" in model_id.lower():
+                label = model_id
                 m_type = "arx"
             else:
-                label = f"Modèle ({model_id})"
+                label = model_id
                 m_type = "generic"
 
             found.append({
@@ -120,7 +136,13 @@ def load_model(name):
         with open(target_path, "rb") as f:
             obj = pickle.load(f)
         type_name = type(obj).__name__
-        model_type = "arx" if ("AutoReg" in type_name or "arx" in name.lower()) else "generic"
+        # Detect model family from the class name
+        if "SARIMAX" in type_name or "ARIMAX" in type_name:
+            model_type = "sarimax"
+        elif "AutoReg" in type_name or "arx" in name.lower():
+            model_type = "arx"
+        else:
+            model_type = "generic"
     elif ext == ".joblib":
         obj = _get_joblib().load(target_path)
         type_name = type(obj).__name__
@@ -130,19 +152,20 @@ def load_model(name):
 
     entry = {"type": model_type, "model": obj, "filename": os.path.basename(target_path)}
     _loaded_models[name] = entry
-    logging.info(f"ForecastService: loaded {name} ({type_name})")
+    logging.info(f"ForecastService: loaded {name} ({type_name}) → type={model_type}")
     return entry
 
 
 def fetch_weather_dataframe(lat, lon, days=3):
     """
-    Fetch weather from Open-Meteo weather & air quality APIs.
-    Constructs a DataFrame with all 9 required features for the given coordinates.
+    Fetch weather from Open-Meteo and AQI_US from IQAir.
+    Constructs a DataFrame with the 5 required model features:
+      Solar_Radiation_Wm2, Outdoor_Temp_C, Wind_Speed_ms, Humidity_pct, AQI_US
     """
     url_w = (
         f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
-        f"&hourly=shortwave_radiation,temperature_2m,dew_point_2m,"
-        f"wind_speed_10m,wind_direction_10m,relative_humidity_2m,rain"
+        f"&hourly=shortwave_radiation,temperature_2m,"
+        f"wind_speed_10m,relative_humidity_2m"
         f"&wind_speed_unit=ms&forecast_days={days}&timezone=auto"
     )
 
@@ -157,38 +180,20 @@ def fetch_weather_dataframe(lat, lon, days=3):
     times = dw["time"]
     n = len(times)
 
-    # Fetch air quality for PM2.5 and PM10
-    pm10_list = [22.0] * n
-    pm25_list = [11.0] * n
-    try:
-        url_aq = (
-            f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lat}&longitude={lon}"
-            f"&hourly=pm10,pm2_5&forecast_days={days}&timezone=auto"
-        )
-        req_aq = urllib.request.Request(url_aq, headers={"User-Agent": "LambdaCast/1.0"})
-        with urllib.request.urlopen(req_aq, timeout=6) as r:
-            daq = json.loads(r.read().decode())["hourly"]
-            if "pm10" in daq and daq["pm10"]:
-                pm10_list = [(x if x is not None else 20.0) for x in daq["pm10"]][:n]
-            if "pm2_5" in daq and daq["pm2_5"]:
-                pm25_list = [(x if x is not None else 10.0) for x in daq["pm2_5"]][:n]
-    except Exception as e:
-        logging.warning(f"ForecastService: Open-Meteo air quality fallback: {e}")
+    # Fetch current AQI_US from IQAir (single value broadcast across all hours)
+    iqair = IQAirService()
+    aqi_us = iqair.get_aqi_us_with_fallback(lat, lon)
+    aqi_list = [float(aqi_us)] * n
 
     df = pd.DataFrame({
         "time": pd.to_datetime(times),
         "Solar_Radiation_Wm2": np.array([(x if x is not None else 0.0) for x in dw.get("shortwave_radiation", [0.0]*n)], dtype=np.float64),
-        "Outdoor_Temp_C": np.array([(x if x is not None else 25.0) for x in dw.get("temperature_2m", [25.0]*n)], dtype=np.float64),
-        "Dew_Point_C": np.array([(x if x is not None else 15.0) for x in dw.get("dew_point_2m", [15.0]*n)], dtype=np.float64),
-        "Wind_Speed_ms": np.array([(x if x is not None else 2.0) for x in dw.get("wind_speed_10m", [2.0]*n)], dtype=np.float64),
-        "Wind_Dir_deg": np.array([(x if x is not None else 180.0) for x in dw.get("wind_direction_10m", [180.0]*n)], dtype=np.float64),
-        "Humidity_pct": np.array([(x if x is not None else 50.0) for x in dw.get("relative_humidity_2m", [50.0]*n)], dtype=np.float64),
-        "Rain_mm": np.array([(x if x is not None else 0.0) for x in dw.get("rain", [0.0]*n)], dtype=np.float64),
-        "PM25_ugm3": np.array(pm25_list, dtype=np.float64),
-        "PM10_ugm3": np.array(pm10_list, dtype=np.float64),
+        "Outdoor_Temp_C":      np.array([(x if x is not None else 25.0) for x in dw.get("temperature_2m", [25.0]*n)], dtype=np.float64),
+        "Wind_Speed_ms":       np.array([(x if x is not None else 2.0) for x in dw.get("wind_speed_10m", [2.0]*n)], dtype=np.float64),
+        "Humidity_pct":        np.array([(x if x is not None else 50.0) for x in dw.get("relative_humidity_2m", [50.0]*n)], dtype=np.float64),
+        "AQI_US":              np.array(aqi_list, dtype=np.float64),
     })
 
-    df["dew_point_2m (°C)"] = df["Dew_Point_C"]
     df = df.bfill().ffill().fillna(0.0)
     return df
 
@@ -205,21 +210,66 @@ def predict_model(model_entry, df):
         preds = np.where(df["Solar_Radiation_Wm2"] <= 5.0, 0.0, np.maximum(0.0, raw_preds))
         return preds
 
+    elif m_type == "sarimax":
+        # SARIMAX / ARIMAX: use get_forecast(steps, exog) for out-of-sample prediction.
+        # The model was trained with exog_names matching WEATHER_FEATURES.
+        model_obj = getattr(model, "model", model)
+        exog_names = getattr(model_obj, "exog_names", None) or WEATHER_FEATURES
+        # Keep only columns the model was trained with, in order
+        available = [c for c in exog_names if c in df.columns]
+        if len(available) != len(exog_names):
+            missing = [c for c in exog_names if c not in df.columns]
+            logging.warning(f"ForecastService SARIMAX: missing exog columns {missing}, padding 0")
+            for c in missing:
+                df[c] = 0.0
+        exog = df[exog_names].values  # shape (n_steps, k_exog)
+        n = len(df)
+        fc = model.get_forecast(steps=n, exog=exog)
+        raw_preds = fc.predicted_mean.values
+        preds = np.where(df["Solar_Radiation_Wm2"].values <= 5.0, 0.0, np.maximum(0.0, raw_preds))
+        return preds
+
     elif m_type == "arx":
         params = model.params
-        const = params.iloc[0]
-        ar_coefs = params.iloc[1:31].values
-        exog_coefs = params.iloc[31:].values
-        exog = df[ARX_EXOG_COLS].values
+        param_names = list(params.index)
 
-        history = [0.0] * 30
+        # Derive structure from param names — works for any AutoReg fitted result.
+        # statsmodels AutoReg param order: [const?] [DC.L1 … DC.Lk] [exog...]
+        # We detect AR lags by looking for the ".L" lag pattern.
+        has_const  = param_names[0] == "const"
+        param_start = 1 if has_const else 0
+        const      = params.iloc[0] if has_const else 0.0
+
+        lag_names  = [n for n in param_names if ".L" in n]
+        k_ar       = len(lag_names)
+        ar_coefs   = params.iloc[param_start : param_start + k_ar].values
+        exog_coefs = params.iloc[param_start + k_ar :].values
+
+        # Build the exog matrix — use only the columns present in the model.
+        # The param names after the AR lags are the exog column names.
+        exog_col_names = param_names[param_start + k_ar:]
+        # Validate all expected columns are in df; fall back gracefully if not
+        available = [c for c in exog_col_names if c in df.columns]
+        if len(available) != len(exog_col_names):
+            missing = [c for c in exog_col_names if c not in df.columns]
+            logging.warning(f"ForecastService ARX: missing exog columns {missing}, padding with 0")
+            for c in missing:
+                df[c] = 0.0
+        exog = df[exog_col_names].values
+
+        logging.debug(
+            f"ForecastService ARX: k_ar={k_ar}, k_exog={len(exog_coefs)}, "
+            f"exog_cols={exog_col_names}"
+        )
+
+        history = [0.0] * k_ar
         preds = []
         for i in range(len(df)):
             if df.loc[i, "Solar_Radiation_Wm2"] <= 5.0:
                 val = 0.0
             else:
-                ar_part = sum(ar_coefs[j] * history[-1 - j] for j in range(30))
-                exog_part = np.dot(exog_coefs, exog[i])
+                ar_part   = sum(ar_coefs[j] * history[-1 - j] for j in range(k_ar))
+                exog_part = np.dot(exog_coefs, exog[i]) if len(exog_coefs) > 0 else 0.0
                 val = max(0.0, float(const + ar_part + exog_part))
             preds.append(val)
             history.append(val)

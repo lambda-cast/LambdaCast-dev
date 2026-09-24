@@ -16,7 +16,7 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
-
+./models/.sarimax_model_unfiltered.pkl.wcjvgl
 # Distribution / packaging
 dist/
 build/
@@ -41,3 +41,6 @@ data/*.log
 .DS_Store
 *.swp
 *.swo
+models/.sarimax_model_unfiltered.pkl.wcjvgl
+models/*.pkl
+models/.*
